@@ -68,7 +68,7 @@ Aether Panel es **universal** y funciona en la mayoría de sistemas modernos.
 Ejecuta como **root**:
 
 <pre>
-curl -sL https://raw.githubusercontent.com/reychampi/aether-panel/refs/heads/main/installserver.sh | bash
+curl -sL https://raw.githubusercontent.com/femby08/aether-panel-prerelease/refs/heads/main/installserver.sh | bash
 </pre>
 
 ---
