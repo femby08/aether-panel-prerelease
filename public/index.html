@@ -61,7 +61,7 @@
             <div class="brand">
                 <div class="brand-logo"><img src="/logo.svg" alt="A" style="width:20px;"></div>
                 <span class="brand-name">AETHER</span>
-                <span class="version-badge" id="sidebar-version-text">V1.6.0</span>
+                <span class="version-badge" id="sidebar-version-text">...</span>
             </div>
             
             <nav>
@@ -97,10 +97,10 @@
                     </div>
                 </div>
                 <div class="actions" id="header-actions">
-                    <button onclick="api('power/start')" class="btn-control start" data-tooltip="Iniciar"><i class="fa-solid fa-play"></i></button>
-                    <button onclick="api('power/restart')" class="btn-control restart" data-tooltip="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
-                    <button onclick="api('power/stop')" class="btn-control stop" data-tooltip="Detener"><i class="fa-solid fa-stop"></i></button>
-                    <button onclick="api('power/kill')" class="btn-control kill" data-tooltip="Forzar Apagado"><i class="fa-solid fa-skull"></i></button>
+                    <button onclick="api('power/start')" class="btn-control start" title="Iniciar"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="api('power/restart')" class="btn-control restart" title="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
+                    <button onclick="api('power/stop')" class="btn-control stop" title="Detener"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="btn-control kill" title="Forzar"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
@@ -169,36 +169,10 @@
             <div id="tab-labs" class="tab-content">
                 <h2 style="margin-bottom:10px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
-                    <div class="mod-card-modern lab-purple">
-                        <span class="lab-tag new">NUEVO</span> <div class="mod-cover"><i class="fa-solid fa-puzzle-piece"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods fácilmente.</p><button class="btn-install" onclick="openModStore()">Abrir Tienda</button></div>
-                    </div>
-                    
-                    <div class="mod-card-modern lab-teal">
-                        <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
-                        <div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Prioridad alta al proceso Java.</p><div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center"><span style="font-size:0.8rem; font-weight:700; color:var(--muted)">ESTADO</span><label class="switch"><input type="checkbox" id="lab-turbo"><span class="slider round"></span></label></div></div>
-                    </div>
-                    
-                    <div class="mod-card-modern lab-orange">
-                        <span class="lab-tag alpha">ALPHA</span> <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Gestor de Archivos</div><p class="mod-desc">Explorador avanzado (Alpha).</p><button class="btn-install" onclick="setTab('files')">Abrir Gestor</button></div>
-                    </div>
-                    
-                    <div class="mod-card-modern lab-blue">
-                        <span class="lab-tag alpha">ALPHA</span>
-                        <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Gestión de copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Abrir Backups</button></div>
-                    </div>
-
-                    <div class="mod-card-modern lab-red">
-                        <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-calendar-days"></i></div>
-                        <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Automatiza reinicios y comandos.</p><button class="btn-install" disabled>Próximamente</button></div>
-                    </div>
-
-                    <div class="mod-card-modern lab-indigo">
-                        <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-network-wired"></i></div>
-                        <div class="mod-body"><div class="mod-title">Red & Puertos</div><p class="mod-desc">Gestión avanzada de puertos y proxy.</p><button class="btn-install" disabled>Próximamente</button></div>
-                    </div>
+                    <div class="mod-card-modern lab-purple"><div class="mod-cover"><i class="fa-solid fa-puzzle-piece"></i></div><div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods fácilmente.</p><button class="btn-install" onclick="openModStore()">Abrir Tienda</button></div></div>
+                    <div class="mod-card-modern lab-teal"><div class="mod-cover"><i class="fa-solid fa-bolt"></i></div><div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Prioridad alta al proceso Java.</p><div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center"><span style="font-size:0.8rem; font-weight:700; color:var(--muted)">ESTADO</span><label class="switch"><input type="checkbox" id="lab-turbo"><span class="slider round"></span></label></div></div></div>
+                    <div class="mod-card-modern lab-orange"><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div><div class="mod-body"><div class="mod-title">Gestor de Archivos</div><p class="mod-desc">Explorador avanzado (Alpha).</p><button class="btn-install" onclick="setTab('files')">Abrir Gestor</button></div></div>
+                    <div class="mod-card-modern lab-blue"><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div><div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Gestión de copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Abrir Backups</button></div></div>
                 </div>
             </div>
             

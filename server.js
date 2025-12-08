@@ -26,16 +26,25 @@ app.use(express.json());
 
 const mcServer = new MCManager(io);
 
-// CONFIGURACIÓN DE GITHUB (Para Updates - PRERELEASE)
-const apiClient = axios.create({ headers: { 'User-Agent': 'Nebula-Panel/1.3.0' } });
-// CAMBIO: Apunta al repositorio Prerelease para raw files
-const REPO_RAW = 'https://raw.githubusercontent.com/femby08/aether-panel-prerelease/main';
+// CONFIGURACIÓN DE GITHUB (Dinámica)
+// Detectamos si estamos en prerelease mirando el package.json o una variable de entorno
+const pkgLocal = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const IS_PRE = pkgLocal.version.includes('beta') || pkgLocal.version.includes('pre');
+
+const REPO_USER = 'femby08';
+const REPO_NAME = IS_PRE ? 'aether-panel-prerelease' : 'aether-panel';
+const REPO_RAW = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/main`;
+
+const apiClient = axios.create({ headers: { 'User-Agent': `Aether-Panel/${pkgLocal.version}` } });
+
+console.log(`>>> MODO: ${IS_PRE ? 'EXPERIMENTAL (Pre-release)' : 'ESTABLE'}`);
+console.log(`>>> REPO ORIGEN: ${REPO_RAW}`);
 
 // --- API: INFO DEL PANEL ---
 app.get('/api/info', (req, res) => {
     try {
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-        res.json({ version: pkg.version });
+        res.json({ version: pkg.version, channel: IS_PRE ? 'prerelease' : 'stable' });
     } catch (e) { res.json({ version: 'Unknown' }); }
 });
 
@@ -47,7 +56,12 @@ app.get('/api/update/check', async (req, res) => {
         
         // 1. Hard Update (Cambio de Versión)
         if (remotePkg.version !== localPkg.version) {
-            return res.json({ type: 'hard', local: localPkg.version, remote: remotePkg.version });
+            return res.json({ 
+                type: 'hard', 
+                local: localPkg.version, 
+                remote: remotePkg.version,
+                channel: IS_PRE ? 'prerelease' : 'stable'
+            });
         }
 
         // 2. Soft Update (Cambios Visuales en /public)
@@ -60,7 +74,6 @@ app.get('/api/update/check', async (req, res) => {
                 const localPath = path.join(__dirname, f);
                 if (fs.existsSync(localPath)) {
                     const localContent = fs.readFileSync(localPath, 'utf8');
-                    // Comparamos strings para ver si hubo cambios reales
                     if (JSON.stringify(remoteContent) !== JSON.stringify(localContent)) {
                         hasChanges = true; break;
                     }
@@ -78,16 +91,17 @@ app.get('/api/update/check', async (req, res) => {
 app.post('/api/update/perform', async (req, res) => {
     const { type } = req.body;
     
-    // HARD UPDATE: Llama al updater.sh y reinicia servicio
+    // HARD UPDATE: Pasa el flag al updater.sh
     if (type === 'hard') {
-        io.emit('toast', { type: 'warning', msg: '🔄 Iniciando actualización segura...' });
-        const updater = spawn('bash', ['/opt/aetherpanel/updater.sh'], { detached: true, stdio: 'ignore' });
+        const flag = IS_PRE ? '-pre' : '-stable';
+        io.emit('toast', { type: 'warning', msg: `🔄 Actualizando canal ${IS_PRE ? 'EXPERIMENTAL' : 'ESTABLE'}...` });
+        
+        const updater = spawn('bash', ['/opt/aetherpanel/updater.sh', flag], { detached: true, stdio: 'ignore' });
         updater.unref();
         res.json({ success: true, mode: 'hard' });
-        // Matamos el proceso de Node para dar paso al updater
         setTimeout(() => process.exit(0), 1000);
     } 
-    // SOFT UPDATE: Sobrescribe archivos visuales en caliente
+    // SOFT UPDATE
     else if (type === 'soft') {
         io.emit('toast', { type: 'info', msg: '🎨 Actualizando visuales...' });
         try {
@@ -96,7 +110,6 @@ app.post('/api/update/perform', async (req, res) => {
                 const c = (await apiClient.get(`${REPO_RAW}/${f}`)).data;
                 fs.writeFileSync(path.join(__dirname, f), typeof c === 'string' ? c : JSON.stringify(c));
             }
-            // Intentar bajar logos actualizados
             exec(`wget -q -O /opt/aetherpanel/public/logo.svg ${REPO_RAW}/public/logo.svg`);
             exec(`wget -q -O /opt/aetherpanel/public/logo.ico ${REPO_RAW}/public/logo.ico`);
             
@@ -105,7 +118,7 @@ app.post('/api/update/perform', async (req, res) => {
     }
 });
 
-// --- API: VERSIONES MINECRAFT (Mojang, Paper, Fabric, Forge) ---
+// --- API: VERSIONES MINECRAFT ---
 app.post('/api/nebula/versions', async (req, res) => {
     try {
         const t = req.body.type;
@@ -132,12 +145,15 @@ app.post('/api/nebula/resolve-vanilla', async (req, res) => {
 // --- API: INSTALADOR DE MODS ---
 app.post('/api/mods/install', async (req, res) => {
     const { url, name } = req.body;
+    const safeName = name.replace(/[^a-zA-Z0-9._-]/g, ''); // Sanitización
+    if (!safeName) return res.status(400).json({success: false, error: 'Nombre inválido'});
+
     const d = path.join(SERVER_DIR, 'mods');
     if(!fs.existsSync(d)) fs.mkdirSync(d);
     
-    io.emit('toast', {type:'info', msg:`Instalando ${name}...`});
+    io.emit('toast', {type:'info', msg:`Instalando ${safeName}...`});
     
-    exec(`wget -q -O "${path.join(d, name.replace(/\s+/g,'_')+'.jar')}" "${url}"`, (e)=>{
+    exec(`wget -q -O "${path.join(d, safeName + '.jar')}" "${url}"`, (e)=>{
         if(e) io.emit('toast',{type:'error', msg:'Error al descargar mod'}); 
         else io.emit('toast',{type:'success', msg:'Mod Instalado'});
     });
@@ -154,7 +170,7 @@ app.get('/api/stats', (req, res) => {
             ram_used: (os.totalmem() - os.freemem()) / 1048576, 
             ram_total: os.totalmem() / 1048576, 
             disk_used: d / 1048576, 
-            disk_total: 20480 // 20GB Límite visual
+            disk_total: 20480 
         }); 
     }); 
 });
@@ -162,8 +178,12 @@ app.get('/api/status', (req, res) => res.json(mcServer.getStatus()));
 
 // --- API: CONTROLES DE ENERGÍA ---
 app.post('/api/power/:a', async (req, res) => { 
+    const action = req.params.a;
+    const ALLOWED_ACTIONS = ['start', 'stop', 'restart', 'kill'];
+    if (!ALLOWED_ACTIONS.includes(action)) return res.status(403).json({ error: 'Acción no permitida' });
+
     try{
-        if(mcServer[req.params.a]) await mcServer[req.params.a]();
+        if(mcServer[action]) await mcServer[action]();
         res.json({success:true});
     } catch(e){ res.status(500).json({}); }
 });
@@ -190,12 +210,13 @@ app.post('/api/files/save', (req, res) => {
 });
 app.post('/api/files/upload', upload.single('file'), (req, res) => { 
     if(req.file){
-        fs.renameSync(req.file.path, path.join(SERVER_DIR, req.file.originalname)); 
+        const safeName = path.basename(req.file.originalname);
+        fs.renameSync(req.file.path, path.join(SERVER_DIR, safeName)); 
         res.json({success:true});
     } else res.json({success:false}); 
 });
 
-// --- API: CONFIGURACIÓN (server.properties) ---
+// --- API: CONFIGURACIÓN ---
 app.get('/api/config', (req, res) => res.json(mcServer.readProperties()));
 app.post('/api/config', (req, res) => { mcServer.writeProperties(req.body); res.json({success:true}); });
 
@@ -227,12 +248,11 @@ app.post('/api/backups/restore', async (req, res) => {
     exec(`rm -rf "${SERVER_DIR}"/* && tar -xzf "${path.join(BACKUP_DIR, req.body.name)}" -C "${path.join(__dirname,'servers')}"`, (e)=>res.json({success:!e})); 
 });
 
-// --- WEBSOCKETS (Consola y Logs) ---
+// --- WEBSOCKETS ---
 io.on('connection', (s) => { 
     s.emit('logs_history', mcServer.getRecentLogs()); 
     s.emit('status_change', mcServer.status); 
     s.on('command', (c) => mcServer.sendCommand(c)); 
 });
 
-// INICIAR SERVIDOR
-server.listen(3000, () => console.log('Nebula (Prerelease) running on port 3000'));
+server.listen(3000, () => console.log('Aether Panel Running on 3000'));
