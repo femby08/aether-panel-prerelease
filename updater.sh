@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# AETHER PANEL - SMART UPDATER
-# Lee el archivo .channel para saber qué descargar
+# AETHER PANEL - SMART UPDATER (Final Version)
 # ============================================================
 
 APP_DIR="/opt/aetherpanel"
@@ -10,23 +9,25 @@ LOG="/opt/aetherpanel/update.log"
 BACKUP_DIR="/opt/aetherpanel_backup_temp"
 TEMP_DIR="/tmp/aether_update_temp"
 
-# 1. DETERMINAR CANAL
-# Si existe el archivo .channel, úsalo. Si no, asume stable.
+# 1. DETERMINAR CANAL (Lectura inteligente)
 if [ -f "$APP_DIR/.channel" ]; then
     CHANNEL=$(cat "$APP_DIR/.channel" | tr -d '[:space:]')
 else
-    CHANNEL="stable"
-    echo "stable" > "$APP_DIR/.channel"
+    # Si no existe archivo de canal, intentamos detectar por argumento legado
+    if [ "$1" == "-pre" ]; then
+        CHANNEL="prerelease"
+    else
+        CHANNEL="stable"
+    fi
+    # Guardamos la preferencia para el futuro
+    echo "$CHANNEL" > "$APP_DIR/.channel"
 fi
 
-# DEFINICIÓN DE REPOSITORIOS
-REPO_STABLE="https://github.com/femby08/aether-panel/archive/refs/heads/main.zip"
-REPO_PRE="https://github.com/femby08/aether-panel-prerelease/archive/refs/heads/main.zip"
-
+# 2. SELECCIONAR REPOSITORIO
 if [ "$CHANNEL" == "prerelease" ]; then
-    REPO_ZIP="$REPO_PRE"
+    REPO_ZIP="https://github.com/femby08/aether-panel-prerelease/archive/refs/heads/main.zip"
 else
-    REPO_ZIP="$REPO_STABLE"
+    REPO_ZIP="https://github.com/femby08/aether-panel/archive/refs/heads/main.zip"
 fi
 
 log_msg() {
@@ -36,61 +37,74 @@ log_msg() {
 
 log_msg "--- 🌌 INICIANDO ACTUALIZACIÓN (Canal: $CHANNEL) ---"
 
-# 2. PREPARACIÓN
+# 3. PREPARACIÓN
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR"
 
 # Descargar
-log_msg "⬇️ Descargando ZIP desde GitHub ($CHANNEL)..."
+log_msg "⬇️ Descargando código fuente..."
 wget -q "$REPO_ZIP" -O /tmp/aether_update.zip || curl -L "$REPO_ZIP" -o /tmp/aether_update.zip
 
 if [ ! -s /tmp/aether_update.zip ]; then
-    log_msg "❌ ERROR: El archivo ZIP está vacío o no se descargó."
+    log_msg "❌ ERROR CRÍTICO: No se pudo descargar el archivo ZIP."
     exit 1
 fi
 
 unzip -q -o /tmp/aether_update.zip -d "$TEMP_DIR"
 
-# Encontrar carpeta raíz (ignora el nombre de la carpeta del zip)
+# Encontrar la carpeta raíz descomprimida (a veces github añade -main al nombre)
 NEW_SOURCE=$(find "$TEMP_DIR" -name "package.json" | head -n 1 | xargs dirname)
 if [ -z "$NEW_SOURCE" ]; then
-    log_msg "❌ ERROR: ZIP inválido (no se encontró package.json)."
+    log_msg "❌ ERROR: El ZIP descargado no contiene un panel válido."
     exit 1
 fi
 
-# 3. BACKUP
-log_msg "💾 Creando backup..."
+# 4. BACKUP DE SEGURIDAD
+log_msg "💾 Creando copia de seguridad..."
 rm -rf "$BACKUP_DIR"
-cp -r "$APP_DIR" "$BACKUP_DIR"
+# Solo hacemos backup si existe el directorio
+if [ -d "$APP_DIR" ]; then
+    cp -r "$APP_DIR" "$BACKUP_DIR"
+fi
 
-# 4. INSTALACIÓN
-systemctl stop aetherpanel
+# 5. INSTALACIÓN
+log_msg "⚙️ Aplicando actualización..."
+systemctl stop aetherpanel 2>/dev/null
 
-# Copiar archivos (Sobrescribir todo)
+# Asegurar directorio destino
+mkdir -p "$APP_DIR"
+
+# Copiar archivos (Sobrescribir)
 cp -rf "$NEW_SOURCE/"* "$APP_DIR/"
 
-# Restaurar el archivo .channel (por si el zip lo borra)
+# Restaurar archivo de canal (importante para no perder la config)
 echo "$CHANNEL" > "$APP_DIR/.channel"
 
-# Reinstalar dependencias
+# Permisos y Dependencias
 cd "$APP_DIR"
+chmod +x updater.sh
+log_msg "📦 Instalando dependencias NPM..."
 npm install --production >> $LOG 2>&1
-chmod +x "$APP_DIR/updater.sh"
 
-# 5. FINALIZACIÓN
-log_msg "🚀 Reiniciando servicio..."
+# 6. REINICIO Y VERIFICACIÓN
+log_msg "🚀 Iniciando servicio..."
 systemctl start aetherpanel
 sleep 5
 
 if systemctl is-active --quiet aetherpanel; then
-    log_msg "✅ ACTUALIZADO CORRECTAMENTE A LA VERSIÓN DE: $CHANNEL"
+    log_msg "✅ ACTUALIZACIÓN EXITOSA: Sistema operativo en v$(node -p "require('./package.json').version") ($CHANNEL)"
 else
     log_msg "🚨 FALLO AL INICIAR. RESTAURANDO BACKUP..."
     systemctl stop aetherpanel
-    rm -rf "$APP_DIR"/*
-    cp -r "$BACKUP_DIR/"* "$APP_DIR/"
-    systemctl start aetherpanel
-    log_msg "⏪ SISTEMA RESTAURADO."
+    if [ -d "$BACKUP_DIR" ]; then
+        rm -rf "$APP_DIR"/*
+        cp -r "$BACKUP_DIR/"* "$APP_DIR/"
+        systemctl start aetherpanel
+        log_msg "⏪ Sistema restaurado a la versión anterior."
+    else
+        log_msg "❌ No hay backup disponible para restaurar."
+    fi
 fi
 
+# Limpieza
 rm -rf "$TEMP_DIR" /tmp/aether_update.zip
