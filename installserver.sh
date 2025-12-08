@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# AETHER PANEL - INSTALLER (Menu Interactivo)
+# AETHER PANEL - INSTALADOR ROBUSTO
 # ============================================================
 
 APP_DIR="/opt/aetherpanel"
@@ -19,8 +19,8 @@ echo "           🌌 AETHER PANEL - INSTALADOR"
 echo "============================================================"
 echo " Selecciona la versión que deseas instalar:"
 echo ""
-echo " [1] Estable      (Recomendado para producción)"
-echo " [2] Prerelease   (Experimental / Pruebas)"
+echo " [1] Estable      (Repositorio: aether-panel)"
+echo " [2] Prerelease   (Repositorio: aether-panel-prerelease)"
 echo ""
 echo "============================================================"
 read -p ">> Elige una opción [1 o 2]: " CHOICE
@@ -40,45 +40,47 @@ case $CHOICE in
         ;;
     *)
         echo ""
-        echo "❌ Opción inválida. Por favor reinicia el instalador y elige 1 o 2."
+        echo "❌ Opción inválida."
         exit 1
         ;;
 esac
 
 echo "============================================================"
-echo "⏳ Preparando instalación en 3 segundos..."
-sleep 3
+echo "⏳ Preparando instalación..."
+sleep 2
 
 # 3. INSTALACIÓN DE DEPENDENCIAS
-echo "📦 Instalando dependencias del sistema..."
+echo "📦 Instalando dependencias..."
 apt-get update -qq
 apt-get install -y -qq curl wget unzip git default-jre
 
-# Instalar Node.js si no existe
 if ! command -v node &> /dev/null; then
     echo "🟢 Instalando Node.js LTS..."
     curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
     apt-get install -y -qq nodejs
 fi
 
-# 4. PREPARACIÓN DE DIRECTORIO
+# 4. PREPARACIÓN DE DIRECTORIO Y CANAL
 mkdir -p "$APP_DIR"
 
-# 5. DESCARGA DEL UPDATER CORRECTO
+# --- CRUCIAL: GUARDAR LA ELECCIÓN DEL USUARIO ---
+echo "$CHANNEL" > "$APP_DIR/.channel"
+echo "🔒 Canal fijado en: $CHANNEL"
+# -----------------------------------------------
+
+# 5. DESCARGA DEL UPDATER
 echo "⬇️  Descargando el instalador del canal: $CHANNEL..."
 curl -H 'Cache-Control: no-cache' -s "$UPDATER_URL" -o "$APP_DIR/updater.sh"
 
-# Verificamos si se descargó bien
 if [ ! -s "$APP_DIR/updater.sh" ]; then
-    echo "❌ Error crítico: No se pudo descargar el updater desde GitHub."
-    echo "   Verifica tu conexión a internet o la URL del repositorio."
+    echo "❌ Error crítico: No se pudo descargar el updater."
     exit 1
 fi
 
 chmod +x "$APP_DIR/updater.sh"
 
-# 6. CREACIÓN DEL SERVICIO SYSTEMD
-echo "⚙️  Configurando servicio del sistema (Systemd)..."
+# 6. SERVICIO SYSTEMD
+echo "⚙️  Configurando servicio..."
 cat > /etc/systemd/system/aetherpanel.service <<EOF
 [Unit]
 Description=Aether Panel Service
@@ -98,13 +100,9 @@ EOF
 systemctl daemon-reload
 systemctl enable aetherpanel
 
-# 7. EJECUTAR EL UPDATER CON LA BANDERA CORRESPONDIENTE
+# 7. EJECUTAR INSTALACIÓN
 echo "🚀 Ejecutando instalación de archivos..."
-if [ "$CHANNEL" == "prerelease" ]; then
-    bash "$APP_DIR/updater.sh" -pre
-else
-    bash "$APP_DIR/updater.sh" -stable
-fi
+bash "$APP_DIR/updater.sh"
 
 echo ""
-echo "✅ Instalación completada. El servicio debería estar corriendo."
+echo "✅ Instalación completada."
