@@ -7,7 +7,7 @@
 
     <!-- Fuentes y Estilos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
@@ -23,7 +23,7 @@
 </head>
 <body>
 
-    <!-- Fondo Animado (Solo visible en modo Glass) -->
+    <!-- Fondo Animado -->
     <div class="background-layer">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -31,53 +31,74 @@
 
     <!-- === MODALES === -->
     
-    <!-- Modal Personalización -->
+    <!-- Modal Personalización & Mantenimiento -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-paintbrush"></i> Apariencia</h3>
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Personalización</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body settings-stack">
                 
-                <div class="cfg-item">
-                    <label class="cfg-label">Tema del Sistema</label>
-                    <div class="control-group">
-                        <button id="theme-btn-light" onclick="setTheme('light')" class="control-btn"><i class="fa-solid fa-sun"></i> Claro</button>
-                        <button id="theme-btn-dark" onclick="setTheme('dark')" class="control-btn active"><i class="fa-solid fa-moon"></i> Oscuro</button>
-                        <button id="theme-btn-auto" onclick="setTheme('auto')" class="control-btn"><i class="fa-solid fa-desktop"></i> Auto</button>
-                    </div>
-                </div>
-
-                <div class="cfg-item">
-                    <label class="cfg-label">Estilo de Interfaz</label>
-                    <div class="control-group">
-                        <button onclick="setDesign('glass')" id="modal-btn-glass" class="control-btn active"><i class="fa-brands fa-apple"></i> Liquid Glass</button>
-                        <button onclick="setDesign('material')" id="modal-btn-material" class="control-btn"><i class="fa-brands fa-android"></i> Material 3</button>
-                    </div>
-                </div>
-
-                <div class="cfg-item">
-                    <label class="cfg-label">Color de Acento</label>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="control-btn active" style="flex:1">Automático</button>
-                        <button id="accent-mode-manual" onclick="setAccentMode('manual')" class="control-btn" style="flex:1">Manual</button>
-                    </div>
-                    <div id="manual-color-wrapper" style="display:none; animation:fadeIn 0.3s">
-                        <div style="display:flex; gap:10px; align-items:center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;">
-                            <input type="color" id="accent-picker" style="height:40px; width:60px; padding:0; border:none; background:none; cursor:pointer;" onchange="setAccentColor(this.value)">
-                            <div style="font-size:0.8rem; color:var(--text-muted)">Selecciona un color personalizado</div>
+                <!-- Sección Visual -->
+                <div class="cfg-section">
+                    <div class="cfg-item">
+                        <label class="cfg-label">Tema</label>
+                        <div class="control-group">
+                            <button id="theme-btn-light" onclick="setTheme('light')" class="control-btn"><i class="fa-solid fa-sun"></i> Claro</button>
+                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="control-btn active"><i class="fa-solid fa-moon"></i> Oscuro</button>
+                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="control-btn"><i class="fa-solid fa-desktop"></i> Auto</button>
                         </div>
                     </div>
+
+                    <div class="cfg-item">
+                        <label class="cfg-label">Estilo</label>
+                        <div class="control-group">
+                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="control-btn active"><i class="fa-brands fa-apple"></i> Liquid</button>
+                            <button onclick="setDesign('material')" id="modal-btn-material" class="control-btn"><i class="fa-brands fa-android"></i> Material</button>
+                        </div>
+                    </div>
+
+                    <div class="cfg-item">
+                        <label class="cfg-label">Acento</label>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="control-btn active" style="flex:1">Auto</button>
+                            <button id="accent-mode-manual" onclick="setAccentMode('manual')" class="control-btn" style="flex:1">Manual</button>
+                        </div>
+                        <div id="manual-color-wrapper" style="display:none; animation:fadeIn 0.3s">
+                            <div class="color-picker-row">
+                                <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
+                                <span>Elige tu color favorito</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección Mantenimiento (NUEVA) -->
+                <div class="cfg-divider"></div>
+                
+                <div class="cfg-section">
+                    <label class="cfg-label" style="margin-bottom: 12px; color: var(--primary);">Sistema & Actualizaciones</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="checkUpdate()" class="btn btn-secondary" style="justify-content: center;">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Actualizar Panel
+                        </button>
+                        <button onclick="forceUIUpdate()" class="btn btn-secondary" style="justify-content: center;">
+                            <i class="fa-solid fa-paintbrush"></i> Recargar UI
+                        </button>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                        Versión actual: <span id="modal-version-text">v2.1</span>
+                    </p>
                 </div>
 
             </div>
         </div>
     </div>
 
-    <!-- Modal Versiones / Tienda -->
+    <!-- Otros Modales -->
     <div id="version-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 600px; max-height: 80vh;">
+        <div class="modal-card" style="max-width: 600px; max-height: 85vh;">
             <div class="modal-header">
                 <h3 id="modal-title">Título</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
@@ -86,21 +107,45 @@
         </div>
     </div>
 
-    <!-- Modal RAM -->
     <div id="ram-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-memory"></i> Memoria RAM</h3>
+                <h3><i class="fa-solid fa-memory"></i> Asignar RAM</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
-                <p style="margin-bottom: 10px; color: var(--text-muted)">Asigna el límite para el servidor:</p>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold;">
-                    <span>Límite</span>
-                    <span id="ram-txt" style="color: var(--primary)">4 GB</span>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: flex-end;">
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">Límite del servidor</span>
+                    <span id="ram-txt" style="color: var(--primary); font-size: 1.5rem; font-weight: 800;">4 GB</span>
                 </div>
-                <input type="range" id="ram-slider" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" style="width: 100%; margin-bottom: 20px;">
-                <button class="btn btn-primary" style="width: 100%" onclick="confirmInstall()">Confirmar Instalación</button>
+                <input type="range" id="ram-slider" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" class="range-slider">
+                <div style="margin-top: 25px;">
+                    <button class="btn btn-primary" style="width: 100%" onclick="confirmInstall()">Instalar y Reiniciar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="update-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-body">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
+                <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
+                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Una nueva versión del sistema está lista para instalar.</p>
+                <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="force-ui-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 350px;">
+            <div class="modal-header"><h3><i class="fa-solid fa-rotate"></i> Recargar UI</h3></div>
+            <div class="modal-body">
+                <p style="color:var(--text-muted); margin-bottom:20px; line-height: 1.5;">¿Deseas volver a descargar los archivos visuales? Esto corregirá errores gráficos.</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmForceUI()">Confirmar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -108,7 +153,6 @@
     <!-- LAYOUT PRINCIPAL -->
     <div class="app-layout">
         
-        <!-- SIDEBAR -->
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
@@ -132,19 +176,18 @@
 
             <div class="sidebar-footer">
                 <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;">
-                    <i class="fa-solid fa-palette"></i> Personalizar
+                    <i class="fa-solid fa-paintbrush"></i> Personalizar
                 </button>
                 <div class="user-card">
                     <div id="status-dot" class="status-dot"></div>
                     <div class="user-info">
                         <span style="font-weight:700" id="status-text">OFFLINE</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado del Socket</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado del Servidor</span>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- CONTENIDO -->
         <main class="main-content">
             <header class="top-bar">
                 <div>
@@ -161,7 +204,7 @@
                 </div>
             </header>
 
-            <!-- PESTAÑA: MONITOR -->
+            <!-- MONITOR -->
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
                     <div class="card glass-panel">
@@ -178,7 +221,7 @@
                             <span class="big-number" id="ram-val">0 GB</span>
                             <div style="font-size:0.9rem; color:var(--text-muted)" id="ram-max">de 4 GB</div>
                         </div>
-                        <div class="progress-bar-bg"><div id="ram-bar" class="progress-bar-fill" style="width:0%; background:#3b82f6"></div></div>
+                        <div class="progress-bar-bg"><div id="ram-bar" class="progress-bar-fill" style="width:0%; background:var(--accent)"></div></div>
                     </div>
                     <div class="card glass-panel">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
@@ -191,19 +234,19 @@
                 </div>
             </div>
 
-            <!-- PESTAÑA: CONSOLA -->
+            <!-- CONSOLA -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
                     <div class="console-header"><i class="fa-solid fa-terminal"></i> root@server:~</div>
                     <div id="terminal" class="console-output" style="padding:0"></div>
                     <div class="console-input-area">
                         <span>❯</span>
-                        <input type="text" id="console-input" placeholder="Comando..." onkeydown="if(event.key==='Enter') sendCommand()">
+                        <input type="text" id="console-input" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter') sendCommand()">
                     </div>
                 </div>
             </div>
 
-            <!-- PESTAÑA: VERSIONES -->
+            <!-- VERSIONES -->
             <div id="tab-versions" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
@@ -230,18 +273,18 @@
                 </div>
             </div>
 
-            <!-- PESTAÑA: ARCHIVOS -->
+            <!-- ARCHIVOS -->
             <div id="tab-files" class="tab-view">
                 <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
                     <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
-                        <div id="breadcrumb" style="font-family:monospace; color:var(--text-muted)">/home/container</div>
+                        <div id="breadcrumb" style="font-family:monospace; color:var(--text-muted); font-weight: 600;">/home/container</div>
                         <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
                     </div>
                     <div id="file-list"></div>
                 </div>
             </div>
 
-            <!-- PESTAÑA: LABS -->
+            <!-- LABS -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Aether Labs</h2>
                 <div class="stats-grid">
@@ -276,7 +319,7 @@
 
             <div id="tab-backups" class="tab-view">
                 <div class="glass-panel">
-                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Copias de Seguridad</h3>
                         <button class="btn btn-primary" onclick="createBackup()">Crear Backup Nuevo</button>
                     </div>
