@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="dark" data-design="glass">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aether Panel | Next</title>
+    <title>Aether Panel | Ultimate</title>
 
+    <!-- Fuentes y Estilos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <link rel="stylesheet" href="style.css">
 
+    <!-- Librerías JS -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
@@ -21,26 +23,92 @@
 </head>
 <body>
 
-    <!-- Fondo de Orbes de Neón -->
+    <!-- Fondo Animado (Solo visible en modo Glass) -->
     <div class="background-layer">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- === MODALES (Ocultos por defecto) === -->
-    <div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this) closeAllModals()">
-        <!-- Modal Contenido Dinámico -->
-        <div id="modal-card" class="modal-card">
+    <!-- === MODALES === -->
+    
+    <!-- Modal Personalización -->
+    <div id="appearance-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-paintbrush"></i> Apariencia</h3>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body settings-stack">
+                
+                <div class="cfg-item">
+                    <label class="cfg-label">Tema del Sistema</label>
+                    <div class="control-group">
+                        <button id="theme-btn-light" onclick="setTheme('light')" class="control-btn"><i class="fa-solid fa-sun"></i> Claro</button>
+                        <button id="theme-btn-dark" onclick="setTheme('dark')" class="control-btn active"><i class="fa-solid fa-moon"></i> Oscuro</button>
+                        <button id="theme-btn-auto" onclick="setTheme('auto')" class="control-btn"><i class="fa-solid fa-desktop"></i> Auto</button>
+                    </div>
+                </div>
+
+                <div class="cfg-item">
+                    <label class="cfg-label">Estilo de Interfaz</label>
+                    <div class="control-group">
+                        <button onclick="setDesign('glass')" id="modal-btn-glass" class="control-btn active"><i class="fa-brands fa-apple"></i> Liquid Glass</button>
+                        <button onclick="setDesign('material')" id="modal-btn-material" class="control-btn"><i class="fa-brands fa-android"></i> Material 3</button>
+                    </div>
+                </div>
+
+                <div class="cfg-item">
+                    <label class="cfg-label">Color de Acento</label>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="control-btn active" style="flex:1">Automático</button>
+                        <button id="accent-mode-manual" onclick="setAccentMode('manual')" class="control-btn" style="flex:1">Manual</button>
+                    </div>
+                    <div id="manual-color-wrapper" style="display:none; animation:fadeIn 0.3s">
+                        <div style="display:flex; gap:10px; align-items:center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;">
+                            <input type="color" id="accent-picker" style="height:40px; width:60px; padding:0; border:none; background:none; cursor:pointer;" onchange="setAccentColor(this.value)">
+                            <div style="font-size:0.8rem; color:var(--text-muted)">Selecciona un color personalizado</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Versiones / Tienda -->
+    <div id="version-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 600px; max-height: 80vh;">
             <div class="modal-header">
                 <h3 id="modal-title">Título</h3>
-                <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
 
+    <!-- Modal RAM -->
+    <div id="ram-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-memory"></i> Memoria RAM</h3>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; color: var(--text-muted)">Asigna el límite para el servidor:</p>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold;">
+                    <span>Límite</span>
+                    <span id="ram-txt" style="color: var(--primary)">4 GB</span>
+                </div>
+                <input type="range" id="ram-slider" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" style="width: 100%; margin-bottom: 20px;">
+                <button class="btn btn-primary" style="width: 100%" onclick="confirmInstall()">Confirmar Instalación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
     <div class="app-layout">
-        <!-- Barra Lateral -->
+        
+        <!-- SIDEBAR -->
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
@@ -51,26 +119,32 @@
             </div>
             
             <nav class="nav-menu">
+                <div class="nav-label">CONTROL</div>
                 <button onclick="setTab('stats', this)" class="nav-item active"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
                 <button onclick="setTab('console', this)" class="nav-item"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
                 <button onclick="setTab('versions', this)" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                
+                <div class="nav-label">SISTEMA</div>
                 <button onclick="setTab('files', this)" class="nav-item"><i class="fa-solid fa-folder-open"></i><span>Archivos</span></button>
                 <button onclick="setTab('labs', this)" class="nav-item"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
                 <button onclick="setTab('config', this)" class="nav-item"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;">
+                    <i class="fa-solid fa-palette"></i> Personalizar
+                </button>
                 <div class="user-card">
                     <div id="status-dot" class="status-dot"></div>
                     <div class="user-info">
                         <span style="font-weight:700" id="status-text">OFFLINE</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado del Socket</span>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Contenido -->
+        <!-- CONTENIDO -->
         <main class="main-content">
             <header class="top-bar">
                 <div>
@@ -83,10 +157,11 @@
                     <button onclick="api('power/start')" class="action-btn start" title="Iniciar"><i class="fa-solid fa-play"></i></button>
                     <button onclick="api('power/restart')" class="action-btn restart" title="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
                     <button onclick="api('power/stop')" class="action-btn stop" title="Detener"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151" title="Forzar"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
-            <!-- MONITOR -->
+            <!-- PESTAÑA: MONITOR -->
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
                     <div class="card glass-panel">
@@ -116,7 +191,7 @@
                 </div>
             </div>
 
-            <!-- CONSOLA -->
+            <!-- PESTAÑA: CONSOLA -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
                     <div class="console-header"><i class="fa-solid fa-terminal"></i> root@server:~</div>
@@ -128,7 +203,7 @@
                 </div>
             </div>
 
-            <!-- VERSIONES (Arreglado y Colorido) -->
+            <!-- PESTAÑA: VERSIONES -->
             <div id="tab-versions" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
@@ -155,10 +230,10 @@
                 </div>
             </div>
 
-            <!-- ARCHIVOS -->
+            <!-- PESTAÑA: ARCHIVOS -->
             <div id="tab-files" class="tab-view">
-                <div class="glass-panel" style="min-height:500px">
-                    <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between">
+                <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
+                    <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
                         <div id="breadcrumb" style="font-family:monospace; color:var(--text-muted)">/home/container</div>
                         <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
                     </div>
@@ -166,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- LABS -->
+            <!-- PESTAÑA: LABS -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Aether Labs</h2>
                 <div class="stats-grid">
@@ -188,13 +263,31 @@
                 </div>
             </div>
             
-            <!-- BACKUPS Y CONFIG -->
-            <div id="tab-config" class="tab-view"><div id="cfg-list" class="stats-grid"></div><button class="btn btn-primary" style="margin-top:20px" onclick="saveCfg()">Guardar</button></div>
-            <div id="tab-backups" class="tab-view"><div class="glass-panel"><div style="padding:20px"><button class="btn btn-primary" onclick="createBackup()">Crear Backup</button></div><div id="backup-list"></div></div></div>
+            <!-- PESTAÑAS: CONFIG Y BACKUPS -->
+            <div id="tab-config" class="tab-view">
+                <div class="glass-panel" style="padding: 24px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Configuración del Servidor</h3>
+                        <button class="btn btn-primary" onclick="saveCfg()">Guardar Cambios</button>
+                    </div>
+                    <div id="cfg-list" class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+                </div>
+            </div>
+
+            <div id="tab-backups" class="tab-view">
+                <div class="glass-panel">
+                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                        <h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Copias de Seguridad</h3>
+                        <button class="btn btn-primary" onclick="createBackup()">Crear Backup Nuevo</button>
+                    </div>
+                    <div id="backup-list"></div>
+                </div>
+            </div>
 
         </main>
     </div>
 
+    <!-- Cargar Lógica -->
     <script src="app.js"></script>
 </body>
 </html>
