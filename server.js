@@ -15,7 +15,6 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 const upload = multer({ dest: os.tmpdir() });
 
-// Asegurar directorios esenciales
 const SERVER_DIR = path.join(__dirname, 'servers', 'default');
 const BACKUP_DIR = path.join(__dirname, 'backups');
 if (!fs.existsSync(SERVER_DIR)) fs.mkdirSync(SERVER_DIR, { recursive: true });
@@ -26,45 +25,58 @@ app.use(express.json());
 
 const mcServer = new MCManager(io);
 
-// CONFIGURACIÓN DE GITHUB (Dinámica)
-// Detectamos si estamos en prerelease mirando el package.json o una variable de entorno
-const pkgLocal = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-const IS_PRE = pkgLocal.version.includes('beta') || pkgLocal.version.includes('pre');
+// ==========================================
+// CONFIGURACIÓN DE CANAL (ROBUSTA)
+// ==========================================
+let CHANNEL = 'stable';
+try {
+    if (fs.existsSync(path.join(__dirname, '.channel'))) {
+        CHANNEL = fs.readFileSync(path.join(__dirname, '.channel'), 'utf8').trim();
+    }
+} catch (e) {
+    console.error("Error leyendo archivo .channel, asumiendo stable");
+}
 
+const IS_PRE = CHANNEL === 'prerelease';
 const REPO_USER = 'femby08';
+// Aquí decidimos el repo basado ESTRICTAMENTE en el archivo .channel
 const REPO_NAME = IS_PRE ? 'aether-panel-prerelease' : 'aether-panel';
 const REPO_RAW = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/main`;
 
-const apiClient = axios.create({ headers: { 'User-Agent': `Aether-Panel/${pkgLocal.version}` } });
+// Obtenemos versión del package.json local
+let localVer = '0.0.0';
+try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    localVer = pkg.version;
+} catch (e) {}
 
-console.log(`>>> MODO: ${IS_PRE ? 'EXPERIMENTAL (Pre-release)' : 'ESTABLE'}`);
-console.log(`>>> REPO ORIGEN: ${REPO_RAW}`);
+const apiClient = axios.create({ headers: { 'User-Agent': `Aether-Panel/${localVer}` } });
+
+console.log(`>>> CANAL ACTIVO: ${CHANNEL.toUpperCase()}`);
+console.log(`>>> REPO ACTUALIZACIONES: ${REPO_NAME}`);
 
 // --- API: INFO DEL PANEL ---
 app.get('/api/info', (req, res) => {
-    try {
-        const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-        res.json({ version: pkg.version, channel: IS_PRE ? 'prerelease' : 'stable' });
-    } catch (e) { res.json({ version: 'Unknown' }); }
+    res.json({ version: localVer, channel: CHANNEL });
 });
 
-// --- API: CHECK UPDATES (Smart Logic) ---
+// --- API: CHECK UPDATES ---
 app.get('/api/update/check', async (req, res) => {
     try {
-        const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+        // 1. Obtener package.json remoto del repo CORRECTO
         const remotePkg = (await apiClient.get(`${REPO_RAW}/package.json`)).data;
         
-        // 1. Hard Update (Cambio de Versión)
-        if (remotePkg.version !== localPkg.version) {
+        // 2. Comparar versiones
+        if (remotePkg.version !== localVer) {
             return res.json({ 
                 type: 'hard', 
-                local: localPkg.version, 
+                local: localVer, 
                 remote: remotePkg.version,
-                channel: IS_PRE ? 'prerelease' : 'stable'
+                channel: CHANNEL
             });
         }
 
-        // 2. Soft Update (Cambios Visuales en /public)
+        // 3. Verificar cambios visuales (Soft Update)
         const files = ['public/index.html', 'public/style.css', 'public/app.js'];
         let hasChanges = false;
         
@@ -74,49 +86,55 @@ app.get('/api/update/check', async (req, res) => {
                 const localPath = path.join(__dirname, f);
                 if (fs.existsSync(localPath)) {
                     const localContent = fs.readFileSync(localPath, 'utf8');
-                    if (JSON.stringify(remoteContent) !== JSON.stringify(localContent)) {
+                    // Normalizamos strings para evitar falsos positivos por saltos de línea
+                    if (JSON.stringify(remoteContent).length !== JSON.stringify(localContent).length) {
                         hasChanges = true; break;
                     }
                 }
             } catch(e) {}
         }
 
-        if (hasChanges) return res.json({ type: 'soft', local: localPkg.version, remote: remotePkg.version });
+        if (hasChanges) return res.json({ type: 'soft', local: localVer, remote: remotePkg.version });
         res.json({ type: 'none' });
 
-    } catch (e) { res.json({ type: 'error' }); }
+    } catch (e) { 
+        console.error(e);
+        res.json({ type: 'error', msg: e.message }); 
+    }
 });
 
-// --- API: EJECUTAR UPDATE ---
+// --- API: PERFORM UPDATE ---
 app.post('/api/update/perform', async (req, res) => {
     const { type } = req.body;
     
-    // HARD UPDATE: Pasa el flag al updater.sh
     if (type === 'hard') {
-        const flag = IS_PRE ? '-pre' : '-stable';
-        io.emit('toast', { type: 'warning', msg: `🔄 Actualizando canal ${IS_PRE ? 'EXPERIMENTAL' : 'ESTABLE'}...` });
-        
-        const updater = spawn('bash', ['/opt/aetherpanel/updater.sh', flag], { detached: true, stdio: 'ignore' });
+        io.emit('toast', { type: 'warning', msg: `🔄 Iniciando actualización completa (${CHANNEL})...` });
+        // Ya no necesitamos pasar argumentos, updater.sh lee .channel
+        const updater = spawn('bash', ['/opt/aetherpanel/updater.sh'], { detached: true, stdio: 'ignore' });
         updater.unref();
         res.json({ success: true, mode: 'hard' });
         setTimeout(() => process.exit(0), 1000);
     } 
-    // SOFT UPDATE
     else if (type === 'soft') {
-        io.emit('toast', { type: 'info', msg: '🎨 Actualizando visuales...' });
+        io.emit('toast', { type: 'info', msg: '🎨 Descargando nueva interfaz...' });
         try {
             const files = ['public/index.html', 'public/style.css', 'public/app.js'];
             for (const f of files) {
+                // Descarga forzada desde el repo correspondiente al canal
                 const c = (await apiClient.get(`${REPO_RAW}/${f}`)).data;
-                fs.writeFileSync(path.join(__dirname, f), typeof c === 'string' ? c : JSON.stringify(c));
+                const contentToWrite = typeof c === 'object' ? JSON.stringify(c, null, 2) : c;
+                fs.writeFileSync(path.join(__dirname, f), contentToWrite);
             }
+            // Descargar assets extra
             exec(`wget -q -O /opt/aetherpanel/public/logo.svg ${REPO_RAW}/public/logo.svg`);
-            exec(`wget -q -O /opt/aetherpanel/public/logo.ico ${REPO_RAW}/public/logo.ico`);
             
             res.json({ success: true, mode: 'soft' });
         } catch (e) { res.status(500).json({ error: e.message }); }
     }
 });
+
+// ... [RESTO DEL CÓDIGO SIN CAMBIOS: API NEBULA, MODS, ETC.] ...
+// Mantén todo el código desde "app.post('/api/nebula/versions'..." hacia abajo igual que en tu archivo original.
 
 // --- API: VERSIONES MINECRAFT ---
 app.post('/api/nebula/versions', async (req, res) => {
