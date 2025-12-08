@@ -21,18 +21,74 @@ function copyIP(){
     }
 }
 
-// --- TABS ---
+// --- PERSONALIZACIÓN & TEMAS ---
+function setTheme(mode) { 
+    localStorage.setItem('theme', mode); 
+    updateThemeUI(mode); 
+}
+
+function updateThemeUI(mode) {
+    let apply = mode; 
+    if (mode === 'auto') apply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', apply);
+    
+    // Actualizar botones visualmente
+    ['light','dark','auto'].forEach(m => {
+        document.getElementById(`theme-btn-${m}`)?.classList.toggle('active', mode === m);
+    });
+}
+
+function setDesign(mode) {
+    document.documentElement.setAttribute('data-design', mode);
+    localStorage.setItem('design_mode', mode);
+    document.getElementById('modal-btn-glass')?.classList.toggle('active', mode === 'glass');
+    document.getElementById('modal-btn-material')?.classList.toggle('active', mode === 'material');
+}
+
+function setAccentMode(mode) {
+    localStorage.setItem('accent_mode', mode);
+    document.getElementById('accent-mode-auto')?.classList.toggle('active', mode === 'auto');
+    document.getElementById('accent-mode-manual')?.classList.toggle('active', mode === 'manual');
+    document.getElementById('manual-color-wrapper').style.display = (mode === 'manual') ? 'block' : 'none';
+    
+    if(mode === 'auto') setAccentColor('#8b5cf6', false); // Violeta por defecto
+    else {
+        const saved = localStorage.getItem('accent_color_val') || '#8b5cf6';
+        setAccentColor(saved, false);
+    }
+}
+
+function setAccentColor(color, save = true) {
+    if(save) {
+        localStorage.setItem('accent_color_val', color);
+        setAccentMode('manual');
+    }
+    // Actualizamos las variables CSS para el nuevo estilo
+    document.documentElement.style.setProperty('--primary', color);
+    document.documentElement.style.setProperty('--primary-light', color); // Simplificado para brillo
+    document.documentElement.style.setProperty('--primary-glow', color + '66'); // Transparencia hex
+}
+
+// INICIALIZACIÓN
+updateThemeUI(localStorage.getItem('theme') || 'dark');
+setDesign(localStorage.getItem('design_mode') || 'glass');
+setAccentMode(localStorage.getItem('accent_mode') || 'auto');
+
+// --- TABS & UI ---
 function setTab(t, btn) {
     document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
     document.getElementById('tab-'+t).classList.add('active');
     if(btn) btn.classList.add('active');
-    else document.querySelector(`button[onclick="setTab('${t}', this)"]`)?.classList.add('active');
     
     if(t==='console') setTimeout(()=>fitAddon.fit(),100);
     if(t==='files') loadFiles('');
     if(t==='config') loadConfig();
     if(t==='backups') loadBackups();
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
 }
 
 // --- CONSOLA ---
@@ -52,13 +108,6 @@ function sendCommand(){
 }
 
 // --- MONITOR ---
-const chartConf = (color) => ({
-    type: 'line', 
-    data: { labels: Array(15).fill(''), datasets: [{ data: Array(15).fill(0), borderColor: color, backgroundColor: color+'20', fill: true, tension: 0.4, pointRadius: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: false }, scales: { x: { display: false }, y: { display: false, min: 0 } }, animation: { duration: 0 } }
-});
-
-// Nota: No usamos ChartJS aquí para ahorrar recursos, usamos barras CSS simples y textos
 setInterval(()=>{
     fetch('/api/stats').then(r=>r.json()).then(d=>{
         document.getElementById('cpu-val').innerText = d.cpu.toFixed(1)+'%';
@@ -89,15 +138,14 @@ socket.on('status_change', s => {
 
 function api(ep, body){ return fetch('/api/'+ep, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(r=>r.json()); }
 
-// --- MODALES ---
+// --- FUNCIONES EXTRA ---
 function showModal(title, htmlContent) {
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-body').innerHTML = htmlContent;
-    document.getElementById('modal-overlay').classList.add('active');
+    document.getElementById('version-modal').classList.add('active');
 }
-function closeAllModals() { document.getElementById('modal-overlay').classList.remove('active'); }
 
-// --- VERSIONES ---
+// --- VERSIONES & INSTALACIÓN ---
 let pendingVer = null;
 async function loadVersions(type){
     showModal(`Versiones (${type})`, '<p style="text-align:center; color:#a1a1aa">Cargando lista...</p>');
@@ -131,19 +179,13 @@ function doInstall(){
     const ram = document.getElementById('ram-sl').value;
     closeAllModals();
     Toastify({text: "Iniciando instalación...", style:{background:"#3b82f6"}}).showToast();
-    
-    // Lógica simplificada de instalación
     const v = pendingVer;
-    // Resolver URL si es necesario
     if(v.type==='vanilla'){ api('nebula/resolve-vanilla',{url:v.url}).then(r=>finalInst(r.url,'server.jar',ram)); }
     else if(v.type==='paper'){ 
         fetch(`https://api.papermc.io/v2/projects/paper/versions/${v.id}`).then(r=>r.json()).then(d=>{
             const b=d.builds[d.builds.length-1];
             finalInst(`https://api.papermc.io/v2/projects/paper/versions/${v.id}/builds/${b}/downloads/paper-${v.id}-${b}.jar`,'server.jar',ram);
         });
-    } else {
-        // Fallback genérico (puedes añadir forge/fabric aquí)
-        Toastify({text: "Instalador automático para este tipo en desarrollo.", style:{background:"#f59e0b"}}).showToast();
     }
 }
 
@@ -153,7 +195,7 @@ function finalInst(url, name, ram){
     Toastify({text: "Descargando servidor...", style:{background:"#10b981"}}).showToast();
 }
 
-// --- ARCHIVOS ---
+// --- ARCHIVOS & CONFIG ---
 function loadFiles(p){
     currentPath = p;
     document.getElementById('breadcrumb').innerText = '/home/container' + (p?'/'+p:'');
@@ -169,19 +211,14 @@ function loadFiles(p){
         document.getElementById('file-list').innerHTML = html;
     });
 }
-
 function uploadFile(){
     const input = document.createElement('input'); input.type='file';
     input.onchange = e => {
         const fd = new FormData(); fd.append('file', e.target.files[0]);
-        fetch('/api/files/upload', {method:'POST', body:fd}).then(r=>r.json()).then(d=>{
-            if(d.success) loadFiles(currentPath);
-        });
+        fetch('/api/files/upload', {method:'POST', body:fd}).then(r=>r.json()).then(d=>{if(d.success) loadFiles(currentPath);});
     };
     input.click();
 }
-
-// --- OTROS ---
 function forceUIUpdate(){
     if(confirm('¿Recargar interfaz?')) {
         api('update/perform', {type:'soft'});
