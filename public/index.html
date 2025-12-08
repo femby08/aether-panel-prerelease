@@ -31,20 +31,18 @@
 
     <!-- === MODALES === -->
     
-    <!-- Modal Personalización (DISEÑO MEJORADO) -->
+    <!-- Modal Personalización (DISEÑO PREMIUM) -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-sliders"></i> Centro de Control</h3>
+                <h3><i class="fa-solid fa-paintbrush"></i> Apariencia</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body settings-stack">
                 
                 <!-- Grupo Visual -->
                 <div class="setting-group-card">
-                    <div class="group-header">
-                        <i class="fa-solid fa-palette"></i> <span>Apariencia</span>
-                    </div>
+                    <div class="group-header">Estética</div>
                     
                     <div class="setting-row">
                         <span class="setting-label">Tema</span>
@@ -56,10 +54,10 @@
                     </div>
 
                     <div class="setting-row">
-                        <span class="setting-label">Estilo</span>
+                        <span class="setting-label">Interfaz</span>
                         <div class="segment-control">
-                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="segment-btn active">Glass</button>
-                            <button onclick="setDesign('material')" id="modal-btn-material" class="segment-btn">Material</button>
+                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="segment-btn active">Liquid Glass</button>
+                            <button onclick="setDesign('material')" id="modal-btn-material" class="segment-btn">Material 3</button>
                         </div>
                     </div>
 
@@ -67,35 +65,30 @@
                         <span class="setting-label">Acento</span>
                         <div class="color-picker-wrapper">
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
-                            <button onclick="setAccentMode('auto')" id="btn-accent-auto" class="btn-xs">Auto</button>
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="segment-btn active" style="font-size:0.8rem">Auto</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Grupo Sistema -->
+                <!-- Grupo Sistema / Mantenimiento (REDISENADO) -->
                 <div class="setting-group-card">
-                    <div class="group-header">
-                        <i class="fa-solid fa-server"></i> <span>Sistema</span>
-                    </div>
+                    <div class="group-header">Sistema <span class="version-badge" style="margin-left:auto; font-size:0.7rem; padding:2px 6px">v2.1</span></div>
                     
                     <div class="maintenance-grid">
-                        <button class="maint-btn" onclick="checkUpdate()">
+                        <div class="maint-btn" onclick="checkUpdate()">
                             <div class="icon-bg"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                             <div class="maint-text">
                                 <span class="title">Actualizar</span>
                                 <span class="desc">Buscar versiones</span>
                             </div>
-                        </button>
-                        <button class="maint-btn" onclick="forceUIUpdate()">
-                            <div class="icon-bg warn"><i class="fa-solid fa-rotate"></i></div>
+                        </div>
+                        <div class="maint-btn" onclick="forceUIUpdate()">
+                            <div class="icon-bg warn"><i class="fa-solid fa-paintbrush"></i></div>
                             <div class="maint-text">
                                 <span class="title">Recargar UI</span>
-                                <span class="desc">Forzar descarga</span>
+                                <span class="desc">Reparar fallos</span>
                             </div>
-                        </button>
-                    </div>
-                    <div class="version-footer">
-                        Aether Panel <span id="modal-version-text" style="font-weight:700">v2.1</span>
+                        </div>
                     </div>
                 </div>
 
@@ -105,7 +98,7 @@
 
     <!-- Otros Modales -->
     <div id="version-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 650px; max-height: 85vh;">
+        <div class="modal-card" style="max-width: 600px; max-height: 85vh;">
             <div class="modal-header">
                 <h3 id="modal-title">Título</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
@@ -122,12 +115,12 @@
             </div>
             <div class="modal-body">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: flex-end;">
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">Límite asignado</span>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">Límite del servidor</span>
                     <span id="ram-txt" style="color: var(--primary); font-size: 1.5rem; font-weight: 800;">4 GB</span>
                 </div>
                 <input type="range" id="ram-slider" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" class="range-slider">
                 <div style="margin-top: 25px;">
-                    <button class="btn btn-primary" style="width: 100%" onclick="confirmInstall()">Confirmar e Instalar</button>
+                    <button class="btn btn-primary" style="width: 100%" onclick="confirmInstall()">Instalar y Reiniciar</button>
                 </div>
             </div>
         </div>
@@ -136,9 +129,9 @@
     <div id="update-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 400px; text-align: center;">
             <div class="modal-body">
-                <div class="update-icon-anim">🚀</div>
-                <h3 style="margin-bottom: 10px;">Actualización Lista</h3>
-                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Una nueva versión está disponible para instalar.</p>
+                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
+                <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
+                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Una nueva versión del sistema está lista.</p>
                 <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
             </div>
         </div>
@@ -148,7 +141,7 @@
         <div class="modal-card" style="max-width: 350px;">
             <div class="modal-header"><h3><i class="fa-solid fa-rotate"></i> Recargar UI</h3></div>
             <div class="modal-body">
-                <p style="color:var(--text-muted); margin-bottom:20px; line-height: 1.5;">Esto volverá a descargar todos los archivos visuales del repositorio.</p>
+                <p style="color:var(--text-muted); margin-bottom:20px; line-height: 1.5;">¿Deseas volver a descargar los archivos visuales?</p>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
                     <button class="btn btn-primary" onclick="confirmForceUI()">Confirmar</button>
@@ -183,7 +176,7 @@
 
             <div class="sidebar-footer">
                 <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;">
-                    <i class="fa-solid fa-sliders"></i> Personalizar
+                    <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
                 <div class="user-card">
                     <div id="status-dot" class="status-dot"></div>
@@ -203,7 +196,8 @@
                         <i class="fa-solid fa-wifi"></i> <span id="ip-display">Cargando IP...</span>
                     </div>
                 </div>
-                <div class="header-actions">
+                <!-- Los botones pequeños de header se ocultan en la pestaña Monitor para usar los grandes -->
+                <div class="header-actions" id="header-actions">
                     <button onclick="api('power/start')" class="action-btn start" title="Iniciar"><i class="fa-solid fa-play"></i></button>
                     <button onclick="api('power/restart')" class="action-btn restart" title="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
                     <button onclick="api('power/stop')" class="action-btn stop" title="Detener"><i class="fa-solid fa-stop"></i></button>
@@ -211,8 +205,30 @@
                 </div>
             </header>
 
-            <!-- MONITOR -->
+            <!-- TABS -->
+            
+            <!-- MONITOR: AHORA CON BOTONES GRANDES (COMO EN FOTO 4) -->
             <div id="tab-stats" class="tab-view active">
+                
+                <!-- Sección Control de Energía Grande -->
+                <div class="glass-panel" style="padding: 24px; margin-bottom: 24px;">
+                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:15px; letter-spacing:1px; text-transform:uppercase"><i class="fa-solid fa-power-off"></i> Control de Energía</div>
+                    <div class="power-card-grid">
+                        <button onclick="api('power/start')" class="power-btn-large start">
+                            <i class="fa-solid fa-play"></i> <span>INICIAR</span>
+                        </button>
+                        <button onclick="api('power/restart')" class="power-btn-large restart">
+                            <i class="fa-solid fa-rotate"></i> <span>REINICIAR</span>
+                        </button>
+                        <button onclick="api('power/stop')" class="power-btn-large stop">
+                            <i class="fa-solid fa-stop"></i> <span>DETENER</span>
+                        </button>
+                        <button onclick="api('power/kill')" class="power-btn-large kill">
+                            <i class="fa-solid fa-skull"></i> <span>KILL</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="card glass-panel">
                         <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
@@ -271,58 +287,67 @@
                 </div>
             </div>
 
-            <!-- LABS (COMPLETO CON ARCHIVOS) -->
+            <!-- LABS: LIMPIO (Sin Archivos, Solo cosas "Labs") -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     
-                    <!-- 1. TIENDA -->
-                    <div class="mod-card-modern lab-purple" onclick="openModStore()">
+                    <!-- 1. TIENDA DE MODS -->
+                    <div class="mod-card-modern lab-purple">
                         <span class="lab-tag new">NUEVO</span>
                         <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala addons populares.</p><button class="btn-install">Abrir</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Tienda de Mods</div>
+                            <p class="mod-desc">Instala plugins y mods populares directamente desde el panel.</p>
+                            <button class="btn-install" onclick="openModStore()">Abrir Tienda</button>
+                        </div>
                     </div>
                     
-                    <!-- 2. ARCHIVOS (Aquí está lo que pediste) -->
-                    <div class="mod-card-modern lab-orange" onclick="setTab('files')">
-                        <span class="lab-tag alpha">ALPHA</span>
-                        <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Gestor de Archivos</div><p class="mod-desc">Explorador de archivos avanzado.</p><button class="btn-install">Gestionar</button></div>
-                    </div>
-                    
-                    <!-- 3. BACKUPS -->
-                    <div class="mod-card-modern lab-blue" onclick="setTab('backups')">
+                    <!-- 2. BACKUPS -->
+                    <div class="mod-card-modern lab-blue">
                         <span class="lab-tag beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias de seguridad del sistema.</p><button class="btn-install">Ver Copias</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Backups</div>
+                            <p class="mod-desc">Crea, restaura y descarga copias de seguridad de tu servidor.</p>
+                            <button class="btn-install" onclick="setTab('backups')">Gestionar</button>
+                        </div>
                     </div>
 
-                    <!-- 4. TURBO -->
+                    <!-- 3. MODO TURBO -->
                     <div class="mod-card-modern lab-teal">
                         <span class="lab-tag beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
                         <div class="mod-body">
                             <div class="mod-title">Modo Turbo</div>
-                            <p class="mod-desc">Optimización de rendimiento Java.</p>
+                            <p class="mod-desc">Optimización extrema de flags de Java y prioridad de CPU.</p>
                             <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center">
-                                <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted)">ESTADO</span>
+                                <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase">Estado Actual</span>
                                 <label class="switch"><input type="checkbox" id="lab-turbo"><span class="slider round"></span></label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 5. WIP -->
+                    <!-- 4. PROGRAMADOR (WIP) -->
                     <div class="mod-card-modern lab-red">
                         <span class="lab-tag wip">WIP</span>
                         <div class="mod-cover"><i class="fa-solid fa-calendar-days"></i></div>
-                        <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Tareas automáticas (Pronto).</p><button class="btn-install" disabled>Próximamente</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Programador</div>
+                            <p class="mod-desc">Automatiza reinicios, comandos y backups.</p>
+                            <button class="btn-install" disabled style="opacity:0.5; cursor:not-allowed">Próximamente</button>
+                        </div>
                     </div>
 
-                    <!-- 6. WIP -->
+                    <!-- 5. RED (WIP) -->
                     <div class="mod-card-modern lab-indigo">
                         <span class="lab-tag wip">WIP</span>
                         <div class="mod-cover"><i class="fa-solid fa-network-wired"></i></div>
-                        <div class="mod-body"><div class="mod-title">Red Avanzada</div><p class="mod-desc">Gestión de puertos (Pronto).</p><button class="btn-install" disabled>Próximamente</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Red & Puertos</div>
+                            <p class="mod-desc">Gestión avanzada de puertos, proxy inverso y SRV.</p>
+                            <button class="btn-install" disabled style="opacity:0.5; cursor:not-allowed">Próximamente</button>
+                        </div>
                     </div>
 
                 </div>
@@ -332,8 +357,8 @@
             <div id="tab-config" class="tab-view">
                 <div class="glass-panel" style="padding: 24px;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>Configuración</h3>
-                        <button class="btn btn-primary" onclick="saveCfg()">Guardar</button>
+                        <h3>Configuración del Servidor</h3>
+                        <button class="btn btn-primary" onclick="saveCfg()">Guardar Cambios</button>
                     </div>
                     <div id="cfg-list" class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
                 </div>
@@ -353,6 +378,7 @@
         </main>
     </div>
 
+    <!-- Cargar Lógica -->
     <script src="app.js"></script>
 </body>
 </html>
