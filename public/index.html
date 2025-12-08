@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aether Panel</title>
 
+    <!-- Fuentes y Estilos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <link rel="stylesheet" href="style.css">
 
+    <!-- Librerías JS -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
@@ -26,7 +28,7 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- === MODAL AJUSTES DISEÑO MEJORADO === -->
+    <!-- === MODAL AJUSTES === -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -35,10 +37,8 @@
             </div>
             <div class="modal-body settings-layout">
                 
-                <!-- Tarjeta Estilo -->
                 <div class="settings-card">
                     <div class="card-subtitle">Estética</div>
-                    
                     <div class="setting-row">
                         <span>Modo</span>
                         <div class="segment-box">
@@ -47,7 +47,6 @@
                             <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-btn">Auto</button>
                         </div>
                     </div>
-
                     <div class="setting-row">
                         <span>Interfaz</span>
                         <div class="segment-box">
@@ -55,7 +54,6 @@
                             <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn">Flat</button>
                         </div>
                     </div>
-
                     <div class="setting-row">
                         <span>Acento</span>
                         <div class="color-row">
@@ -65,10 +63,8 @@
                     </div>
                 </div>
 
-                <!-- Tarjeta Mantenimiento -->
                 <div class="settings-card">
-                    <div class="card-subtitle">Mantenimiento <span class="version-badge" id="modal-version-text" style="float:right; font-size:0.7rem">v2.1</span></div>
-                    
+                    <div class="card-subtitle">Sistema</div>
                     <div class="actions-grid">
                         <button onclick="checkUpdate()" class="maint-btn">
                             <i class="fa-solid fa-cloud-arrow-down icon-box"></i>
@@ -87,7 +83,7 @@
 
     <!-- Otros Modales -->
     <div id="version-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 600px; max-height: 85vh;">
+        <div class="modal-card" style="max-width: 800px; max-height: 85vh;">
             <div class="modal-header">
                 <h3 id="modal-title">Título</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
@@ -125,6 +121,7 @@
                 <button onclick="setTab('versions', this)" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 
                 <div class="nav-label">SISTEMA</div>
+                <!-- "Archivos" eliminado de aquí como pediste -->
                 <button onclick="setTab('labs', this)" class="nav-item"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
                 <button onclick="setTab('config', this)" class="nav-item"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
@@ -190,7 +187,7 @@
                 <div class="console-full glass-panel">
                     <div class="console-header"><i class="fa-solid fa-terminal"></i> root@server:~</div>
                     <div id="terminal" class="console-output" style="padding:0"></div>
-                    <div class="console-input-area"><span>❯</span><input type="text" id="console-input" placeholder="Comando..." onkeydown="if(event.key==='Enter') sendCommand()"></div>
+                    <div class="console-input-area"><span>❯</span><input type="text" id="console-input" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter') sendCommand()"></div>
                 </div>
             </div>
 
@@ -205,39 +202,62 @@
                 </div>
             </div>
 
-            <!-- LABS (SIN GESTOR DE ARCHIVOS) -->
+            <!-- LABS (DISEÑO MEJORADO) -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     
+                    <!-- TIENDA (Violeta) -->
                     <div class="mod-card-modern lab-purple">
                         <span class="lab-tag new">NUEVO</span> <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
                         <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods populares.</p><button class="btn-install" onclick="openModStore()">Abrir Tienda</button></div>
                     </div>
                     
+                    <!-- ARCHIVOS (Naranja) -->
+                    <div class="mod-card-modern lab-orange">
+                        <span class="lab-tag alpha">ALPHA</span> <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
+                        <div class="mod-body"><div class="mod-title">Gestor Archivos</div><p class="mod-desc">Explorador de archivos web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
+                    </div>
+
+                    <!-- BACKUPS (Azul) -->
                     <div class="mod-card-modern lab-blue">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
                         <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Crea copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
                     </div>
 
+                    <!-- TURBO (Verde) -->
                     <div class="mod-card-modern lab-teal">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
                         <div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización extrema de CPU.</p><div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center"><span style="font-size:0.75rem; font-weight:700; color:var(--text-muted)">ESTADO</span><label class="switch"><input type="checkbox" id="lab-turbo"><span class="slider round"></span></label></div></div>
                     </div>
 
+                    <!-- PROGRAMADOR (Rojo) -->
                     <div class="mod-card-modern lab-red">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-calendar-days"></i></div>
-                        <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Automatiza reinicios y comandos.</p><button class="btn-install" disabled>Próximamente</button></div>
+                        <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Automatiza tareas.</p><button class="btn-install" disabled>Próximamente</button></div>
                     </div>
 
+                    <!-- RED (Indigo) -->
                     <div class="mod-card-modern lab-indigo">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-network-wired"></i></div>
-                        <div class="mod-body"><div class="mod-title">Red & Puertos</div><p class="mod-desc">Gestión avanzada de red.</p><button class="btn-install" disabled>Próximamente</button></div>
+                        <div class="mod-body"><div class="mod-title">Red & Puertos</div><p class="mod-desc">Gestión avanzada.</p><button class="btn-install" disabled>Próximamente</button></div>
                     </div>
 
                 </div>
             </div>
             
+            <!-- PESTAÑAS OCULTAS PERO ACCESIBLES DESDE LABS -->
+            <div id="tab-files" class="tab-view">
+                <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
+                    <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
+                        <button onclick="setTab('labs')" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+                        <div id="breadcrumb" style="font-family:monospace; color:var(--text-muted); font-weight: 600;">/home/container</div>
+                        <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
+                    </div>
+                    <div id="file-list"></div>
+                </div>
+            </div>
+
             <div id="tab-config" class="tab-view">
                 <div class="glass-panel" style="padding: 24px;"><div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div><div id="cfg-list" class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div></div>
             </div>
@@ -256,5 +276,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
