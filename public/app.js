@@ -38,13 +38,6 @@ function updateThemeUI(mode) {
     });
 }
 
-function setDesign(mode) {
-    document.documentElement.setAttribute('data-design', mode);
-    localStorage.setItem('design_mode', mode);
-    document.getElementById('modal-btn-glass')?.classList.toggle('active', mode === 'glass');
-    document.getElementById('modal-btn-material')?.classList.toggle('active', mode === 'material');
-}
-
 function setAccentMode(mode) {
     localStorage.setItem('accent_mode', mode);
     document.getElementById('accent-mode-auto')?.classList.toggle('active', mode === 'auto');
@@ -59,10 +52,11 @@ function setAccentColor(color, save = true) {
     document.documentElement.style.setProperty('--primary', color);
     document.documentElement.style.setProperty('--primary-light', color); 
     document.documentElement.style.setProperty('--primary-glow', color + '66');
+    const picker = document.getElementById('accent-picker');
+    if(picker) picker.value = color;
 }
 
 updateThemeUI(localStorage.getItem('theme') || 'dark');
-setDesign(localStorage.getItem('design_mode') || 'glass');
 setAccentMode(localStorage.getItem('accent_mode') || 'auto');
 
 function setTab(t, btn) {
@@ -172,9 +166,14 @@ async function loadVersions(type){
     showModal(`Versiones (${type})`, '<p style="text-align:center; color:#a1a1aa">Cargando lista...</p>');
     try {
         const list = await api('nebula/versions', {type});
-        let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">';
+        let html = '<div class="labs-grid">';
         list.forEach(v => {
-            html += `<div class="glass-panel" style="padding:10px; cursor:pointer; text-align:center; border:1px solid rgba(255,255,255,0.1)" onclick="preInstall('${v.id}','${v.type}','${v.url}')"><div style="font-weight:700">${v.id}</div><div style="font-size:0.7rem; color:#a1a1aa">${v.type}</div></div>`;
+            html += `<div class="mod-card-modern" style="min-height:auto; background:rgba(0,0,0,0.3)" onclick="preInstall('${v.id}','${v.type}','${v.url}')">
+                <div class="mod-body" style="padding:15px; margin:0">
+                    <div class="mod-title" style="font-size:1rem">${v.id}</div>
+                    <p style="font-size:0.8rem; opacity:0.6">${v.type}</p>
+                </div>
+            </div>`;
         });
         html += '</div>';
         document.getElementById('modal-body').innerHTML = html;
@@ -183,7 +182,7 @@ async function loadVersions(type){
 
 function preInstall(id, type, url){
     pendingVer = {id, type, url};
-    const html = `<p>Asignar RAM (GB):</p><input type="range" id="ram-sl" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" style="width:100%; margin:10px 0"><div id="ram-txt" style="text-align:center; font-weight:bold; margin-bottom:20px; color:#8b5cf6">4 GB</div><button class="btn btn-primary" style="width:100%" onclick="doInstall()">INSTALAR AHORA</button>`;
+    const html = `<p>Asignar RAM (GB):</p><input type="range" id="ram-sl" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" style="width:100%; margin:10px 0"><div id="ram-txt" style="text-align:center; font-weight:bold; margin-bottom:20px; color:var(--primary)">4 GB</div><button class="btn btn-primary" style="width:100%" onclick="doInstall()">INSTALAR AHORA</button>`;
     showModal(`Instalar ${type} ${id}`, html);
 }
 
@@ -210,7 +209,7 @@ function loadFiles(p){
         let html = '';
         if(p) html += `<div class="file-row" onclick="loadFiles('${p.split('/').slice(0,-1).join('/')}')"><span><i class="fa-solid fa-arrow-up"></i> ..</span></div>`;
         list.forEach(f=>{
-            html += `<div class="file-row ${f.isDir?'folder':''}" onclick="${f.isDir?`loadFiles('${(p?p+'/':'')+f.name}')`:`alert('Editor en desarrollo')`}"><span><i class="fa-solid ${f.isDir?'fa-folder':'fa-file'}"></i> ${f.name}</span><span style="font-size:0.8rem; color:#a1a1aa">${f.size}</span></div>`;
+            html += `<div class="file-row ${f.isDir?'folder':''}" onclick="${f.isDir?`loadFiles('${(p?p+'/':'')+f.name}')`:`alert('Editor en desarrollo')`}"><span><i class="fa-solid ${f.isDir?'fa-folder':'fa-file'}"></i> ${f.name}</span><span style="font-size:0.8rem; opacity:0.6">${f.size}</span></div>`;
         });
         document.getElementById('file-list').innerHTML = html;
     });
@@ -231,17 +230,25 @@ function openModStore(){
     const list = document.getElementById('version-list');
     list.innerHTML='';
     document.getElementById('modal-title').innerHTML='<i class="fa-solid fa-store"></i> Tienda de Mods';
+    document.getElementById('modal-body').innerHTML = '<div id="store-grid" class="labs-grid"></div>';
+    const grid = document.getElementById('store-grid');
     modsDB.forEach(mod=>{
-        list.innerHTML += `<div class="glass-panel" style="padding:15px; text-align:center"><i class="fa-solid ${mod.icon}" style="font-size:2rem; color:${mod.color}; margin-bottom:10px"></i><h4 style="margin-bottom:5px">${mod.name}</h4><button class="btn btn-secondary" style="width:100%" onclick="if(confirm('Instalar ${mod.name}?')){api('mods/install',{url:'${mod.url}',name:'${mod.name}'});closeAllModals()}">Instalar</button></div>`;
+        grid.innerHTML += `
+        <div class="mod-card-modern" style="min-height:auto">
+             <div class="mod-cover" style="height:100px; background:linear-gradient(135deg, ${mod.color}, black)"><i class="fa-solid ${mod.icon}"></i></div>
+             <div class="mod-body" style="padding:15px; margin-top:-20px">
+                <h4 style="margin-bottom:5px">${mod.name}</h4>
+                <button class="btn-install" onclick="if(confirm('Instalar ${mod.name}?')){api('mods/install',{url:'${mod.url}',name:'${mod.name}'});closeAllModals()}">Instalar</button>
+             </div>
+        </div>`;
     });
-    document.getElementById('modal-body').innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px">${list.innerHTML}</div>`;
 }
 
 function loadConfig(){
     api('config').then(d=>{
         let html = '';
         Object.entries(d).forEach(([k,v])=>{
-            html += `<div style="margin-bottom:10px"><label style="display:block; font-size:0.8rem; color:#a1a1aa">${k}</label><input class="cfg-in" data-k="${k}" value="${v}" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px; border-radius:8px"></div>`;
+            html += `<div style="margin-bottom:10px"><label style="display:block; font-size:0.8rem; opacity:0.6; margin-bottom:5px">${k}</label><input class="cfg-in" data-k="${k}" value="${v}" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:10px; border-radius:12px; font-family:'JetBrains Mono'"></div>`;
         });
         document.getElementById('cfg-list').innerHTML = html;
     });
