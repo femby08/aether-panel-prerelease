@@ -82,8 +82,6 @@ body { font-family: var(--font-main); background-color: var(--bg-color); color: 
 .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
 .btn-icon-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
 .btn-icon-sm:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
-.btn-xs { padding: 4px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); border-radius: 6px; border: none; color: var(--text-muted); cursor: pointer; }
-.btn-xs:hover { background: var(--primary); color: white; }
 
 /* LAYOUT */
 .app-layout { display: flex; height: 100%; width: 100%; padding: 20px; gap: 24px; }
@@ -192,56 +190,56 @@ body { font-family: var(--font-main); background-color: var(--bg-color); color: 
 /* MODALES */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
 .modal-overlay.active { display: flex; opacity: 1; }
-.modal-card { width: 500px; max-width: 90%; background: #121215; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.modal-card { width: 500px; max-width: 90%; background: #121215; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transform: scale(0.95); transition: 0.3s; }
 .modal-overlay.active .modal-card { transform: scale(1); }
 .modal-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
 .modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
 
-/* NUEVOS ESTILOS DE AJUSTES (Diseño Grupo) */
-.setting-group-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
+/* --- NUEVOS AJUSTES PREMIUM --- */
+.settings-layout { display: flex; flex-direction: column; gap: 15px; }
+.settings-card { 
+    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); 
+    border-radius: 16px; padding: 15px 20px; 
 }
-.group-header {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 0.9rem; font-weight: 800; color: var(--primary-light);
+.card-subtitle { 
+    font-size: 0.75rem; font-weight: 800; color: var(--text-muted); 
     margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;
 }
-.setting-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
-}
+.setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .setting-row:last-child { margin-bottom: 0; }
-.setting-label { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+.setting-row span { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
 
-/* Segmentos */
-.segment-control { display: flex; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 10px; gap: 4px; border: 1px solid rgba(255,255,255,0.05); }
-.segment-btn { padding: 6px 12px; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
-.segment-btn:hover { color: var(--text-main); }
-.segment-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.segment-box { 
+    background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px; 
+    display: flex; gap: 4px; border: 1px solid var(--glass-border);
+}
+.seg-btn { 
+    padding: 6px 12px; background: transparent; border: none; 
+    color: var(--text-muted); border-radius: 8px; cursor: pointer; 
+    font-weight: 600; transition: 0.2s; font-size: 0.8rem;
+}
+.seg-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.seg-btn:hover:not(.active) { color: white; }
 
-/* Color Picker Row */
-.color-picker-wrapper { display: flex; align-items: center; gap: 10px; }
-input[type="color"] { width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); overflow: hidden; }
+.color-row { display: flex; gap: 10px; align-items: center; }
+input[type="color"] { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; padding: 0; background: none; }
 
 /* Botones Mantenimiento Grandes */
-.maintenance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .maint-btn {
-    display: flex; align-items: center; gap: 15px; padding: 15px;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 14px; cursor: pointer; transition: 0.2s; text-align: left;
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+    border-radius: 12px; cursor: pointer; text-align: left; transition: 0.2s;
 }
-.maint-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); transform: translateY(-2px); }
-.icon-bg { width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.1); color: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-.icon-bg.warn { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-.maint-text { display: flex; flex-direction: column; }
-.maint-text .title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
-.maint-text .desc { font-size: 0.75rem; color: var(--text-muted); }
-
-.version-footer { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; opacity: 0.6; }
+.maint-btn:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); border-color: var(--primary); }
+.icon-box { 
+    width: 36px; height: 36px; border-radius: 10px; background: rgba(139, 92, 246, 0.15); 
+    color: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.icon-box.warn { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+.maint-info { display: flex; flex-direction: column; }
+.maint-info span { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+.maint-info small { font-size: 0.7rem; color: var(--text-muted); }
 
 /* Tabs */
 .tab-view { display: none; animation: slideUp 0.4s var(--ease-smooth); }
