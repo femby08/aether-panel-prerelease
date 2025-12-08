@@ -4,6 +4,9 @@ let currentPath = '';
 // --- INICIO ---
 fetch('/api/info').then(r => r.json()).then(d => {
     document.getElementById('version-display').innerText = `v${d.version} ${d.channel || ''}`;
+    // También actualizamos la versión en el modal de apariencia
+    const modalVer = document.getElementById('modal-version-text');
+    if(modalVer) modalVer.innerText = `v${d.version}`;
 });
 fetch('/api/network').then(r => r.json()).then(d => {
     const el = document.getElementById('ip-display');
@@ -65,8 +68,8 @@ function setAccentColor(color, save = true) {
     }
     // Actualizamos las variables CSS para el nuevo estilo
     document.documentElement.style.setProperty('--primary', color);
-    document.documentElement.style.setProperty('--primary-light', color); // Simplificado para brillo
-    document.documentElement.style.setProperty('--primary-glow', color + '66'); // Transparencia hex
+    document.documentElement.style.setProperty('--primary-light', color); 
+    document.documentElement.style.setProperty('--primary-glow', color + '66');
 }
 
 // INICIALIZACIÓN
@@ -145,6 +148,55 @@ function showModal(title, htmlContent) {
     document.getElementById('version-modal').classList.add('active');
 }
 
+// --- ACTUALIZACIONES Y UI (REQUERIDO) ---
+function checkUpdate(isAuto=false){
+    if(!isAuto) Toastify({text:'Buscando actualizaciones...',style:{background:'#8b5cf6'}}).showToast();
+    fetch('/api/update/check').then(r=>r.json()).then(d=>{
+        if(d.type!=='none') showUpdateModal(d);
+        else if(!isAuto) Toastify({text:'El sistema está actualizado.',style:{background:'#10b981'}}).showToast();
+    }).catch(e=>{});
+}
+
+function showUpdateModal(d){
+    const m=document.getElementById('update-modal');
+    const t=document.getElementById('update-text');
+    const a=document.getElementById('up-actions');
+    
+    t.innerText=`Nueva versión ${d.remote} disponible.`;
+    a.innerHTML=`<button onclick="doUpdate('${d.type}')" class="btn btn-primary">ACTUALIZAR AHORA</button><button onclick="closeAllModals()" class="btn btn-secondary">Cancelar</button>`;
+    
+    m.classList.add('active'); 
+}
+
+function doUpdate(type){
+    closeAllModals();
+    fetch('/api/update/perform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})}).then(r=>r.json()).then(d=>{
+        if(d.mode==='soft'){
+            Toastify({text:'Interfaz actualizada. Recargando...',style:{background:'#10b981'}}).showToast();
+            setTimeout(()=>location.reload(),1500);
+        }
+        if(d.mode==='hard'){
+            Toastify({text:'Sistema actualizándose. Espera...',style:{background:'#f59e0b'}}).showToast();
+            setTimeout(()=>location.reload(),10000);
+        }
+    });
+}
+
+function forceUIUpdate(){
+    document.getElementById('force-ui-modal').classList.add('active');
+}
+
+function confirmForceUI(){
+    closeAllModals();
+    Toastify({text:'Reinstalando interfaz...',style:{background:'#8b5cf6'}}).showToast();
+    fetch('/api/update/perform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'soft'})}).then(r=>r.json()).then(d=>{
+        if(d.success){
+            Toastify({text:'¡Listo! Recargando...',style:{background:'#10b981'}}).showToast();
+            setTimeout(()=>location.reload(),1500);
+        }
+    });
+}
+
 // --- VERSIONES & INSTALACIÓN ---
 let pendingVer = null;
 async function loadVersions(type){
@@ -218,13 +270,6 @@ function uploadFile(){
         fetch('/api/files/upload', {method:'POST', body:fd}).then(r=>r.json()).then(d=>{if(d.success) loadFiles(currentPath);});
     };
     input.click();
-}
-function forceUIUpdate(){
-    if(confirm('¿Recargar interfaz?')) {
-        api('update/perform', {type:'soft'});
-        Toastify({text: "Recargando...", style:{background:"#8b5cf6"}}).showToast();
-        setTimeout(()=>location.reload(), 2000);
-    }
 }
 function loadConfig(){
     api('config').then(d=>{
