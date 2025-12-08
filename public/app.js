@@ -50,9 +50,6 @@ function setDesign(mode) {
 
 function setAccentMode(mode) {
     localStorage.setItem('accent_mode', mode);
-    document.getElementById('accent-mode-auto')?.classList.toggle('active', mode === 'auto');
-    document.getElementById('accent-mode-manual')?.classList.toggle('active', mode === 'manual');
-    document.getElementById('manual-color-wrapper').style.display = (mode === 'manual') ? 'block' : 'none';
     
     if(mode === 'auto') setAccentColor('#8b5cf6', false); // Violeta por defecto
     else {
@@ -215,80 +212,4 @@ async function loadVersions(type){
     } catch(e) { document.getElementById('modal-body').innerHTML = '<p style="color:#ef4444">Error al cargar versiones.</p>'; }
 }
 
-function preInstall(id, type, url){
-    pendingVer = {id, type, url};
-    const html = `
-        <p>Asignar RAM (GB):</p>
-        <input type="range" id="ram-sl" min="1" max="16" step="0.5" value="4" oninput="document.getElementById('ram-txt').innerText=this.value+' GB'" style="width:100%; margin:10px 0">
-        <div id="ram-txt" style="text-align:center; font-weight:bold; margin-bottom:20px; color:#8b5cf6">4 GB</div>
-        <button class="btn btn-primary" style="width:100%" onclick="doInstall()">INSTALAR AHORA</button>
-    `;
-    showModal(`Instalar ${type} ${id}`, html);
-}
-
-function doInstall(){
-    if(!pendingVer) return;
-    const ram = document.getElementById('ram-sl').value;
-    closeAllModals();
-    Toastify({text: "Iniciando instalación...", style:{background:"#3b82f6"}}).showToast();
-    const v = pendingVer;
-    if(v.type==='vanilla'){ api('nebula/resolve-vanilla',{url:v.url}).then(r=>finalInst(r.url,'server.jar',ram)); }
-    else if(v.type==='paper'){ 
-        fetch(`https://api.papermc.io/v2/projects/paper/versions/${v.id}`).then(r=>r.json()).then(d=>{
-            const b=d.builds[d.builds.length-1];
-            finalInst(`https://api.papermc.io/v2/projects/paper/versions/${v.id}/builds/${b}/downloads/paper-${v.id}-${b}.jar`,'server.jar',ram);
-        });
-    }
-}
-
-function finalInst(url, name, ram){
-    api('settings', {ram: ram+'G'});
-    api('install', {url, filename: name});
-    Toastify({text: "Descargando servidor...", style:{background:"#10b981"}}).showToast();
-}
-
-// --- ARCHIVOS & CONFIG ---
-function loadFiles(p){
-    currentPath = p;
-    document.getElementById('breadcrumb').innerText = '/home/container' + (p?'/'+p:'');
-    api('files?path='+encodeURIComponent(p)).then(list=>{
-        let html = '';
-        if(p) html += `<div class="file-row" onclick="loadFiles('${p.split('/').slice(0,-1).join('/')}')"><span><i class="fa-solid fa-arrow-up"></i> ..</span></div>`;
-        list.forEach(f=>{
-            html += `<div class="file-row ${f.isDir?'folder':''}" onclick="${f.isDir?`loadFiles('${(p?p+'/':'')+f.name}')`:`alert('Editor en desarrollo')`}">
-                <span><i class="fa-solid ${f.isDir?'fa-folder':'fa-file'}"></i> ${f.name}</span>
-                <span style="font-size:0.8rem; color:#a1a1aa">${f.size}</span>
-            </div>`;
-        });
-        document.getElementById('file-list').innerHTML = html;
-    });
-}
-function uploadFile(){
-    const input = document.createElement('input'); input.type='file';
-    input.onchange = e => {
-        const fd = new FormData(); fd.append('file', e.target.files[0]);
-        fetch('/api/files/upload', {method:'POST', body:fd}).then(r=>r.json()).then(d=>{if(d.success) loadFiles(currentPath);});
-    };
-    input.click();
-}
-function loadConfig(){
-    api('config').then(d=>{
-        let html = '';
-        Object.entries(d).forEach(([k,v])=>{
-            html += `<div style="margin-bottom:10px"><label style="display:block; font-size:0.8rem; color:#a1a1aa">${k}</label><input class="cfg-in" data-k="${k}" value="${v}" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px; border-radius:8px"></div>`;
-        });
-        document.getElementById('cfg-list').innerHTML = html;
-    });
-}
-function saveCfg(){
-    const d={}; document.querySelectorAll('.cfg-in').forEach(i=>d[i.dataset.k]=i.value);
-    api('config', d); Toastify({text: "Guardado", style:{background:"#10b981"}}).showToast();
-}
-function createBackup(){ api('backups/create').then(()=>loadBackups()); }
-function loadBackups(){
-    api('backups').then(list=>{
-        let html='';
-        list.forEach(b=> html+=`<div class="file-row"><span>${b.name}</span> <button class="btn btn-secondary" onclick="api('backups/restore',{name:'${b.name}'})">Restaurar</button></div>`);
-        document.getElementById('backup-list').innerHTML = html;
-    });
-}
+function preInstall(id, type, url
