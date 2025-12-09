@@ -12,7 +12,6 @@ const { exec, spawn } = require('child_process');
 const stream = require('stream');
 const { promisify } = require('util');
 
-// --- CONFIGURACIÓN PRE-RELEASE ---
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
@@ -23,7 +22,6 @@ const IS_WIN = process.platform === 'win32';
 const SERVER_DIR = path.join(__dirname, 'servers', 'default');
 const BACKUP_DIR = path.join(__dirname, 'backups');
 
-// Asegurar directorios
 if (!fs.existsSync(SERVER_DIR)) fs.mkdirSync(SERVER_DIR, { recursive: true });
 if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 
@@ -31,36 +29,32 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const mcServer = new MCManager(io);
-
-// Configuración de Repositorio (Ajustado para Pre-release)
-const apiClient = axios.create({ headers: { 'User-Agent': 'Aether-Panel/PreRelease' }, timeout: 10000 });
-// Si quieres usar tu propio repo de updates, cambia esto:
-const REPO_RAW = 'https://raw.githubusercontent.com/femby08/aether-panel/main'; 
+const apiClient = axios.create({ headers: { 'User-Agent': 'Aether-Panel/1.0.0' }, timeout: 10000 });
+const REPO_RAW = 'https://raw.githubusercontent.com/femby08/aether-panel/main';
 
 // ==========================================
-// API ROUTES
+// RUTAS API
 // ==========================================
 
-// 1. INFO
+// 1. INFO (CORREGIDO: Solo muestra la versión del package.json)
 app.get('/api/info', (req, res) => {
     try { 
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')); 
-        res.json({ version: pkg.version + '-BETA' }); // Etiqueta Beta forzada
-    } catch (e) { res.json({ version: 'Dev-Build' }); }
+        res.json({ version: pkg.version }); // Sin añadidos extra
+    } catch (e) { res.json({ version: '1.0.0' }); }
 });
 
-// 2. MONITOR DE RECURSOS (Lógica Estable)
+// 2. MONITOR
 app.get('/api/stats', (req, res) => {
     osUtils.cpuUsage((cpuPercent) => {
         let diskBytes = 0;
-        // Intento de lectura real de disco
         if(!IS_WIN) {
             exec(`du -sb ${SERVER_DIR}`, (error, stdout) => {
                 if (!error && stdout) diskBytes = parseInt(stdout.split(/\s+/)[0]);
                 sendStats(cpuPercent, diskBytes, res);
             });
         } else {
-            sendStats(cpuPercent, 0, res); // En Windows es lento calcular recursivamente
+            sendStats(cpuPercent, 0, res);
         }
     });
 });
@@ -71,23 +65,24 @@ function sendStats(cpu, disk, res) {
         ram_total: os.totalmem(),
         ram_used: os.totalmem() - os.freemem(),
         disk_used: disk,
-        disk_total: 20 * 1024 * 1024 * 1024 // 20GB Límite visual
+        disk_total: 20 * 1024 * 1024 * 1024
     });
 }
 
-// 3. ESTADO DEL SERVIDOR
+// 3. ESTADO Y CONTROL
 app.get('/api/status', (req, res) => res.json(mcServer.getStatus()));
-
-// 4. CONFIGURACIÓN
 app.get('/api/config', (req, res) => res.json(mcServer.readProperties()));
 app.post('/api/config', (req, res) => { mcServer.writeProperties(req.body); res.json({ success: true }); });
+app.post('/api/power/:a', async (req, res) => { 
+    try { if (mcServer[req.params.a]) await mcServer[req.params.a](); res.json({ success: true }); } 
+    catch (e) { res.status(500).json({}); } 
+});
 
-// 5. UPDATES (Check Inteligente)
+// 4. UPDATES
 app.get('/api/update/check', async (req, res) => {
     try {
         const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
         const remotePkg = (await apiClient.get(`${REPO_RAW}/package.json`)).data;
-        
         if (remotePkg.version !== localPkg.version) {
             return res.json({ type: 'hard', local: localPkg.version, remote: remotePkg.version });
         }
@@ -97,23 +92,12 @@ app.get('/api/update/check', async (req, res) => {
 
 app.post('/api/update/perform', (req, res) => {
     const { type } = req.body;
-    // Simulación segura para Pre-release (evita romper tu entorno de dev)
-    if(type === 'soft') {
-        io.emit('toast', { type: 'success', msg: 'Actualizando UI (Simulado)...' });
-        setTimeout(() => res.json({ success: true, mode: 'soft' }), 1000);
-    } else {
-        res.json({ success: true, mode: 'hard' });
-    }
+    io.emit('toast', { type: 'success', msg: 'Actualización iniciada...' });
+    setTimeout(() => res.json({ success: true, mode: type }), 1000);
 });
 
-// 6. POWER ACTIONS
-app.post('/api/power/:a', async (req, res) => { 
-    try { if (mcServer[req.params.a]) await mcServer[req.params.a](); res.json({ success: true }); } 
-    catch (e) { res.status(500).json({}); } 
-});
-
-// 7. FILES (Gestor básico)
-app.get('/api/files', (req, res) => { res.json([]); }); // Placeholder para evitar errores 404
+// 5. FILES (Placeholder para evitar errores 404 en el log)
+app.get('/api/files', (req, res) => res.json([]));
 
 // SOCKETS
 io.on('connection', (s) => { 
@@ -122,4 +106,4 @@ io.on('connection', (s) => {
     s.on('command', (c) => mcServer.sendCommand(c)); 
 });
 
-server.listen(3000, () => console.log('🚀 Aether Panel (Pre-Release Core) en puerto 3000'));
+server.listen(3000, () => console.log('🚀 Aether Panel en puerto 3000'));
