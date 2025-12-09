@@ -27,7 +27,7 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- === MODAL PERSONALIZACIÓN === -->
+    <!-- === MODAL AJUSTES === -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -36,9 +36,8 @@
             </div>
             <div class="modal-body settings-layout">
                 
-                <!-- SECCIÓN ESTÉTICA -->
                 <div class="settings-card">
-                    <div class="card-subtitle">Apariencia Visual</div>
+                    <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
                         <span>Tema</span>
                         <div class="segment-box">
@@ -55,7 +54,7 @@
                         </div>
                     </div>
                     <div class="setting-row">
-                        <span>Color Acento</span>
+                        <span>Acento</span>
                         <div class="color-row">
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" tabindex="0">
                             <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem" tabindex="0">Reset</button>
@@ -63,17 +62,16 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN SISTEMA -->
                 <div class="settings-card">
-                    <div class="card-subtitle" style="color: var(--warning)">Mantenimiento</div>
+                    <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
                         <button onclick="checkUpdate()" class="maint-btn" tabindex="0">
                             <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <div class="maint-info"><span>Buscar Update</span><small>Verificar versión</small></div>
+                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
                         </button>
                         <button onclick="forceUIUpdate()" class="maint-btn" tabindex="0">
                             <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
-                            <div class="maint-info"><span>Recargar UI</span><small>Reparar errores</small></div>
+                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
                         </button>
                     </div>
                 </div>
@@ -98,11 +96,10 @@
 
     <div class="app-layout">
         
-        <!-- SIDEBAR -->
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.3.9</span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
@@ -121,17 +118,15 @@
                     <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
                 <div class="user-card">
-                    <!-- Status Dot Animado -->
-                    <div id="status-dot" class="status-dot offline"></div>
+                    <div id="status-dot" class="status-dot"></div>
                     <div class="user-info">
-                        <span id="status-text" class="status-text">OFFLINE</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado</span>
+                        <span id="status-text" class="status-text-main">OFFLINE</span>
+                        <span class="status-label">Estado</span>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- CONTENIDO PRINCIPAL -->
         <main class="main-content">
             <header class="top-bar">
                 <div>
@@ -167,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- CONSOLA (MEJORADA) -->
+            <!-- CONSOLA MEJORADA -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
                     <div class="console-header">
@@ -189,47 +184,32 @@
                 </div>
             </div>
 
-            <!-- LABS (ICONOS GRANDES + SWITCH TURBO) -->
+            <!-- LABS (SWITCH MEJORADO) -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     
-                    <!-- Tienda -->
                     <div class="mod-card-modern lab-purple">
                         <span class="lab-tag new">NEW</span> <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body">
-                            <div class="mod-title">Tienda de Mods</div>
-                            <p class="mod-desc">Instala plugins y mods populares fácilmente.</p>
-                            <button class="btn-install" onclick="openModStore()" tabindex="0">Abrir Tienda</button>
-                        </div>
+                        <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods populares.</p><button class="btn-install" onclick="openModStore()" tabindex="0">Abrir Tienda</button></div>
                     </div>
                     
-                    <!-- Archivos -->
                     <div class="mod-card-modern lab-orange">
                         <span class="lab-tag alpha">ALPHA</span> <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body">
-                            <div class="mod-title">Gestor Archivos</div>
-                            <p class="mod-desc">Explorador de archivos web.</p>
-                            <button class="btn-install" onclick="setTab('files')" tabindex="0">Abrir</button>
-                        </div>
+                        <div class="mod-body"><div class="mod-title">Gestor Archivos</div><p class="mod-desc">Explorador de archivos web.</p><button class="btn-install" onclick="setTab('files')" tabindex="0">Abrir</button></div>
                     </div>
 
-                    <!-- Backups -->
                     <div class="mod-card-modern lab-blue">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body">
-                            <div class="mod-title">Backups</div>
-                            <p class="mod-desc">Gestión de copias de seguridad.</p>
-                            <button class="btn-install" onclick="setTab('backups')" tabindex="0">Gestionar</button>
-                        </div>
+                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Crea copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')" tabindex="0">Gestionar</button></div>
                     </div>
 
-                    <!-- TURBO (Switch Mejorado) -->
+                    <!-- BOTÓN TURBO MEJORADO -->
                     <div class="mod-card-modern lab-teal">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
                         <div class="mod-body">
                             <div class="mod-title">Modo Turbo</div>
-                            <p class="mod-desc">Optimización extrema de arranque.</p>
+                            <p class="mod-desc">Optimización extrema de CPU.</p>
                             <div class="switch-container">
                                 <span class="switch-label">ESTADO</span>
                                 <label class="toggle-switch">
@@ -240,11 +220,11 @@
                         </div>
                     </div>
 
-                    <!-- Otros... -->
                     <div class="mod-card-modern lab-red">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-calendar-days"></i></div>
                         <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Automatiza tareas.</p><button class="btn-install" disabled>Próximamente</button></div>
                     </div>
+
                     <div class="mod-card-modern lab-indigo">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-network-wired"></i></div>
                         <div class="mod-body"><div class="mod-title">Red & Puertos</div><p class="mod-desc">Gestión avanzada.</p><button class="btn-install" disabled>Próximamente</button></div>
