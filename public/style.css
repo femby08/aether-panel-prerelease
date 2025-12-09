@@ -129,15 +129,26 @@ body { font-family: var(--font-main); background-color: var(--bg-color); color: 
 .mod-cover i { font-size: 3.5rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); z-index: 2; transition: transform 0.3s; }
 .mod-card-modern:hover .mod-cover i { transform: scale(1.1) rotate(-5deg); }
 
+/* COLORES DE LABS RESTAURADOS */
 .lab-purple .mod-cover { background-image: linear-gradient(135deg, #8b5cf6, #6d28d9) !important; }
+.lab-teal .mod-cover { background-image: linear-gradient(135deg, #14b8a6, #0f766e) !important; }
+.lab-orange .mod-cover { background-image: linear-gradient(135deg, #f97316, #c2410c) !important; }
+.lab-blue .mod-cover { background-image: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; }
+.lab-red .mod-cover { background-image: linear-gradient(135deg, #ef4444, #991b1b) !important; }
+.lab-indigo .mod-cover { background-image: linear-gradient(135deg, #6366f1, #312e81) !important; }
+
 .lab-tag { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-transform: uppercase; }
 .lab-tag.new { background: rgba(16, 185, 129, 0.7); }
+.lab-tag.alpha { background: rgba(249, 115, 22, 0.7); }
+.lab-tag.beta { background: rgba(59, 130, 246, 0.7); }
+.lab-tag.wip { background: rgba(100, 116, 139, 0.7); }
 
 .mod-body { padding: 24px; flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.2); }
 .mod-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 8px; }
 .mod-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; flex: 1; }
 .btn-install { width: 100%; margin-top: auto; padding: 12px; background: rgba(255, 255, 255, 0.1); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: inherit; font-size: 0.9rem; }
 .btn-install:hover:not(:disabled) { background: white; color: black; box-shadow: 0 0 15px rgba(255,255,255,0.4); }
+.btn-install:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* MODALES Y VARIOS */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
