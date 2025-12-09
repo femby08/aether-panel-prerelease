@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aether Panel</title>
 
-    <!-- Fuentes y Estilos -->
+    <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+
+    <!-- ESTILOS EXTERNOS (Tu archivo style.css) -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Librerías JS -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -118,8 +119,7 @@
                     <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
                 <div class="user-card">
-                    <div id="status-dot" class="status-dot"></div>
-                    <!-- FIX: Usamos DIVs para asegurar el salto de línea visual -->
+                    <div id="status-dot" class="status-dot offline"></div>
                     <div class="user-info">
                         <div id="status-text" class="status-text-main">OFFLINE</div>
                         <div class="status-label">Estado</div>
@@ -244,7 +244,9 @@
                         </div>
                         <button class="btn btn-primary" onclick="uploadFile()" tabindex="0"><i class="fa-solid fa-upload"></i> Subir</button>
                     </div>
-                    <div id="file-list" style="padding: 10px;"></div>
+                    <div id="file-list" style="padding: 10px;">
+                        <p style="color:gray; padding:20px; text-align:center">Simulación: No hay conexión real al servidor de archivos.</p>
+                    </div>
                 </div>
             </div>
 
@@ -267,6 +269,37 @@
         </main>
     </div>
 
+    <!-- Referencia a tu archivo JS (app.js) -->
     <script src="app.js"></script>
+    
+    <!-- Script MOCK de soporte para previsualización (Puedes borrarlo en producción si ya tienes app.js real) -->
+    <script>
+        // MOCK DE SOCKET PARA PREVISUALIZACION (Evita errores de JS)
+        if(typeof io === 'undefined'){
+            const socket = {
+                on: (event, callback) => {
+                    if(event === 'status_change') setTimeout(() => callback('ONLINE'), 2000);
+                },
+                emit: (ev, data) => console.log('Socket Emit:', ev, data)
+            };
+            window.io = () => socket;
+        }
+
+        // --- INICIALIZACIÓN MOCK SI NO CARGA APP.JS ---
+        // Esto asegura que la demo visual funcione aunque falte el archivo app.js
+        document.addEventListener('DOMContentLoaded', () => {
+             // ... lógica de fallback mínima ...
+             if(typeof term === 'undefined' && typeof Terminal !== 'undefined') {
+                 const term = new Terminal({ fontFamily: 'JetBrains Mono', theme: { background: '#00000000' }, fontSize: 13, convertEol: true });
+                 const fitAddon = new FitAddon.FitAddon();
+                 if(document.getElementById('terminal')) {
+                     term.open(document.getElementById('terminal'));
+                     term.loadAddon(fitAddon);
+                     term.writeln('\x1b[1;36m>>> AETHER PANEL (MODO SEPARADO).\x1b[0m\r\n');
+                     setTimeout(() => fitAddon.fit(), 200);
+                 }
+             }
+        });
+    </script>
 </body>
 </html>
