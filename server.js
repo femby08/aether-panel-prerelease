@@ -7,131 +7,88 @@ const MCManager = require('./mc_manager');
 const osUtils = require('os-utils');
 const os = require('os');
 const multer = require('multer');
-const axios = require('axios');
-const { exec, spawn } = require('child_process');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server);
 const upload = multer({ dest: os.tmpdir() });
 
-// --- DIRECTORIOS ---
+// Directorios
 const SERVER_DIR = path.join(__dirname, 'servers', 'default');
-const BACKUP_DIR = path.join(__dirname, 'backups');
-
-// Asegurar que existen
 if (!fs.existsSync(SERVER_DIR)) fs.mkdirSync(SERVER_DIR, { recursive: true });
-if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const mcServer = new MCManager(io);
-const REPO_RAW = 'https://raw.githubusercontent.com/reychampi/nebula/main';
-const apiClient = axios.create({ headers: { 'User-Agent': 'Nebula-Panel/1.3.0' } });
 
-// ==========================================
-// API ROUTES
-// ==========================================
+// --- RUTAS API ---
 
-// 1. INFO DEL PANEL (Versión)
+// 1. Info del Panel (Versión)
 app.get('/api/info', (req, res) => {
     try {
-        if (fs.existsSync(path.join(__dirname, 'package.json'))) {
-            const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-            res.json({ version: pkg.version });
-        } else {
-            res.json({ version: '1.0.0' });
-        }
-    } catch (e) { 
-        res.json({ version: 'Unknown' }); 
+        const pkg = require('./package.json');
+        res.json({ version: pkg.version });
+    } catch (e) {
+        res.json({ version: '1.0.0' });
     }
 });
 
-// 2. MONITOR (CPU/RAM/DISCO)
-app.get('/api/stats', (req, res) => { 
-    osUtils.cpuUsage((c) => { 
-        let d = 0; 
-        try { 
-            // Calcular uso de disco de la carpeta del servidor
-            if(fs.existsSync(SERVER_DIR)) {
-                fs.readdirSync(SERVER_DIR).forEach(f => {
-                    try { d += fs.statSync(path.join(SERVER_DIR,f)).size } catch{}
-                });
-            }
-        } catch{} 
+// 2. Monitor de Recursos (CPU/RAM)
+app.get('/api/stats', (req, res) => {
+    osUtils.cpuUsage((cpuPercent) => {
+        const totalRam = os.totalmem();
+        const freeRam = os.freemem();
+        const usedRam = totalRam - freeRam;
         
         res.json({
-            cpu: c * 100, 
-            ram_used: (os.totalmem() - os.freemem()) / 1048576, 
-            ram_total: os.totalmem() / 1048576, 
-            disk_used: d / 1048576, 
-            disk_total: 20480 // 20GB Límite visual
-        }); 
-    }); 
+            cpu: cpuPercent * 100,
+            ram_used: usedRam / 1024 / 1024, // MB
+            ram_total: totalRam / 1024 / 1024, // MB
+            disk_used: 0, // Implementar lógica real si se desea
+            disk_total: 10240
+        });
+    });
 });
 
-// 3. ESTADO DEL SERVIDOR
-app.get('/api/status', (req, res) => res.json(mcServer.getStatus()));
-
-// 4. CONFIGURACIÓN (server.properties)
+// 3. Configuración
 app.get('/api/config', (req, res) => {
     res.json(mcServer.readProperties());
 });
 
-app.post('/api/config', (req, res) => { 
-    // Guardamos y devolvemos la config actualizada para refrescar la UI
-    mcServer.writeProperties(req.body); 
-    res.json(mcServer.readProperties()); 
+app.post('/api/config', (req, res) => {
+    mcServer.writeProperties(req.body);
+    res.json(mcServer.readProperties());
 });
 
-// 5. UPDATES (Check)
-app.get('/api/update/check', async (req, res) => {
-    try {
-        const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-        const remotePkg = (await apiClient.get(`${REPO_RAW}/package.json`)).data;
-        
-        if (remotePkg.version !== localPkg.version) {
-            return res.json({ type: 'hard', local: localPkg.version, remote: remotePkg.version });
-        }
-        res.json({ type: 'none' });
-    } catch (e) { res.json({ type: 'error' }); }
-});
-
-// 6. UPDATES (Perform)
-app.post('/api/update/perform', (req, res) => {
-    const { type } = req.body;
-    // Aquí iría la lógica real de bash, por ahora simulamos éxito
-    io.emit('toast', { type: 'info', msg: 'Actualización iniciada...' });
-    setTimeout(() => {
+// 4. Control de Energía
+app.post('/api/power/:action', async (req, res) => {
+    const action = req.params.action;
+    if (mcServer[action]) {
+        await mcServer[action]();
         res.json({ success: true });
-    }, 2000);
+    } else {
+        res.status(400).json({ error: 'Acción inválida' });
+    }
 });
 
-// 7. CONTROLES DE ENERGÍA
-app.post('/api/power/:a', async (req, res) => { 
-    try{
-        if(mcServer[req.params.a]) await mcServer[req.params.a]();
-        res.json({success:true});
-    } catch(e){ res.status(500).json({}); }
+// 5. Estado
+app.get('/api/status', (req, res) => {
+    res.json(mcServer.getStatus());
 });
 
-// 8. FILE MANAGER (Básico)
-app.get('/api/files', (req, res) => {
-    // Implementación básica para evitar errores 404
-    res.json([]);
+// --- SOCKETS ---
+io.on('connection', (socket) => {
+    // Enviar historial de logs al conectar
+    socket.emit('logs_history', mcServer.getRecentLogs());
+    socket.emit('status_change', mcServer.status);
+
+    // Recibir comandos de la terminal
+    socket.on('command', (cmd) => {
+        mcServer.sendCommand(cmd);
+    });
 });
 
-// ==========================================
-// SOCKET.IO
-// ==========================================
-io.on('connection', (s) => { 
-    s.emit('logs_history', mcServer.getRecentLogs()); 
-    s.emit('status_change', mcServer.status); 
-    s.on('command', (c) => mcServer.sendCommand(c)); 
+server.listen(3000, () => {
+    console.log('✅ Aether Panel (Repo Version) corriendo en puerto 3000');
 });
-
-// ==========================================
-// INICIO
-// ==========================================
-server.listen(3000, () => console.log('✅ Aether Panel escuchando en puerto 3000'));
