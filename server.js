@@ -47,7 +47,7 @@ const getDirSize = (dirPath) => {
 
 // --- RUTAS API ---
 
-// 1. Info Básica (Arregla el problema de "Cargando...")
+// 1. Info Básica (Arregla el "Cargando...")
 app.get('/api/info', (req, res) => {
     try { 
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')); 
@@ -57,14 +57,14 @@ app.get('/api/info', (req, res) => {
     }
 });
 
-// 2. Estadísticas para las Gráficas
+// 2. Estadísticas Reales
 app.get('/api/stats', (req, res) => {
     osUtils.cpuUsage((cpuPercent) => {
         const totalRam = os.totalmem();
         const freeRam = os.freemem();
         const usedRam = totalRam - freeRam;
         
-        // Simular tamaño de disco si es muy costoso calcularlo
+        // Simular uso de disco basado en la carpeta del servidor
         const diskUsed = getDirSize(SERVER_DIR); 
 
         res.json({
@@ -72,14 +72,14 @@ app.get('/api/stats', (req, res) => {
             ram_used: usedRam,
             ram_total: totalRam,
             disk_used: diskUsed,
-            disk_total: 20 * 1024 * 1024 * 1024 // 20GB fijos para la barra
+            disk_total: 20 * 1024 * 1024 * 1024 // 20GB de ejemplo
         });
     });
 });
 
 app.get('/api/status', (req, res) => res.json(mcServer.getStatus()));
 
-// 3. Whitelist y Propiedades
+// 3. Whitelist (Lectura y Escritura)
 app.get('/api/whitelist', (req, res) => {
     const p = path.join(SERVER_DIR, 'whitelist.json');
     if(fs.existsSync(p)) {
@@ -97,29 +97,20 @@ app.post('/api/whitelist', (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 4. Configuración (Server.properties)
 app.get('/api/config', (req, res) => res.json(mcServer.readProperties()));
 app.post('/api/config', (req, res) => { 
     mcServer.writeProperties(req.body); 
     res.json({ success: true }); 
 });
 
-// 4. Energía y Comandos
+// 5. Energía
 app.post('/api/power/:action', async (req, res) => { 
     try { 
         const action = req.params.action;
         if (mcServer[action]) { await mcServer[action](); res.json({ success: true }); } 
         else { res.status(400).json({ error: 'Acción inválida' }); }
     } catch (e) { res.status(500).json({ error: e.message }); } 
-});
-
-// 5. Archivos (Básico para que no se vea vacío)
-app.get('/api/files', (req, res) => {
-    const t = path.join(SERVER_DIR, (req.query.path || '').replace(/\.\./g, ''));
-    if (!fs.existsSync(t)) return res.json([]);
-    const files = fs.readdirSync(t, { withFileTypes: true }).map(f => ({
-        name: f.name, isDir: f.isDirectory(), size: f.isDirectory() ? '-' : (fs.statSync(path.join(t, f.name)).size / 1024).toFixed(1) + ' KB'
-    }));
-    res.json(files);
 });
 
 // SOCKET IO
