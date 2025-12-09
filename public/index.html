@@ -26,7 +26,7 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- MODAL DETALLES (NUEVO) -->
+    <!-- MODAL DETALLES -->
     <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-card detail-card-size">
             <div class="modal-header">
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    <!-- MODAL AJUSTES (RESTAURADO) -->
+    <!-- MODAL AJUSTES (ESTRUCTURA COMPLETA) -->
     <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-app">
         <div class="modal-card">
             <div class="modal-header">
@@ -48,7 +48,7 @@
             </div>
             <div class="modal-body settings-layout">
                 
-                <!-- Sección Apariencia -->
+                <!-- SECCIÓN 1: APARIENCIA (ESTO FALTABA) -->
                 <div class="settings-card">
                     <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <!-- Sección Mantenimiento (RECUPERADA) -->
+                <!-- SECCIÓN 2: MANTENIMIENTO -->
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
@@ -128,7 +128,7 @@
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.6.0</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
@@ -169,7 +169,7 @@
                 </div>
             </header>
 
-            <!-- MONITOR (CON NUEVAS FUNCIONES) -->
+            <!-- MONITOR -->
             <div id="tab-stats" class="tab-view active" role="tabpanel" aria-labelledby="nav-stats">
                 <div class="stats-grid">
                     <!-- CPU CARD (Clickable) -->
@@ -194,52 +194,30 @@
                         <div class="click-hint">Ver Detalles</div>
                     </div>
                     
-                    <!-- JUGADORES CARD (Clickable) -->
+                    <!-- JUGADORES CARD (CLICKEABLE FIX) -->
+                    <!-- Se eliminan z-index internos conflictivos para que el click funcione en todo el div -->
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
                         <div>
-                            <span class="big-number" id="players-val">15/50</span>
+                            <span class="big-number" id="players-val">0/0</span>
                             <div style="font-size:0.9rem; color:var(--text-muted)">En línea</div>
                         </div>
-                        <!-- Preview de avatares superpuestos (Estilo Apple/Glass) -->
-                        <div id="players-preview" class="avatar-stack">
-                            <!-- Se llena desde app.js -->
+                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;"> <!-- pointer-events: none para que el click pase al padre -->
+                            <!-- JS llena esto -->
                         </div>
                         <div class="click-hint">Ver Lista</div>
                     </div>
                 </div>
 
-                <!-- ACTIVIDAD RECIENTE (Clickable) -->
+                <!-- ACTIVIDAD RECIENTE (CLICKEABLE) -->
                 <h3 style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Actividad Reciente</h3>
                 <div class="glass-panel interactive" style="overflow: hidden; cursor:pointer" onclick="openDetail('activity')">
                     <table class="activity-table">
                         <thead>
-                            <tr>
-                                <th>Evento</th>
-                                <th>Usuario</th>
-                                <th>Hora</th>
-                                <th style="text-align: right;">Estado</th>
-                            </tr>
+                            <tr><th>Evento</th><th>Usuario</th><th>Hora</th><th style="text-align: right;">Estado</th></tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td><div class="event-indicator success"></div> Servidor Iniciado</td>
-                                <td>Sistema</td>
-                                <td style="color: var(--text-muted);">Hace 2m</td>
-                                <td style="text-align: right;"><span class="status-badge success">Completado</span></td>
-                            </tr>
-                            <tr>
-                                <td><div class="event-indicator info"></div> Jugador Conectado</td>
-                                <td>Steve</td>
-                                <td style="color: var(--text-muted);">Hace 5m</td>
-                                <td style="text-align: right;"><span class="status-badge info">Info</span></td>
-                            </tr>
-                            <tr>
-                                <td><div class="event-indicator warning"></div> Backup Realizado</td>
-                                <td>Automático</td>
-                                <td style="color: var(--text-muted);">Hace 1h</td>
-                                <td style="text-align: right;"><span class="status-badge success">Completado</span></td>
-                            </tr>
+                        <tbody id="activity-table-body">
+                            <!-- JS llena esto -->
                         </tbody>
                     </table>
                     <div class="click-hint-bottom">Click para ver historial completo</div>
@@ -310,7 +288,9 @@
             <div id="tab-config" class="tab-view" role="tabpanel" aria-labelledby="nav-config">
                 <div class="glass-panel" style="padding: 24px;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
-                    <div id="cfg-list" class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+                    <div id="cfg-list" class="settings-layout">
+                        <!-- JS llena esto -->
+                    </div>
                 </div>
             </div>
 
