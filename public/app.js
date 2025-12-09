@@ -44,7 +44,6 @@ function setupGlobalShortcuts() {
         if (e.key === 'Escape') closeAllModals();
 
         // Flechas (Navegación Sidebar)
-        // Solo si no estamos escribiendo
         if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (e.key === 'ArrowDown') { e.preventDefault(); navigateSidebar(1); }
             if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
@@ -60,18 +59,15 @@ function setupGlobalShortcuts() {
 }
 
 function navigateSidebar(direction) {
-    // Buscar botones visibles
     const buttons = Array.from(document.querySelectorAll('.nav-item'));
     const current = document.activeElement;
     let idx = buttons.indexOf(current);
 
     if (idx === -1) {
-        // Si no hay foco, ir al activo
         const active = document.querySelector('.nav-item.active');
         idx = buttons.indexOf(active);
     }
 
-    // Calcular nuevo índice (cíclico)
     let newIdx = idx + direction;
     if (newIdx >= buttons.length) newIdx = 0;
     if (newIdx < 0) newIdx = buttons.length - 1;
@@ -81,18 +77,15 @@ function navigateSidebar(direction) {
 
 // --- PESTAÑAS ---
 function setTab(t, btn) {
-    // 1. Ocultar todo
     document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
     
-    // 2. Mostrar destino
     const target = document.getElementById('tab-' + t);
     if(target) target.classList.add('active');
     
-    // 3. Activar botón
     if (btn) {
         btn.classList.add('active');
-        btn.focus(); // Enfocar para accesibilidad
+        btn.focus();
     } else {
         const sbBtn = document.querySelector(`.nav-item[onclick*="'${t}'"]`);
         if(sbBtn) {
@@ -101,7 +94,6 @@ function setTab(t, btn) {
         }
     }
 
-    // 4. Cargas específicas
     if(t==='console') setTimeout(()=>fitAddon.fit(),100);
     if(t==='files') loadFiles('');
     if(t==='config') loadConfig();
@@ -208,7 +200,10 @@ async function loadVersions(type){
         const list = await api('nebula/versions', {type});
         let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">';
         list.forEach(v => {
-            html += `<div class="glass-panel" style="padding:10px; cursor:pointer; text-align:center; border:1px solid rgba(255,255,255,0.1)" onclick="preInstall('${v.id}','${v.type}','${v.url}')"><div style="font-weight:700">${v.id}</div><div style="font-size:0.7rem; color:#a1a1aa">${v.type}</div></div>`;
+            html += `<div class="glass-panel ver-card" onclick="preInstall('${v.id}','${v.type}','${v.url}')">
+                        <div style="font-weight:700; font-size: 1.1rem;">${v.id}</div>
+                        <div style="font-size:0.8rem; color:#a1a1aa">${v.type}</div>
+                     </div>`;
         });
         html += '</div>';
         document.getElementById('modal-body').innerHTML = html;
