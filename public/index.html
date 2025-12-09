@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aether Panel</title>
-    
+
     <link rel="icon" type="image/svg+xml" href="logo.svg">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    
     <link rel="stylesheet" href="style.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -19,43 +23,103 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div class="background-layer"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+    <div class="background-layer">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
 
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-card detail-card-size">
-            <div class="modal-header"><h3 id="detail-title">Detalles</h3><button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="modal-header">
+                <h3 id="detail-title">Detalles</h3>
+                <button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
             <div id="detail-body" class="modal-body"></div>
         </div>
     </div>
 
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
-            <div class="modal-header"><h3><i class="fa-solid fa-palette"></i> Personalización</h3><button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-palette"></i> Personalización</h3>
+                <button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
             <div class="modal-body settings-layout">
+                
                 <div class="settings-card">
                     <div class="card-subtitle">APARIENCIA</div>
-                    <div class="setting-row"><span>Tema</span><div class="segment-box"><button class="seg-btn" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i></button><button class="seg-btn active" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i></button><button class="seg-btn" onclick="setTheme('auto')">Auto</button></div></div>
-                    <div class="setting-row"><span>Diseño</span><div class="segment-box"><button class="seg-btn active" onclick="setDesign('glass')">Glass</button><button class="seg-btn" onclick="setDesign('material')">Flat</button></div></div>
-                    <div class="setting-row"><span>Acento</span><div class="accent-pills"><div class="color-pill active" style="background:#8b5cf6" onclick="setAccentColor('#8b5cf6',this)"></div><div class="color-pill" style="background:#06b6d4" onclick="setAccentColor('#06b6d4',this)"></div><div class="color-pill" style="background:#10b981" onclick="setAccentColor('#10b981',this)"></div><div class="color-pill" style="background:#f59e0b" onclick="setAccentColor('#f59e0b',this)"></div><div class="color-pill" style="background:#ef4444" onclick="setAccentColor('#ef4444',this)"></div><div class="color-pill" style="background:linear-gradient(135deg,#fff,#555)"><input type="color" id="accent-picker-native" onchange="setAccentColor(this.value,this.parentElement)"></div></div></div>
+                    <div class="setting-row">
+                        <span>Tema</span>
+                        <div class="segment-box">
+                            <button class="seg-btn" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i></button>
+                            <button class="seg-btn active" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i></button>
+                            <button class="seg-btn" onclick="setTheme('auto')">Auto</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span>Diseño</span>
+                        <div class="segment-box">
+                            <button class="seg-btn active" onclick="setDesign('glass')">Glass</button>
+                            <button class="seg-btn" onclick="setDesign('material')">Flat</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span>Acento</span>
+                        <div class="accent-pills">
+                            <div class="color-pill active" style="background:#8b5cf6" onclick="setAccentColor('#8b5cf6', this)"></div>
+                            <div class="color-pill" style="background:#06b6d4" onclick="setAccentColor('#06b6d4', this)"></div>
+                            <div class="color-pill" style="background:#10b981" onclick="setAccentColor('#10b981', this)"></div>
+                            <div class="color-pill" style="background:#f59e0b" onclick="setAccentColor('#f59e0b', this)"></div>
+                            <div class="color-pill" style="background:#ef4444" onclick="setAccentColor('#ef4444', this)"></div>
+                            <div class="color-pill" style="background:linear-gradient(135deg,#fff,#555)">
+                                <input type="color" id="accent-picker-native" onchange="setAccentColor(this.value, this.parentElement)">
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">MANTENIMIENTO</div>
                     <div class="maint-grid">
-                        <div class="maint-card" onclick="checkUpdate()"><div class="maint-icon green"><i class="fa-solid fa-cloud-arrow-down"></i></div><div class="maint-text"><span>Actualizar</span><small>Buscar versión</small></div></div>
-                        <div class="maint-card" onclick="forceUIUpdate()"><div class="maint-icon orange"><i class="fa-solid fa-rotate"></i></div><div class="maint-text"><span>Recargar UI</span><small>Reparar fallos</small></div></div>
+                        <div class="maint-card" onclick="checkUpdate()">
+                            <div class="maint-icon green"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                            <div class="maint-text"><span>Actualizar</span><small>Buscar versión</small></div>
+                        </div>
+                        <div class="maint-card" onclick="forceUIUpdate()">
+                            <div class="maint-icon orange"><i class="fa-solid fa-rotate"></i></div>
+                            <div class="maint-text"><span>Recargar UI</span><small>Reparar fallos</small></div>
+                        </div>
                     </div>
                 </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="update-modal" class="modal-overlay" role="alertdialog">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-body">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
+                <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
+                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;"></p>
+                <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
             </div>
         </div>
     </div>
 
     <div class="app-layout">
+        
         <aside class="sidebar glass-panel">
             <div class="brand-area">
-                <img src="logo.svg" style="width:42px; height:42px; border-radius:12px; box-shadow:0 0 15px var(--primary-glow);" alt="Logo">
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">...</span></div>
+                <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
+                <div class="logo-text">
+                    <span class="title">Aether</span>
+                    <span class="subtitle" id="version-display">Cargando...</span>
+                </div>
             </div>
-            <nav class="nav-menu">
+            
+            <nav class="nav-menu" id="main-nav">
                 <div class="nav-label">CONTROL</div>
                 <button onclick="setTab('stats')" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
                 <button onclick="setTab('console')" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
@@ -64,15 +128,27 @@
                 <button onclick="setTab('labs')" class="nav-item" id="nav-labs"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
                 <button onclick="setTab('config')" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
+
             <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%; justify-content:center; margin-bottom:15px" onclick="document.getElementById('appearance-modal').classList.add('active')"><i class="fa-solid fa-palette"></i> Personalizar</button>
-                <div class="user-card"><div id="status-dot" class="status-dot offline"></div><div class="user-info"><div id="status-text" class="status-text-main">OFFLINE</div><div class="status-label">Estado</div></div></div>
+                <button class="btn btn-secondary" style="width:100%; justify-content:center; margin-bottom:15px;" onclick="document.getElementById('appearance-modal').classList.add('active')">
+                    <i class="fa-solid fa-palette"></i> Personalizar
+                </button>
+                <div class="user-card">
+                    <div id="status-dot" class="status-dot offline"></div>
+                    <div class="user-info">
+                        <div id="status-text" class="status-text-main">OFFLINE</div>
+                        <div class="status-label">Estado</div>
+                    </div>
+                </div>
             </div>
         </aside>
 
         <main class="main-content">
             <header class="top-bar">
-                <div><h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1><div class="server-badge"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div></div>
+                <div>
+                    <h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1>
+                    <div class="server-badge"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div>
+                </div>
                 <div class="header-actions">
                     <button onclick="api('power/start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
                     <button onclick="api('power/restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
@@ -84,28 +160,86 @@
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
                     <div class="card glass-panel interactive" onclick="openDetail('cpu')">
-                        <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div><div><span class="big-number" id="cpu-val">0%</span></div>
-                        <div class="chart-container"><canvas id="cpu-chart"></canvas></div><div class="click-hint">Ver Detalles</div>
+                        <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
+                        <div><span class="big-number" id="cpu-val">0%</span></div>
+                        <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
+                        <div class="click-hint">Ver Detalles</div>
                     </div>
                     <div class="card glass-panel interactive" onclick="openDetail('ram')">
-                        <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div><div><span class="big-number" id="ram-val">0 GB</span></div>
+                        <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
+                        <div><span class="big-number" id="ram-val">0 GB</span></div>
                         <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;" id="ram-free">Calculando...</div>
-                        <div class="chart-container"><canvas id="ram-chart"></canvas></div><div class="click-hint">Ver Detalles</div>
+                        <div class="chart-container"><canvas id="ram-chart"></canvas></div>
+                        <div class="click-hint">Ver Detalles</div>
                     </div>
                     <div class="card glass-panel interactive" onclick="openDetail('disk')">
-                        <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div><div><span class="big-number" id="disk-val">0 MB</span></div>
+                        <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
+                        <div><span class="big-number" id="disk-val">0 MB</span></div>
                         <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;" id="disk-free">Calculando...</div>
-                        <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div><div class="click-hint">Ver Detalles</div>
+                        <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
+                        <div class="click-hint">Ver Detalles</div>
+                    </div>
+                    <div class="card glass-panel interactive" onclick="openDetail('players')">
+                        <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
+                        <div><span class="big-number" id="players-val">0/0</span></div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">En línea</div>
+                        <div class="click-hint">Ver Lista</div>
                     </div>
                 </div>
+
+                <h3 style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Actividad Reciente</h3>
+                <div class="glass-panel interactive" style="overflow: hidden; cursor:pointer" onclick="openDetail('activity')">
+                    <table class="activity-table">
+                        <thead><tr><th>EVENTO</th><th>USUARIO</th><th>HORA</th><th style="text-align: right;">Estado</th></tr></thead>
+                        <tbody id="activity-table-body"></tbody>
+                    </table>
+                    <div class="click-hint-bottom">Click para ver historial completo</div>
+                </div>
             </div>
-            
-            <div id="tab-console" class="tab-view"><div class="console-full glass-panel"><div id="terminal" class="console-output"></div></div></div>
-            <div id="tab-config" class="tab-view"><div class="glass-panel" style="padding:24px;"><button class="btn btn-primary" onclick="saveCfg()">Guardar</button><div id="cfg-list" class="settings-layout"></div></div></div>
-            <div id="tab-versions" class="tab-view"><h2>Versiones</h2><div class="stats-grid"><div class="glass-panel ver-card vanilla"><h3>Vanilla</h3></div></div></div>
-            <div id="tab-labs" class="tab-view"><h2>Labs</h2></div>
+
+            <div id="tab-console" class="tab-view">
+                <div class="console-full glass-panel">
+                    <div class="console-header"><span><i class="fa-solid fa-terminal"></i> root@server:~</span><span style="font-size:0.7rem; opacity:0.5">BASH</span></div>
+                    <div id="terminal" class="console-output" tabindex="0" aria-label="Terminal"></div>
+                </div>
+            </div>
+
+            <div id="tab-versions" class="tab-view">
+                <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
+                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
+                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
+                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
+                </div>
+            </div>
+
+            <div id="tab-labs" class="tab-view">
+                <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
+                <div class="labs-grid">
+                    <div class="mod-card-modern lab-purple"><span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div><div class="mod-body"><div class="mod-title">Tienda Mods</div><p class="mod-desc">Instala plugins y mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div></div>
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag alpha">ALPHA</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div><div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div></div>
+                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div><div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div></div>
+                    <div class="mod-card-modern lab-teal"><span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-bolt"></i></div><div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización CPU.</p><div class="switch-container"><span class="switch-label">ESTADO</span><label class="toggle-switch"><input type="checkbox" id="lab-turbo"><span class="slider"></span></label></div></div></div>
+                </div>
+            </div>
+
+            <div id="tab-config" class="tab-view">
+                <div class="glass-panel" style="padding: 24px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Configuración</h3>
+                        <button class="btn btn-primary" onclick="saveCfg()">Guardar</button>
+                    </div>
+                    <div id="cfg-list" class="settings-layout"></div>
+                </div>
+            </div>
+
+            <div id="tab-files" class="tab-view"><div class="glass-panel" style="padding:20px;"><div id="file-list"></div></div></div>
+            <div id="tab-backups" class="tab-view"><div class="glass-panel" style="padding:20px;"><div id="backup-list"></div></div></div>
+
         </main>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
