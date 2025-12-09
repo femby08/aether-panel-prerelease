@@ -27,7 +27,7 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- === MODAL PERSONALIZACIÓN (AJUSTES) === -->
+    <!-- === MODAL PERSONALIZACIÓN === -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -63,9 +63,9 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN SISTEMA (LO QUE PEDISTE) -->
+                <!-- SECCIÓN SISTEMA -->
                 <div class="settings-card">
-                    <div class="card-subtitle">Mantenimiento del Panel</div>
+                    <div class="card-subtitle" style="color: var(--warning)">Zona de Mantenimiento</div>
                     <div class="actions-grid">
                         <button onclick="checkUpdate()" class="maint-btn">
                             <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
@@ -104,15 +104,15 @@
                 <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
             </div>
             
-            <nav class="nav-menu" id="main-nav">
+            <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats', this)" class="nav-item active" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console', this)" class="nav-item" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions', this)" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" tabindex="0" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" role="tab" tabindex="0" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" role="tab" tabindex="0"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs', this)" class="nav-item"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config', this)" class="nav-item"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" role="tab" tabindex="0" title="Alt+4"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" role="tab" tabindex="0" title="Alt+5"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
