@@ -36,7 +36,7 @@
             </div>
             <div class="modal-body settings-layout">
                 
-                <!-- SECCIÓN 1: APARIENCIA -->
+                <!-- SECCIÓN APARIENCIA -->
                 <div class="settings-card">
                     <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: MANTENIMIENTO -->
+                <!-- SECCIÓN MANTENIMIENTO -->
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
@@ -85,7 +85,7 @@
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.6.2</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
@@ -155,32 +155,32 @@
                 </div>
             </div>
 
-            <!-- VERSIONES (MANTENIDO) -->
+            <!-- VERSIONES -->
             <div id="tab-versions" class="tab-view">
-                <h2 style="margin-bottom:20px; font-weight:700">Software</h2>
+                <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
                     <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
                     <div class="glass-panel ver-card paper" onclick="loadVersions('paper')"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
-                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods</p></div>
-                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods</p></div>
+                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
+                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
                 </div>
             </div>
 
-            <!-- LABS (MANTENIDO) -->
+            <!-- LABS -->
             <div id="tab-labs" class="tab-view">
-                <h2 style="margin-bottom:20px; font-weight:800">Labs & Utilidades</h2>
+                <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     <div class="mod-card-modern lab-purple">
                         <span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda</div><p class="mod-desc">Plugins y Mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div>
+                        <div class="mod-body"><div class="mod-title">Tienda Mods</div><p class="mod-desc">Instala plugins y mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div>
                     </div>
                     <div class="mod-card-modern lab-orange">
-                        <span class="lab-tag">FILES</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
+                        <span class="lab-tag alpha">ALPHA</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
+                        <div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
                     </div>
                     <div class="mod-card-modern lab-blue">
-                        <span class="lab-tag">DATA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
+                        <span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
                     </div>
                 </div>
             </div>
@@ -190,13 +190,13 @@
                 <div class="glass-panel" style="padding: 24px;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
                     <div id="cfg-list" class="settings-layout">
-                        <!-- AQUÍ SE INYECTA LA WHITELIST -->
+                        <!-- AQUÍ SE INYECTARÁ LA WHITELIST Y PROPIEDADES -->
                         <p style="text-align:center; color:gray">Cargando...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- TABS OCULTOS (FILES/BACKUPS) -->
+            <!-- TABS OCULTOS -->
             <div id="tab-files" class="tab-view">
                 <div class="glass-panel" style="padding:20px"><button onclick="setTab('labs')" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver</button><div style="text-align:center; padding:50px">Explorador de Archivos (Placeholder)</div></div>
             </div>
