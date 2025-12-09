@@ -9,28 +9,68 @@ document.addEventListener('DOMContentLoaded', () => {
     term.writeln('\x1b[1;36m>>> CONECTADO A AETHER PANEL.\x1b[0m\r\n');
     setTimeout(() => fitAddon.fit(), 200);
 
-    // 2. Obtener Info del Servidor (Versión)
+    // 2. Info Servidor
     fetch('/api/info').then(r => r.json()).then(d => {
         const el = document.getElementById('version-display');
         if(el) el.innerText = `v${d.version} ${d.channel || ''}`;
     });
 
-    // 3. Setup Shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.altKey) {
-            // Alt+1: Monitor, Alt+2: Consola, Alt+3: Files (ahora en Labs)
-            if (e.key === '1') { e.preventDefault(); setTab('stats'); }
-            if (e.key === '2') { e.preventDefault(); setTab('console'); }
-            if (e.key === '3') { e.preventDefault(); setTab('files'); }
-        }
-        if (e.key === 'Escape') closeAllModals();
-    });
-
-    // 4. Init Settings
+    // 3. Init Config
     updateThemeUI(localStorage.getItem('theme') || 'dark');
     setDesign(localStorage.getItem('design_mode') || 'glass');
     setAccentMode(localStorage.getItem('accent_mode') || 'auto');
+
+    // 4. Setup Global Shortcuts
+    setupGlobalShortcuts();
 });
+
+// --- ATAJOS DE TECLADO Y NAVEGACIÓN ---
+function setupGlobalShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // --- ATAJOS ALT+NUMERO ---
+        if (e.altKey) {
+            switch(e.key) {
+                case '1': e.preventDefault(); setTab('stats'); break;
+                case '2': e.preventDefault(); setTab('console'); break;
+                case '3': e.preventDefault(); setTab('files'); break; // Ahora abre la vista files directamente
+                case '4': e.preventDefault(); setTab('labs'); break;
+                case '5': e.preventDefault(); setTab('config'); break;
+            }
+        }
+
+        // --- SALIR ---
+        if (e.key === 'Escape') closeAllModals();
+
+        // --- NAVEGACIÓN POR FLECHAS (SIDEBAR) ---
+        // Solo si no estamos escribiendo en un input
+        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateSidebar(e.key === 'ArrowDown' ? 1 : -1);
+            }
+        }
+    });
+}
+
+function navigateSidebar(direction) {
+    const navItems = Array.from(document.querySelectorAll('.nav-item'));
+    const current = document.activeElement;
+    let index = navItems.indexOf(current);
+
+    if (index === -1) {
+        // Si nada está enfocado, enfocar el primero (o el activo actual)
+        const active = document.querySelector('.nav-item.active');
+        index = navItems.indexOf(active);
+        if(index === -1) index = 0;
+    } else {
+        index += direction;
+        // Loop around
+        if (index >= navItems.length) index = 0;
+        if (index < 0) index = navItems.length - 1;
+    }
+    
+    navItems[index].focus();
+}
 
 // --- LÓGICA DE PESTAÑAS ---
 function setTab(t, btn) {
@@ -42,6 +82,7 @@ function setTab(t, btn) {
     if (btn) {
         btn.classList.add('active');
     } else {
+        // Buscar botón correspondiente si se activó por atajo
         const sbBtn = document.querySelector(`.nav-item[onclick*="'${t}'"]`);
         if(sbBtn) sbBtn.classList.add('active');
     }
@@ -51,15 +92,6 @@ function setTab(t, btn) {
     if(t==='config') loadConfig();
     if(t==='backups') loadBackups();
 }
-
-// --- TERMINAL XTERM ---
-const term = new Terminal({ fontFamily: 'JetBrains Mono', theme: { background: '#00000000' }, fontSize: 13, convertEol: true });
-const fitAddon = new FitAddon.FitAddon();
-window.onresize = ()=>fitAddon.fit();
-
-term.onData(d => socket.emit('command', d));
-socket.on('console_data', d => term.write(d));
-socket.on('logs_history', d => { term.write(d); setTimeout(()=>fitAddon.fit(), 200); });
 
 // --- UTILS ---
 function api(ep, body){ return fetch('/api/'+ep, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(r=>r.json()); }
@@ -90,6 +122,45 @@ function setAccentColor(color, save = true) {
     document.documentElement.style.setProperty('--primary-light', color); 
     document.documentElement.style.setProperty('--primary-glow', color + '66');
 }
+
+// --- SYSTEM ACTIONS (PERSONALIZACIÓN) ---
+function checkUpdate(){
+    Toastify({text:'Buscando actualizaciones...',style:{background:'#8b5cf6'}}).showToast();
+    fetch('/api/update/check').then(r=>r.json()).then(d=>{
+        if(d.type!=='none'){
+            const m=document.getElementById('update-modal');
+            document.getElementById('update-text').innerText=`Nueva versión ${d.remote} disponible.`;
+            document.getElementById('up-actions').innerHTML=`<button onclick="doUpdate('${d.type}')" class="btn btn-primary">ACTUALIZAR</button><button onclick="closeAllModals()" class="btn btn-secondary">Cancelar</button>`;
+            m.classList.add('active');
+        } else {
+            Toastify({text:'El sistema está actualizado.',style:{background:'#10b981'}}).showToast();
+        }
+    }).catch(e=>{});
+}
+
+function forceUIUpdate(){ document.getElementById('force-ui-modal').classList.add('active'); }
+function confirmForceUI(){
+    closeAllModals();
+    Toastify({text:'Reinstalando interfaz...',style:{background:'#8b5cf6'}}).showToast();
+    fetch('/api/update/perform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'soft'})}).then(r=>r.json()).then(d=>{
+        if(d.success){ Toastify({text:'¡Listo! Recargando...',style:{background:'#10b981'}}).showToast(); setTimeout(()=>location.reload(),1500); }
+    });
+}
+function doUpdate(type){
+    closeAllModals();
+    fetch('/api/update/perform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})}).then(r=>r.json()).then(d=>{
+        if(d.mode){ Toastify({text:'Actualizando...',style:{background:'#10b981'}}).showToast(); setTimeout(()=>location.reload(),5000); }
+    });
+}
+
+// --- TERMINAL XTERM ---
+const term = new Terminal({ fontFamily: 'JetBrains Mono', theme: { background: '#00000000' }, fontSize: 13, convertEol: true });
+const fitAddon = new FitAddon.FitAddon();
+window.onresize = ()=>fitAddon.fit();
+
+term.onData(d => socket.emit('command', d));
+socket.on('console_data', d => term.write(d));
+socket.on('logs_history', d => { term.write(d); setTimeout(()=>fitAddon.fit(), 200); });
 
 // --- STATS ---
 setInterval(()=>{
@@ -179,7 +250,7 @@ function uploadFile(){
     input.click();
 }
 
-// --- LABS FUNCTIONS RESTAURADAS ---
+// --- LABS FUNCTIONS ---
 const modsDB=[{name:"Jei",fullName:"Just Enough Items",url:"https://mediafilez.forgecdn.net/files/5936/206/jei-1.20.1-forge-15.3.0.4.jar",icon:"fa-book",color:"#2ecc71"},{name:"Iron Chests",fullName:"Iron Chests",url:"https://mediafilez.forgecdn.net/files/4670/664/ironchest-1.20.1-14.4.4.jar",icon:"fa-box",color:"#95a5a6"},{name:"JourneyMap",fullName:"JourneyMap",url:"https://mediafilez.forgecdn.net/files/5864/381/journeymap-1.20.1-5.9.18-forge.jar",icon:"fa-map",color:"#3498db"}];
 
 function openModStore(){
