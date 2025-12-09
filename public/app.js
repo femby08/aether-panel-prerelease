@@ -1,7 +1,7 @@
 const socket = io();
 let currentPath = '';
 
-// --- INICIALIZACIÓN Y ATAJOS ---
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Setup Xterm
     term.open(document.getElementById('terminal'));
@@ -9,21 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
     term.writeln('\x1b[1;36m>>> CONECTADO A AETHER PANEL.\x1b[0m\r\n');
     setTimeout(() => fitAddon.fit(), 200);
 
-    // 2. Setup Shortcuts (Tu petición)
+    // 2. Obtener Info del Servidor (Versión)
+    fetch('/api/info').then(r => r.json()).then(d => {
+        const el = document.getElementById('version-display');
+        if(el) el.innerText = `v${d.version} ${d.channel || ''}`;
+    });
+
+    // 3. Setup Shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.altKey) {
-            // Alt+1: Monitor (Stats)
+            // Alt+1: Monitor, Alt+2: Consola, Alt+3: Files (ahora en Labs)
             if (e.key === '1') { e.preventDefault(); setTab('stats'); }
-            // Alt+2: Consola
             if (e.key === '2') { e.preventDefault(); setTab('console'); }
-            // Alt+3: Archivos
             if (e.key === '3') { e.preventDefault(); setTab('files'); }
         }
-        // Esc: Cerrar Modales
         if (e.key === 'Escape') closeAllModals();
     });
 
-    // 3. Init Data
+    // 4. Init Settings
     updateThemeUI(localStorage.getItem('theme') || 'dark');
     setDesign(localStorage.getItem('design_mode') || 'glass');
     setAccentMode(localStorage.getItem('accent_mode') || 'auto');
@@ -36,11 +39,9 @@ function setTab(t, btn) {
     
     document.getElementById('tab-' + t).classList.add('active');
     
-    // Activar botón (sidebar)
     if (btn) {
         btn.classList.add('active');
     } else {
-        // Si se llama vía atajo, buscar el botón
         const sbBtn = document.querySelector(`.nav-item[onclick*="'${t}'"]`);
         if(sbBtn) sbBtn.classList.add('active');
     }
@@ -48,6 +49,7 @@ function setTab(t, btn) {
     if(t==='console') setTimeout(()=>fitAddon.fit(),100);
     if(t==='files') loadFiles('');
     if(t==='config') loadConfig();
+    if(t==='backups') loadBackups();
 }
 
 // --- TERMINAL XTERM ---
@@ -95,7 +97,7 @@ setInterval(()=>{
     fetch('/api/stats').then(r=>r.json()).then(d=>{
         document.getElementById('cpu-val').innerText = d.cpu.toFixed(1)+'%';
         document.getElementById('cpu-bar').style.width = d.cpu+'%';
-        document.getElementById('ram-val').innerText = (d.ram_used/1024).toFixed(1) + ' GB'; // Ajustado a GB si api devuelve MB
+        document.getElementById('ram-val').innerText = (d.ram_used/1024).toFixed(1) + ' GB';
         document.getElementById('ram-bar').style.width = ((d.ram_used/d.ram_total)*100)+'%';
         document.getElementById('disk-val').innerText = (d.disk_used/1024).toFixed(0)+' MB';
         document.getElementById('disk-bar').style.width = Math.min((d.disk_used/d.disk_total)*100, 100)+'%';
@@ -151,7 +153,6 @@ function doInstall(){
 }
 
 function finalInst(url, name, ram){
-    // api('settings', {ram: ram+'G'}); // Backend debe soportar esto
     api('install', {url, filename: name});
     Toastify({text: "Descargando servidor...", style:{background:"#10b981"}}).showToast();
 }
@@ -178,11 +179,42 @@ function uploadFile(){
     input.click();
 }
 
-function copyIP(){
-    // IP Mock
-    navigator.clipboard.writeText("localhost:25565");
-    Toastify({text: "¡IP Copiada!", style: {background: "#10b981"}}).showToast();
+// --- LABS FUNCTIONS RESTAURADAS ---
+const modsDB=[{name:"Jei",fullName:"Just Enough Items",url:"https://mediafilez.forgecdn.net/files/5936/206/jei-1.20.1-forge-15.3.0.4.jar",icon:"fa-book",color:"#2ecc71"},{name:"Iron Chests",fullName:"Iron Chests",url:"https://mediafilez.forgecdn.net/files/4670/664/ironchest-1.20.1-14.4.4.jar",icon:"fa-box",color:"#95a5a6"},{name:"JourneyMap",fullName:"JourneyMap",url:"https://mediafilez.forgecdn.net/files/5864/381/journeymap-1.20.1-5.9.18-forge.jar",icon:"fa-map",color:"#3498db"}];
+
+function openModStore(){
+    showModal('Tienda de Mods', '<div id="mod-store-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px"></div>');
+    const list = document.getElementById('mod-store-grid');
+    modsDB.forEach(mod=>{
+        list.innerHTML += `<div class="glass-panel" style="padding:15px; text-align:center"><i class="fa-solid ${mod.icon}" style="font-size:2rem; color:${mod.color}; margin-bottom:10px"></i><h4 style="margin-bottom:5px">${mod.name}</h4><button class="btn btn-secondary" style="width:100%" onclick="if(confirm('Instalar ${mod.name}?')){api('mods/install',{url:'${mod.url}',name:'${mod.name}'});closeAllModals()}">Instalar</button></div>`;
+    });
 }
 
-function saveCfg(){ Toastify({text: "Configuración guardada (Simulado)", style:{background:"#10b981"}}).showToast(); }
-function openModStore() { Toastify({text: "Tienda próximamente...", style:{background:"#8b5cf6"}}).showToast(); }
+function createBackup(){ api('backups/create').then(()=>loadBackups()); }
+function loadBackups(){
+    api('backups').then(list=>{
+        let html='';
+        list.forEach(b=> html+=`<div class="file-row"><span>${b.name}</span> <button class="btn btn-secondary" onclick="api('backups/restore',{name:'${b.name}'})">Restaurar</button></div>`);
+        document.getElementById('backup-list').innerHTML = html;
+    });
+}
+
+function loadConfig(){
+    api('config').then(d=>{
+        let html = '';
+        Object.entries(d).forEach(([k,v])=>{
+            html += `<div style="margin-bottom:10px"><label style="display:block; font-size:0.8rem; color:#a1a1aa">${k}</label><input class="cfg-in" data-k="${k}" value="${v}" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px; border-radius:8px"></div>`;
+        });
+        document.getElementById('cfg-list').innerHTML = html;
+    });
+}
+function saveCfg(){
+    const d={}; document.querySelectorAll('.cfg-in').forEach(i=>d[i.dataset.k]=i.value);
+    api('config', d); Toastify({text: "Guardado", style:{background:"#10b981"}}).showToast();
+}
+
+function copyIP(){
+    const el = document.getElementById('ip-display');
+    navigator.clipboard.writeText(el.innerText);
+    Toastify({text: "¡IP Copiada!", style: {background: "#10b981"}}).showToast();
+}
