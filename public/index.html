@@ -26,7 +26,20 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- MODAL AJUSTES -->
+    <!-- MODAL DETALLES (NUEVO) -->
+    <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-card detail-card-size">
+            <div class="modal-header">
+                <h3 id="detail-title" style="display:flex; align-items:center; gap:10px; font-size: 1.2rem;">Detalles</h3>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="detail-body" class="modal-body" style="display:flex; flex-direction:column; height:100%; padding: 0;">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJUSTES (RESTAURADO) -->
     <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-app">
         <div class="modal-card">
             <div class="modal-header">
@@ -34,6 +47,8 @@
                 <button class="btn btn-icon-sm" onclick="closeAllModals()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body settings-layout">
+                
+                <!-- Sección Apariencia -->
                 <div class="settings-card">
                     <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
@@ -54,29 +69,27 @@
                     <div class="setting-row">
                         <span>Acento</span>
                         <div class="color-row">
-                            <!-- Input de color limpio -->
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" aria-label="Color acento">
                             <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem">Reset</button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Sección Mantenimiento (RECUPERADA) -->
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
                         <button onclick="checkUpdate()" class="maint-btn">
                             <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <!-- TEXTO REDUCIDO -->
-                            <div class="maint-info"><span>Actualizar</span></div>
+                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
                         </button>
                         <button onclick="forceUIUpdate()" class="maint-btn">
                             <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
-                            <!-- TEXTO REDUCIDO -->
-                            <div class="maint-info"><span>Recargar UI</span></div>
+                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
                         </button>
                     </div>
                 </div>
-                <!-- Trampa de foco -->
-                <button class="visually-hidden" onfocus="document.querySelector('#appearance-modal .btn-icon-sm').focus()" style="opacity:0;position:absolute"></button>
+
             </div>
         </div>
     </div>
@@ -115,17 +128,17 @@
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.3.11</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.6.0</span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" aria-selected="true" aria-controls="tab-stats" id="nav-stats" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-console" id="nav-console" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-versions" id="nav-versions" title="Alt+3"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" aria-selected="true" aria-controls="tab-stats" id="nav-stats" title="Monitor" tabindex="0"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-console" id="nav-console" title="Consola" tabindex="0"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-versions" id="nav-versions" title="Versiones" tabindex="0"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-labs" id="nav-labs" title="Alt+4"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-config" id="nav-config" title="Alt+5"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-labs" id="nav-labs" title="Labs" tabindex="0"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-config" id="nav-config" title="Ajustes" tabindex="0"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
@@ -156,25 +169,80 @@
                 </div>
             </header>
 
-            <!-- MONITOR MEJORADO CON GRAFICOS -->
+            <!-- MONITOR (CON NUEVAS FUNCIONES) -->
             <div id="tab-stats" class="tab-view active" role="tabpanel" aria-labelledby="nav-stats">
                 <div class="stats-grid">
-                    <div class="card glass-panel interactive" tabindex="0">
+                    <!-- CPU CARD (Clickable) -->
+                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('cpu')">
                         <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
                         <div><span class="big-number" id="cpu-val">0%</span></div>
-                        <!-- Canvas para gráfico -->
                         <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
+                        <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <div class="card glass-panel interactive" tabindex="0">
+                    <!-- RAM CARD (Clickable) -->
+                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('ram')">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
                         <div><span class="big-number" id="ram-val">0 GB</span><div style="font-size:0.9rem; color:var(--text-muted)" id="ram-max">de 4 GB</div></div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
+                        <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <div class="card glass-panel interactive" tabindex="0">
+                    <!-- DISK CARD (Clickable) -->
+                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('disk')">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
                         <div><span class="big-number" id="disk-val">0 MB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usado</div></div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
+                        <div class="click-hint">Ver Detalles</div>
                     </div>
+                    
+                    <!-- JUGADORES CARD (Clickable) -->
+                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
+                        <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <span class="big-number" id="players-val">15/50</span>
+                            <div style="font-size:0.9rem; color:var(--text-muted)">En línea</div>
+                        </div>
+                        <!-- Preview de avatares superpuestos (Estilo Apple/Glass) -->
+                        <div id="players-preview" class="avatar-stack">
+                            <!-- Se llena desde app.js -->
+                        </div>
+                        <div class="click-hint">Ver Lista</div>
+                    </div>
+                </div>
+
+                <!-- ACTIVIDAD RECIENTE (Clickable) -->
+                <h3 style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Actividad Reciente</h3>
+                <div class="glass-panel interactive" style="overflow: hidden; cursor:pointer" onclick="openDetail('activity')">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Evento</th>
+                                <th>Usuario</th>
+                                <th>Hora</th>
+                                <th style="text-align: right;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><div class="event-indicator success"></div> Servidor Iniciado</td>
+                                <td>Sistema</td>
+                                <td style="color: var(--text-muted);">Hace 2m</td>
+                                <td style="text-align: right;"><span class="status-badge success">Completado</span></td>
+                            </tr>
+                            <tr>
+                                <td><div class="event-indicator info"></div> Jugador Conectado</td>
+                                <td>Steve</td>
+                                <td style="color: var(--text-muted);">Hace 5m</td>
+                                <td style="text-align: right;"><span class="status-badge info">Info</span></td>
+                            </tr>
+                            <tr>
+                                <td><div class="event-indicator warning"></div> Backup Realizado</td>
+                                <td>Automático</td>
+                                <td style="color: var(--text-muted);">Hace 1h</td>
+                                <td style="text-align: right;"><span class="status-badge success">Completado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="click-hint-bottom">Click para ver historial completo</div>
                 </div>
             </div>
 
@@ -250,7 +318,6 @@
     </div>
     <script src="app.js"></script>
     <script>
-        // Mock fallback para vista previa
         if(typeof io === 'undefined'){
             window.io = () => ({ on: (e,c)=>{if(e==='status_change')setTimeout(()=>c('ONLINE'),2000)}, emit: ()=>{} });
         }
