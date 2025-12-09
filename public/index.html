@@ -2,16 +2,18 @@
 <html lang="es" data-theme="dark" data-design="glass">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aether Panel</title>
+
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Librerías -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <link rel="stylesheet" href="style.css">
-    
+
+    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -25,118 +27,181 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- MODAL PERSONALIZACIÓN -->
-    <div id="appearance-modal" class="modal-overlay">
+    <!-- MODAL AJUSTES -->
+    <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-app">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Personalización</h3>
-                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+                <h3 id="modal-title-app"><i class="fa-solid fa-paintbrush"></i> Personalización</h3>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body settings-layout">
+                
+                <!-- SECCIÓN 1: APARIENCIA -->
                 <div class="settings-card">
                     <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
                         <span>Tema</span>
-                        <div class="segment-box">
-                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn"><i class="fa-solid fa-sun"></i></button>
-                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active"><i class="fa-solid fa-moon"></i></button>
+                        <div class="segment-box" role="group">
+                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn" aria-label="Claro"><i class="fa-solid fa-sun"></i></button>
+                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active" aria-label="Oscuro"><i class="fa-solid fa-moon"></i></button>
+                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-btn" aria-label="Auto">Auto</button>
                         </div>
                     </div>
                     <div class="setting-row">
                         <span>Diseño</span>
-                        <div class="segment-box">
+                        <div class="segment-box" role="group">
                             <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-btn active">Glass</button>
                             <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn">Flat</button>
                         </div>
                     </div>
                     <div class="setting-row">
-                        <span>Color Acento</span>
-                        <input type="color" onchange="setAccentColor(this.value)" value="#8b5cf6">
+                        <span>Acento</span>
+                        <div class="color-row">
+                            <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" aria-label="Color acento" value="#8b5cf6">
+                        </div>
                     </div>
                 </div>
+
+                <!-- SECCIÓN 2: MANTENIMIENTO -->
+                <div class="settings-card">
+                    <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
+                    <div class="actions-grid">
+                        <button onclick="checkUpdate()" class="maint-btn">
+                            <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
+                        </button>
+                        <button onclick="forceUIUpdate()" class="maint-btn">
+                            <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
+                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <div class="app-layout">
-        <!-- SIDEBAR -->
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.6.2</span></div>
             </div>
             
-            <nav class="nav-menu">
+            <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats')" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console')" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" id="nav-versions"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('config')" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" id="nav-labs"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
-                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; margin-bottom:15px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;">
                     <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
                 <div class="user-card">
                     <div id="status-dot" class="status-dot offline"></div>
-                    <div class="user-info"><div id="status-text" class="status-text-main">OFFLINE</div></div>
+                    <div class="user-info">
+                        <div id="status-text" class="status-text-main">OFFLINE</div>
+                        <div class="status-label">Estado</div>
+                    </div>
                 </div>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="main-content">
             <header class="top-bar">
-                <h1 style="font-weight:800; font-size:1.8rem;">Panel de Control</h1>
+                <div>
+                    <h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1>
+                    <div class="server-badge" onclick="copyIP()"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div>
+                </div>
                 <div class="header-actions">
-                    <button onclick="apiPower('start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
-                    <button onclick="apiPower('restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
-                    <button onclick="apiPower('stop')" class="action-btn stop"><i class="fa-solid fa-stop"></i></button>
-                    <button onclick="apiPower('kill')" class="action-btn" style="background:#374151"><i class="fa-solid fa-skull"></i></button>
+                    <button onclick="api('power/start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="api('power/restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
+                    <button onclick="api('power/stop')" class="action-btn stop"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
-            <!-- TAB: MONITOR -->
+            <!-- MONITOR -->
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
                     <div class="card glass-panel">
-                        <div class="card-title">CPU</div>
+                        <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
                         <div><span class="big-number" id="cpu-val">0%</span></div>
                         <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
                     </div>
                     <div class="card glass-panel">
-                        <div class="card-title">RAM</div>
-                        <div><span class="big-number" id="ram-val">0 GB</span></div>
+                        <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
+                        <div><span class="big-number" id="ram-val">0 GB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usada</div></div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
                     </div>
                     <div class="card glass-panel">
-                        <div class="card-title">DISCO</div>
-                        <div><span class="big-number" id="disk-val">0 MB</span></div>
+                        <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
+                        <div><span class="big-number" id="disk-val">0 MB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usado</div></div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: CONSOLA -->
+            <!-- CONSOLA -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
-                    <div class="console-header"><span>root@server:~</span></div>
-                    <div id="terminal" class="console-output" style="height:100%; width:100%"></div>
+                    <div class="console-header"><span><i class="fa-solid fa-terminal"></i> root@server:~</span></div>
+                    <div id="terminal" class="console-output"></div>
                 </div>
             </div>
 
-            <!-- TAB: AJUSTES (Con Whitelist) -->
-            <div id="tab-config" class="tab-view">
-                <div class="glass-panel" style="padding: 24px;">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>Configuración del Servidor</h3>
-                        <button class="btn btn-primary" onclick="saveCfg()"><i class="fa-solid fa-save"></i> Guardar Todo</button>
+            <!-- VERSIONES (MANTENIDO) -->
+            <div id="tab-versions" class="tab-view">
+                <h2 style="margin-bottom:20px; font-weight:700">Software</h2>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
+                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
+                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods</p></div>
+                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods</p></div>
+                </div>
+            </div>
+
+            <!-- LABS (MANTENIDO) -->
+            <div id="tab-labs" class="tab-view">
+                <h2 style="margin-bottom:20px; font-weight:800">Labs & Utilidades</h2>
+                <div class="labs-grid">
+                    <div class="mod-card-modern lab-purple">
+                        <span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div>
+                        <div class="mod-body"><div class="mod-title">Tienda</div><p class="mod-desc">Plugins y Mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div>
                     </div>
-                    <div id="cfg-list" class="settings-layout">
-                        <p style="text-align:center; padding:20px; color:gray">Cargando configuración...</p>
+                    <div class="mod-card-modern lab-orange">
+                        <span class="lab-tag">FILES</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
+                        <div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
+                    </div>
+                    <div class="mod-card-modern lab-blue">
+                        <span class="lab-tag">DATA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- AJUSTES Y WHITELIST (LUGAR DE INYECCIÓN) -->
+            <div id="tab-config" class="tab-view">
+                <div class="glass-panel" style="padding: 24px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
+                    <div id="cfg-list" class="settings-layout">
+                        <!-- AQUÍ SE INYECTA LA WHITELIST -->
+                        <p style="text-align:center; color:gray">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS OCULTOS (FILES/BACKUPS) -->
+            <div id="tab-files" class="tab-view">
+                <div class="glass-panel" style="padding:20px"><button onclick="setTab('labs')" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver</button><div style="text-align:center; padding:50px">Explorador de Archivos (Placeholder)</div></div>
+            </div>
+            <div id="tab-backups" class="tab-view">
+                <div class="glass-panel" style="padding:20px"><div style="display:flex;justify-content:space-between"><button onclick="setTab('labs')" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver</button><button onclick="createBackup()" class="btn btn-primary">Crear Backup</button></div><div id="backup-list" style="padding:20px;text-align:center">Sin backups</div></div>
             </div>
 
         </main>
