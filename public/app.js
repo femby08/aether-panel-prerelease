@@ -3,14 +3,17 @@ let cpuChart, ramChart, detailChart;
 const MAX_DATA = 20;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Versión
     fetch('/api/info').then(r => r.json()).then(d => {
         const el = document.getElementById('version-display');
         if (el) { el.innerText = 'v' + (d.version || '1.0.0'); el.style.opacity = '0.7'; el.style.marginLeft = '8px'; }
     });
+    // 2. Iniciar
     initCharts(); setInterval(updateStats, 2000); updateStats(); initTerminal();
     if (document.getElementById('tab-config')?.classList.contains('active')) loadConfig();
 });
 
+// FIX RAM LOCA: Formatea bytes a GB/MB
 function formatBytes(bytes) {
     if (!+bytes) return '0 B';
     const k = 1024;
@@ -27,14 +30,14 @@ async function updateStats() {
         // CPU
         if(document.getElementById('cpu-val')) document.getElementById('cpu-val').innerText = Math.round(data.cpu) + '%';
 
-        // RAM
+        // RAM (Con cálculo de LIBRE)
         if(document.getElementById('ram-val')) {
             document.getElementById('ram-val').innerText = formatBytes(data.ram_used);
             const free = data.ram_total - data.ram_used;
             document.getElementById('ram-free').innerText = `${formatBytes(free)} Libre (Total: ${formatBytes(data.ram_total)})`;
         }
 
-        // DISCO
+        // DISCO (Con cálculo de LIBRE)
         if(document.getElementById('disk-val')) {
             document.getElementById('disk-val').innerText = formatBytes(data.disk_used);
             const freeD = data.disk_total - data.disk_used;
@@ -48,6 +51,7 @@ async function updateStats() {
         if (cpuChart) pushData(cpuChart, data.cpu);
         if (ramChart) pushData(ramChart, (data.ram_used / data.ram_total) * 100);
 
+        // Actualizar Modal si está abierto
         if (document.getElementById('detail-modal').classList.contains('active') && detailChart) {
             const title = document.getElementById('detail-title').innerText;
             const val = title.includes('CPU') ? data.cpu : (data.ram_used / data.ram_total) * 100;
@@ -62,6 +66,7 @@ function pushData(chart, val) {
     chart.update('none');
 }
 
+// FUNCIONES GLOBALES
 window.openDetail = function(type) {
     const modal = document.getElementById('detail-modal');
     modal.classList.add('active');
@@ -105,8 +110,36 @@ window.setTab = function(name) {
     if (name === 'console') window.dispatchEvent(new Event('resize'));
 };
 
+window.loadConfig = function() {
+    const list = document.getElementById('cfg-list');
+    if (!list) return;
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Cargando...</div>';
+    fetch('/api/config').then(r => r.json()).then(data => {
+        list.innerHTML = ''; 
+        if (Object.keys(data).length === 0) { list.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Sin config.</div>'; return; }
+        Object.keys(data).forEach(key => {
+            const val = data[key];
+            const isBool = val === 'true' || val === 'false';
+            let input = isBool 
+                ? `<label class="toggle-switch"><input type="checkbox" class="cfg-bool" data-key="${key}" ${val==='true'?'checked':''}><span class="slider"></span></label>`
+                : `<input class="cfg-in" data-key="${key}" value="${val}">`;
+            list.innerHTML += `<div class="setting-row"><label>${key}</label>${input}</div>`;
+        });
+    });
+};
+
+window.saveCfg = function() {
+    const d = {};
+    document.querySelectorAll('.cfg-in').forEach(i => d[i.dataset.key] = i.value);
+    document.querySelectorAll('.cfg-bool').forEach(i => d[i.dataset.key] = i.checked ? 'true' : 'false');
+    fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)})
+    .then(() => { if(window.Toastify) Toastify({text: "Guardado", style:{background:"#10b981"}}).showToast(); window.loadConfig(); });
+};
+
 window.closeAllModals = function() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); };
 window.api = function(ep) { fetch('/api/'+ep, {method:'POST'}); };
+window.checkUpdate = () => { if(window.Toastify) Toastify({text:"Buscando...", style:{background:"#3b82f6"}}).showToast(); /* Logic here */ };
+window.forceUIUpdate = () => location.reload();
 
 function initCharts() {
     const commonOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }, elements: { point: { radius: 0 } }, animation: false };
@@ -123,9 +156,4 @@ function initCharts() {
         ramChart = new Chart(ctxRam, { type: 'line', data: { labels: Array(MAX_DATA).fill(''), datasets: [{ data: Array(MAX_DATA).fill(0), borderColor: '#3b82f6', borderWidth: 2, fill: true, backgroundColor: grad }] }, options: commonOpts });
     }
 }
-
-// RESTO DE FUNCIONES (Configuración, Terminal) IGUAL QUE ANTES...
-// (Por brevedad, asumo que copias las funciones loadConfig, saveCfg, initTerminal del mensaje anterior)
-window.loadConfig = function() {/*... igual ...*/};
-window.saveCfg = function() {/*... igual ...*/};
-function initTerminal() { /*... igual ...*/ }
+function initTerminal() { const t=document.getElementById('terminal'); if(t&&window.Terminal){t.innerHTML='';const term=new Terminal({theme:{background:'#0f0f13'}});const fit=new FitAddon.FitAddon();term.loadAddon(fit);term.open(t);fit.fit();term.writeln('>>> AETHER READY.\r\n');socket.on('console_data',d=>term.write(d));socket.on('logs_history',d=>term.write(d));term.onData(d=>{if(d==='\r')term.write('\r\n');socket.emit('command',d)}); } }
