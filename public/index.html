@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="dark" data-design="glass">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -19,45 +19,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="/socket.io/socket.io.js"></script>
-
-    <style>
-        /* MANTENIMIENTO SECTION (Matching your screenshot) */
-        .maint-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-top: 10px; 
-        }
-        .maint-card {
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px; 
-            padding: 20px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            gap: 15px;
-            transition: all 0.2s ease;
-        }
-        .maint-card:hover { 
-            background: rgba(255,255,255,0.06); 
-            transform: translateY(-2px); 
-            border-color: var(--primary-light); 
-        }
-        .maint-icon { 
-            width: 45px; height: 45px; 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.3rem;
-        }
-        .maint-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .maint-icon.orange { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .maint-text { display: flex; flex-direction: column; }
-        .maint-text span { font-size: 1rem; color: #fff; font-weight: 600; }
-        .maint-text small { font-size: 0.8rem; color: var(--text-muted); }
-    </style>
 </head>
 <body>
 
@@ -66,47 +27,69 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <div id="appearance-modal" class="modal-overlay">
+    <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-card">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-paintbrush"></i> Personalización</h3>
                 <button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body settings-layout">
                 
-                <div class="settings-group">
-                    <h4 style="color:var(--warning); margin-bottom:15px; text-transform:uppercase; font-size:0.8rem; letter-spacing:1px; font-weight:800;">Mantenimiento</h4>
-                    <div class="maint-grid">
-                        
-                        <div class="maint-card" onclick="checkUpdate()">
-                            <div class="maint-icon green"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <div class="maint-text">
-                                <span>Actualizar</span>
-                                <small>Buscar versión</small>
-                            </div>
+                <div class="settings-card">
+                    <div class="card-subtitle">APARIENCIA</div>
+                    
+                    <div class="setting-row">
+                        <span>Tema</span>
+                        <div class="segment-box">
+                            <button class="seg-btn" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i></button>
+                            <button class="seg-btn active" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i></button>
+                            <button class="seg-btn" onclick="setTheme('auto')">Auto</button>
                         </div>
+                    </div>
 
-                        <div class="maint-card" onclick="forceUIUpdate()">
-                            <div class="maint-icon orange"><i class="fa-solid fa-rotate"></i></div>
-                            <div class="maint-text">
-                                <span>Recargar UI</span>
-                                <small>Reparar fallos</small>
-                            </div>
+                    <div class="setting-row">
+                        <span>Diseño</span>
+                        <div class="segment-box">
+                            <button class="seg-btn active" onclick="setDesign('glass')">Glass</button>
+                            <button class="seg-btn" onclick="setDesign('material')">Flat</button>
                         </div>
+                    </div>
 
+                    <div class="setting-row">
+                        <span>Acento</span>
+                        <div class="color-row">
+                            <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
+                            <button class="seg-btn active" style="background:var(--primary); color:white; min-width:60px;" onclick="setAccentMode('auto')">Reset</button>
+                        </div>
                     </div>
                 </div>
+
+                <div class="settings-card">
+                    <div class="card-subtitle" style="color:var(--warning)">MANTENIMIENTO</div>
+                    <div class="actions-grid">
+                        <button onclick="checkUpdate()" class="maint-btn">
+                            <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
+                        </button>
+                        <button onclick="forceUIUpdate()" class="maint-btn">
+                            <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
+                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <div id="update-modal" class="modal-overlay">
-        <div class="modal-card" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
-            <div style="font-size:3rem; margin-bottom:10px;">🚀</div>
-            <h3>Actualización Disponible</h3>
-            <p id="update-text" style="color:var(--text-muted); margin-bottom:20px;">Nueva versión detectada.</p>
-            <div class="actions-grid" id="up-actions" style="width:100%; gap:10px;">
-                </div>
+    <div id="update-modal" class="modal-overlay" role="alertdialog">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-body">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
+                <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
+                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;">Nueva versión detectada.</p>
+                <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
+            </div>
         </div>
     </div>
 
@@ -116,12 +99,12 @@
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
                 <div class="logo-text">
-                    <span class="title" style="display:block; font-weight:800; font-size:1.2rem;">Aether</span>
-                    <span class="subtitle" id="version-display" style="font-size:0.75rem; opacity:0.6;">Cargando...</span>
+                    <span class="title">Aether</span>
+                    <span class="subtitle" id="version-display" style="opacity:0.7; margin-left:5px">Cargando...</span>
                 </div>
             </div>
             
-            <nav class="nav-menu">
+            <nav class="nav-menu" id="main-nav">
                 <div class="nav-label">CONTROL</div>
                 <button onclick="setTab('stats')" class="nav-item active" id="nav-stats">
                     <i class="fa-solid fa-chart-pie"></i> <span>Monitor</span>
@@ -172,28 +155,24 @@
 
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
-                    <div class="card glass-panel" style="position:relative; overflow:hidden;">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
                         <div><span class="big-number" id="cpu-val">0%</span></div>
-                        <div class="chart-container" style="position:absolute; bottom:0; left:0; width:100%; height:80px; opacity:0.5;">
-                            <canvas id="cpu-chart"></canvas>
-                        </div>
+                        <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
                     </div>
-                    <div class="card glass-panel" style="position:relative; overflow:hidden;">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
                         <div><span class="big-number" id="ram-val">0 GB</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">de 4 GB</div>
-                        <div class="chart-container" style="position:absolute; bottom:0; left:0; width:100%; height:80px; opacity:0.5;">
-                            <canvas id="ram-chart"></canvas>
-                        </div>
+                        <div class="chart-container"><canvas id="ram-chart"></canvas></div>
                     </div>
-                    <div class="card glass-panel">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
                         <div><span class="big-number" id="disk-val">0 MB</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Usado</div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
                     </div>
-                    <div class="card glass-panel">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
                         <div><span class="big-number" id="players-val">0/0</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">En línea</div>
@@ -204,8 +183,7 @@
                 <div class="glass-panel" style="overflow: hidden;">
                     <table class="activity-table">
                         <thead><tr><th>EVENTO</th><th>USUARIO</th><th>HORA</th><th style="text-align:right">ESTADO</th></tr></thead>
-                        <tbody id="activity-body">
-                            </tbody>
+                        <tbody id="activity-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -222,13 +200,12 @@
                         <h3>Configuración</h3>
                         <button class="btn btn-primary" onclick="saveCfg()">Guardar</button>
                     </div>
-                    <div id="cfg-list" class="settings-layout">
-                        </div>
+                    <div id="cfg-list" class="settings-layout"></div>
                 </div>
             </div>
-            
-            <div id="tab-versions" class="tab-view"><h2>Versiones</h2><p>Selector de versiones aquí...</p></div>
-            <div id="tab-labs" class="tab-view"><h2>Labs</h2><p>Experimentos aquí...</p></div>
+
+            <div id="tab-versions" class="tab-view"><h2>Versiones</h2><p>Selector...</p></div>
+            <div id="tab-labs" class="tab-view"><h2>Labs</h2><p>Experimentos...</p></div>
 
         </main>
     </div>
