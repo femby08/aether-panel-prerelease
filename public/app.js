@@ -26,6 +26,44 @@ document.addEventListener('DOMContentLoaded', () => {
     setupGlobalShortcuts();
 });
 
+// --- STATUS MANAGER ---
+socket.on('status_change', s => {
+    const el = document.getElementById('status-text');
+    const dot = document.getElementById('status-dot');
+    
+    // Mapeo de estados
+    const statusMap = {
+        'ONLINE': 'EN LÍNEA',
+        'OFFLINE': 'DESCONECTADO',
+        'STARTING': 'INICIANDO',
+        'STOPPING': 'APAGANDO',
+        'RESTARTING': 'REINICIANDO'
+    };
+
+    // Actualizar Texto
+    if(el) {
+        el.innerText = statusMap[s] || s;
+        if(s === 'ONLINE') el.style.color = '#10b981';
+        else if(s === 'OFFLINE') el.style.color = '#ef4444';
+        else el.style.color = '#f59e0b';
+    }
+
+    // Actualizar Punto (Reset classes)
+    if(dot) {
+        dot.className = 'status-dot'; 
+        if(s === 'ONLINE') dot.classList.add('online');
+        else if(s === 'OFFLINE') dot.classList.add('offline');
+        else if(s === 'STARTING') dot.classList.add('starting');
+        else if(s === 'STOPPING') dot.classList.add('stopping');
+        else if(s === 'RESTARTING') dot.classList.add('restarting');
+        else dot.classList.add('starting');
+        
+        // Remove inline styles from prev versions
+        dot.style.background = '';
+        dot.style.boxShadow = '';
+    }
+});
+
 // --- ATAJOS Y NAVEGACIÓN ---
 function setupGlobalShortcuts() {
     document.addEventListener('keydown', (e) => {
@@ -43,17 +81,17 @@ function setupGlobalShortcuts() {
         // Escape (Cerrar modales)
         if (e.key === 'Escape') closeAllModals();
 
-        // Flechas (Navegación Sidebar)
+        // Flechas (Navegación Sidebar - Solo si no escribimos)
         if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (e.key === 'ArrowDown') { e.preventDefault(); navigateSidebar(1); }
             if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
         }
     });
 
-    // Permitir activar botones con ENTER (Accesibilidad)
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') btn.click();
+    // Accesibilidad ENTER
+    document.querySelectorAll('[tabindex="0"]').forEach(el => {
+        el.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') el.click();
         });
     });
 }
@@ -83,15 +121,11 @@ function setTab(t, btn) {
     const target = document.getElementById('tab-' + t);
     if(target) target.classList.add('active');
     
-    if (btn) {
-        btn.classList.add('active');
-        btn.focus();
-    } else {
-        const sbBtn = document.querySelector(`.nav-item[onclick*="'${t}'"]`);
-        if(sbBtn) {
-            sbBtn.classList.add('active');
-            sbBtn.focus();
-        }
+    // Activar botón y poner foco (para accesibilidad)
+    const sbBtn = btn || document.querySelector(`.nav-item[onclick*="'${t}'"]`);
+    if(sbBtn) {
+        sbBtn.classList.add('active');
+        sbBtn.focus();
     }
 
     if(t==='console') setTimeout(()=>fitAddon.fit(),100);
@@ -180,17 +214,6 @@ setInterval(()=>{
         document.getElementById('disk-bar').style.width = Math.min((d.disk_used/d.disk_total)*100, 100)+'%';
     }).catch(()=>{});
 }, 1000);
-
-socket.on('status_change', s => {
-    const el = document.getElementById('status-text');
-    const dot = document.getElementById('status-dot');
-    if(el) el.innerText = s.toUpperCase();
-    if(dot) {
-        dot.className = 'status-dot ' + (s==='online'?'':'offline');
-        dot.style.background = s==='online'?'#10b981':'#ef4444';
-        dot.style.boxShadow = s==='online'?'0 0 10px #10b981':'0 0 10px #ef4444';
-    }
-});
 
 // --- VERSIONS & FILES ---
 let pendingVer = null;
