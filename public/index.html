@@ -99,18 +99,18 @@
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.3.9</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">v1.3.11</span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" tabindex="0" title="Monitor (Alt+1)"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console', this)" class="nav-item" role="tab" tabindex="0" title="Consola (Alt+2)"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions', this)" class="nav-item" role="tab" tabindex="0" title="Versiones (Alt+3)"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" title="Alt+3"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs', this)" class="nav-item" role="tab" tabindex="0" title="Labs (Alt+4)"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config', this)" class="nav-item" role="tab" tabindex="0" title="Ajustes (Alt+5)"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" title="Alt+4"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" title="Alt+5"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
@@ -119,9 +119,10 @@
                 </button>
                 <div class="user-card">
                     <div id="status-dot" class="status-dot"></div>
+                    <!-- FIX: Usamos DIVs para asegurar el salto de línea visual -->
                     <div class="user-info">
-                        <span id="status-text" class="status-text-main">OFFLINE</span>
-                        <span class="status-label">Estado</span>
+                        <div id="status-text" class="status-text-main">OFFLINE</div>
+                        <div class="status-label">Estado</div>
                     </div>
                 </div>
             </div>
