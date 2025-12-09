@@ -54,6 +54,7 @@
                     <div class="setting-row">
                         <span>Acento</span>
                         <div class="color-row">
+                            <!-- Input de color limpio -->
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" aria-label="Color acento">
                             <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem">Reset</button>
                         </div>
@@ -64,11 +65,13 @@
                     <div class="actions-grid">
                         <button onclick="checkUpdate()" class="maint-btn">
                             <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
+                            <!-- TEXTO REDUCIDO -->
+                            <div class="maint-info"><span>Actualizar</span></div>
                         </button>
                         <button onclick="forceUIUpdate()" class="maint-btn">
                             <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
-                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
+                            <!-- TEXTO REDUCIDO -->
+                            <div class="maint-info"><span>Recargar UI</span></div>
                         </button>
                     </div>
                 </div>
