@@ -27,18 +27,20 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- === MODALES === -->
+    <!-- === MODAL PERSONALIZACIÓN (AJUSTES) === -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-paintbrush"></i> Apariencia</h3>
+                <h3><i class="fa-solid fa-paintbrush"></i> Personalización</h3>
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body settings-layout">
+                
+                <!-- SECCIÓN ESTÉTICA -->
                 <div class="settings-card">
-                    <div class="card-subtitle">Estética</div>
+                    <div class="card-subtitle">Apariencia Visual</div>
                     <div class="setting-row">
-                        <span>Modo</span>
+                        <span>Tema</span>
                         <div class="segment-box">
                             <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn"><i class="fa-solid fa-sun"></i></button>
                             <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active"><i class="fa-solid fa-moon"></i></button>
@@ -46,24 +48,41 @@
                         </div>
                     </div>
                     <div class="setting-row">
-                        <span>Interfaz</span>
+                        <span>Diseño</span>
                         <div class="segment-box">
                             <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-btn active">Glass</button>
                             <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn">Flat</button>
                         </div>
                     </div>
                     <div class="setting-row">
-                        <span>Acento</span>
+                        <span>Color Acento</span>
                         <div class="color-row">
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
-                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem; padding:4px 8px">Auto</button>
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem">Reset</button>
                         </div>
                     </div>
                 </div>
+
+                <!-- SECCIÓN SISTEMA (LO QUE PEDISTE) -->
+                <div class="settings-card">
+                    <div class="card-subtitle">Mantenimiento del Panel</div>
+                    <div class="actions-grid">
+                        <button onclick="checkUpdate()" class="maint-btn">
+                            <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                            <div class="maint-info"><span>Buscar Update</span><small>Verificar versión</small></div>
+                        </button>
+                        <button onclick="forceUIUpdate()" class="maint-btn">
+                            <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
+                            <div class="maint-info"><span>Recargar UI</span><small>Reparar errores</small></div>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
+    <!-- Otros Modales -->
     <div id="version-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 800px; max-height: 85vh;">
             <div class="modal-header">
@@ -74,6 +93,9 @@
         </div>
     </div>
     
+    <div id="update-modal" class="modal-overlay"><div class="modal-card" style="max-width: 400px; text-align: center;"><div class="modal-body"><div style="font-size: 3rem; margin-bottom: 15px;">🚀</div><h3 style="margin-bottom: 10px;">Actualización Disponible</h3><p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;">Nueva versión lista.</p><div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div></div></div></div>
+    <div id="force-ui-modal" class="modal-overlay"><div class="modal-card" style="max-width: 350px;"><div class="modal-header"><h3>Recargar UI</h3></div><div class="modal-body"><p style="color:var(--text-muted); margin-bottom:20px;">¿Redescargar interfaz?</p><div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="btn btn-secondary" onclick="closeAllModals()">No</button><button class="btn btn-primary" onclick="confirmForceUI()">Sí</button></div></div></div></div>
+
     <div class="app-layout">
         
         <aside class="sidebar glass-panel">
@@ -82,14 +104,13 @@
                 <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
             </div>
             
-            <nav class="nav-menu">
+            <nav class="nav-menu" id="main-nav">
                 <div class="nav-label">CONTROL</div>
                 <button onclick="setTab('stats', this)" class="nav-item active" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
                 <button onclick="setTab('console', this)" class="nav-item" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
                 <button onclick="setTab('versions', this)" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 
                 <div class="nav-label">SISTEMA</div>
-                <!-- Archivos movido a Labs -->
                 <button onclick="setTab('labs', this)" class="nav-item"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
                 <button onclick="setTab('config', this)" class="nav-item"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
@@ -159,18 +180,18 @@
                 </div>
             </div>
 
-            <!-- LABS RESTAURADO + ARCHIVOS -->
+            <!-- LABS -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     
                     <!-- TIENDA (Violeta) -->
                     <div class="mod-card-modern lab-purple">
-                        <span class="lab-tag new">NUEVO</span> <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
+                        <span class="lab-tag new">NEW</span> <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
                         <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods populares.</p><button class="btn-install" onclick="openModStore()">Abrir Tienda</button></div>
                     </div>
                     
-                    <!-- ARCHIVOS (Naranja) - Movido aquí -->
+                    <!-- ARCHIVOS (Naranja) -->
                     <div class="mod-card-modern lab-orange">
                         <span class="lab-tag alpha">ALPHA</span> <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
                         <div class="mod-body"><div class="mod-title">Gestor Archivos</div><p class="mod-desc">Explorador de archivos web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
@@ -203,7 +224,7 @@
                 </div>
             </div>
 
-            <!-- VISTAS SECUNDARIAS (FILES / BACKUPS) -->
+            <!-- VISTAS SECUNDARIAS -->
             <div id="tab-files" class="tab-view">
                 <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
                     <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
