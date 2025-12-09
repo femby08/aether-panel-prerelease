@@ -24,99 +24,10 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true">
-        <div class="modal-card detail-card-size">
-            <div class="modal-header">
-                <h3 id="detail-title" style="display:flex; align-items:center; gap:10px; font-size: 1.2rem;">Detalles</h3>
-                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="detail-body" class="modal-body" style="display:flex; flex-direction:column; height:100%; padding: 0;">
-                </div>
-        </div>
-    </div>
-
-    <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-app">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modal-title-app"><i class="fa-solid fa-paintbrush"></i> Personalización</h3>
-                <button class="btn btn-icon-sm" onclick="closeAllModals()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body settings-layout">
-                
-                <div class="settings-card">
-                    <div class="card-subtitle">Apariencia</div>
-                    <div class="setting-row">
-                        <span>Tema</span>
-                        <div class="segment-box" role="group">
-                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn" aria-label="Claro"><i class="fa-solid fa-sun"></i></button>
-                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active" aria-label="Oscuro"><i class="fa-solid fa-moon"></i></button>
-                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-btn" aria-label="Auto">Auto</button>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <span>Diseño</span>
-                        <div class="segment-box" role="group">
-                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-btn active">Glass</button>
-                            <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn">Flat</button>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <span>Acento</span>
-                        <div class="color-row">
-                            <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" aria-label="Color acento">
-                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem">Reset</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
-                    <div class="actions-grid">
-                        <button onclick="checkUpdate()" class="maint-btn">
-                            <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
-                        </button>
-                        <button onclick="forceUIUpdate()" class="maint-btn">
-                            <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
-                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div id="version-modal" class="modal-overlay" role="dialog" aria-modal="true">
-        <div class="modal-card" style="max-width: 800px; max-height: 85vh;">
-            <div class="modal-header"><h3 id="modal-title">Título</h3><button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
-            <div id="modal-body" class="modal-body"></div>
-        </div>
-    </div>
-    
-    <div id="update-modal" class="modal-overlay" role="alertdialog" aria-modal="true">
-        <div class="modal-card" style="max-width: 400px; text-align: center;">
-            <div class="modal-body">
-                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
-                <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
-                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;"></p>
-                <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="force-ui-modal" class="modal-overlay" role="alertdialog" aria-modal="true">
-        <div class="modal-card" style="max-width: 350px;">
-            <div class="modal-header"><h3>Recargar UI</h3></div>
-            <div class="modal-body">
-                <p style="color:var(--text-muted); margin-bottom:20px;">¿Redescargar interfaz?</p>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="closeAllModals()">No</button>
-                    <button class="btn btn-primary" onclick="performForceUpdate()">Sí</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true"><div class="modal-card detail-card-size"><div class="modal-header"><h3 id="detail-title">Detalles</h3><button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div><div id="detail-body" class="modal-body"></div></div></div>
+    <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true"><div class="modal-card"><div class="modal-header"><h3>Personalización</h3><button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-body settings-layout"><div class="settings-card"><div class="card-subtitle">Mantenimiento</div><div class="actions-grid"><button onclick="checkUpdate()" class="maint-btn"><div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div><div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div></button><button onclick="forceUIUpdate()" class="maint-btn"><div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div><div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div></button></div></div></div></div></div>
+    <div id="update-modal" class="modal-overlay" role="alertdialog"><div class="modal-card"><div class="modal-body"><h3>Actualización</h3><p id="update-text"></p><div id="up-actions"></div></div></div></div>
+    <div id="force-ui-modal" class="modal-overlay" role="alertdialog"><div class="modal-card"><div class="modal-header"><h3>Recargar UI</h3></div><div class="modal-body"><button class="btn btn-primary" onclick="performForceUpdate()">Sí</button></div></div></div>
 
     <div class="app-layout">
         <aside class="sidebar glass-panel">
@@ -127,239 +38,154 @@
             
             <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" aria-selected="true" aria-controls="tab-stats" id="nav-stats" title="Monitor" tabindex="0"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-console" id="nav-console" title="Consola" tabindex="0"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-versions" id="nav-versions" title="Versiones" tabindex="0"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" id="nav-versions"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-labs" id="nav-labs" title="Labs" tabindex="0"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config', this)" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-config" id="nav-config" title="Ajustes" tabindex="0"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" id="nav-labs"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
-                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active'); document.querySelector('#appearance-modal .btn-icon-sm').focus();" style="width:100%; justify-content:center; margin-bottom:15px;">
-                    <i class="fa-solid fa-palette"></i> Personalizar
-                </button>
-                <div class="user-card">
-                    <div id="status-dot" class="status-dot offline"></div>
-                    <div class="user-info">
-                        <div id="status-text" class="status-text-main">OFFLINE</div>
-                        <div class="status-label">Estado</div>
-                    </div>
-                </div>
+                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')"><i class="fa-solid fa-palette"></i> Personalizar</button>
+                <div class="user-card"><div id="status-dot" class="status-dot offline"></div><div class="user-info"><div id="status-text" class="status-text-main">OFFLINE</div><div class="status-label">Estado</div></div></div>
             </div>
         </aside>
 
         <main class="main-content">
             <header class="top-bar">
-                <div>
-                    <h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1>
-                    <div class="server-badge" onclick="copyIP()" role="button" tabindex="0" aria-label="Copiar IP"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div>
-                </div>
+                <div><h1>Panel de Control</h1><div class="server-badge"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div></div>
                 <div class="header-actions">
-                    <button onclick="api('power/start')" class="action-btn start" aria-label="Iniciar"><i class="fa-solid fa-play"></i></button>
-                    <button onclick="api('power/restart')" class="action-btn restart" aria-label="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
-                    <button onclick="api('power/stop')" class="action-btn stop" aria-label="Detener"><i class="fa-solid fa-stop"></i></button>
-                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151" aria-label="Forzar"><i class="fa-solid fa-skull"></i></button>
+                    <button onclick="api('power/start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="api('power/restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
+                    <button onclick="api('power/stop')" class="action-btn stop"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="action-btn"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
-            <div id="tab-stats" class="tab-view active" role="tabpanel" aria-labelledby="nav-stats">
+            <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
-                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('cpu')">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
                         <div><span class="big-number" id="cpu-val">0%</span></div>
                         <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
-                        <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('ram')">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
                         <div><span class="big-number" id="ram-val">0 GB</span><div style="font-size:0.9rem; color:var(--text-muted)" id="ram-max">de 4 GB</div></div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
-                        <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('disk')">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
                         <div><span class="big-number" id="disk-val">0 MB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usado</div></div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
-                        <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
+                    <div class="card glass-panel interactive">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
-                        <div>
-                            <span class="big-number" id="players-val">0/0</span>
-                            <div style="font-size:0.9rem; color:var(--text-muted)">En línea</div>
-                        </div>
-                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;"></div>
-                        <div class="click-hint">Ver Lista</div>
-                    </div>
-                </div>
-
-                <h3 style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Actividad Reciente</h3>
-                <div class="glass-panel interactive" style="overflow: hidden; cursor:pointer" onclick="openDetail('activity')">
-                    <table class="activity-table">
-                        <thead>
-                            <tr><th>Evento</th><th>Usuario</th><th>Hora</th><th style="text-align: right;">Estado</th></tr>
-                        </thead>
-                        <tbody id="activity-table-body"></tbody>
-                    </table>
-                    <div class="click-hint-bottom">Click para ver historial completo</div>
-                </div>
-            </div>
-
-            <div id="tab-console" class="tab-view" role="tabpanel" aria-labelledby="nav-console">
-                <div class="console-full glass-panel">
-                    <div class="console-header"><span><i class="fa-solid fa-terminal"></i> root@server:~</span><span style="font-size:0.7rem; opacity:0.5">BASH</span></div>
-                    <div id="terminal" class="console-output" tabindex="0" aria-label="Terminal"></div>
-                </div>
-            </div>
-
-            <div id="tab-versions" class="tab-view" role="tabpanel" aria-labelledby="nav-versions">
-                <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
-                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
-                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')" role="button" tabindex="0"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
-                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')" role="button" tabindex="0"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
-                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')" role="button" tabindex="0"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
-                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')" role="button" tabindex="0"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
-                </div>
-            </div>
-
-            <div id="tab-labs" class="tab-view" role="tabpanel" aria-labelledby="nav-labs">
-                <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
-                <div class="labs-grid">
-                    <div class="mod-card-modern lab-purple">
-                        <span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda Mods</div><p class="mod-desc">Instala plugins y mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-orange">
-                        <span class="lab-tag alpha">ALPHA</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-blue">
-                        <span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-teal">
-                        <span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
-                        <div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización CPU.</p>
-                            <div class="switch-container"><span class="switch-label">ESTADO</span><label class="toggle-switch"><input type="checkbox" id="lab-turbo"><span class="slider"></span></label></div>
-                        </div>
+                        <div><span class="big-number" id="players-val">0/0</span><div style="font-size:0.9rem; color:var(--text-muted)">En línea</div></div>
                     </div>
                 </div>
             </div>
-
-            <div id="tab-files" class="tab-view" role="tabpanel">
-                <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
-                    <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
-                        <div><button onclick="setTab('labs')" class="btn btn-secondary" style="margin-right:10px"><i class="fa-solid fa-arrow-left"></i></button><span id="breadcrumb" style="font-family:monospace; color:var(--text-muted); font-weight: 600;">/home/container</span></div>
-                        <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
-                    </div>
-                    <div id="file-list" style="padding: 10px;"><p style="color:gray; padding:20px; text-align:center">Simulación: Sin conexión.</p></div>
-                </div>
-            </div>
-            <div id="tab-backups" class="tab-view" role="tabpanel">
-                <div class="glass-panel">
-                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;"><h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Backups</h3><button class="btn btn-primary" onclick="createBackup()">Crear Nuevo</button></div>
-                    <button onclick="setTab('labs')" class="btn btn-secondary" style="margin:20px 0 0 20px"><i class="fa-solid fa-arrow-left"></i> Volver</button>
-                    <div id="backup-list" style="padding: 20px;"></div>
-                </div>
-            </div>
-            <div id="tab-config" class="tab-view" role="tabpanel" aria-labelledby="nav-config">
-                <div class="glass-panel" style="padding: 24px;">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
-                    <div id="cfg-list" class="settings-layout">
-                        </div>
-                </div>
-            </div>
-
+            
+            <div id="tab-console" class="tab-view"><div class="console-full glass-panel"><div id="terminal" class="console-output"></div></div></div>
+            <div id="tab-versions" class="tab-view"><h2 style="margin-bottom:20px;">Selector</h2><div class="stats-grid"><div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><h3>Vanilla</h3></div></div></div>
+            <div id="tab-labs" class="tab-view"><h2>Labs</h2></div>
+            <div id="tab-config" class="tab-view"><div class="glass-panel" style="padding:24px;"><button class="btn btn-primary" onclick="saveCfg()">Guardar</button><div id="cfg-list"></div></div></div>
         </main>
     </div>
     
     <script src="app.js"></script>
     <script>
-        // === 1. PARCHE DE VERSIÓN (FIX VISUAL) ===
+        // === 1. PARCHE DE VERSIÓN ===
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('/api/info')
-                .then(r => r.json())
-                .then(d => {
-                    const el = document.getElementById('version-display');
-                    if(el) el.textContent = 'v' + (d.version || '1.0.0');
-                })
-                .catch(() => document.getElementById('version-display').style.display='none');
+            fetch('/api/info').then(r=>r.json()).then(d=>{
+                const el=document.getElementById('version-display');
+                if(el) el.textContent='v'+(d.version||'1.0.0');
+            }).catch(()=>{});
         });
 
-        // === 2. LÓGICA DE ACTUALIZACIONES (BOTONES MANTENIMIENTO) ===
-        
-        // Botón "Actualizar"
+        // === 2. LÓGICA DE ACTUALIZACIONES ===
         function checkUpdate() {
-            closeAllModals(); // Cierra el menú de personalización
-            Toastify({ text: "🔍 Buscando actualizaciones...", duration: 2000 }).showToast();
-            
-            fetch('/api/update/check')
-                .then(res => res.json())
-                .then(data => {
-                    const modal = document.getElementById('update-modal');
-                    const text = document.getElementById('update-text');
-                    const actions = document.getElementById('up-actions');
-                    
-                    if (data.type === 'none') {
-                        Toastify({ text: "✅ Sistema actualizado", style: { background: "green" } }).showToast();
-                        return;
-                    }
-                    
-                    // Configurar Modal
-                    modal.classList.add('active');
-                    if (data.type === 'hard') {
-                        text.innerHTML = `Nueva versión mayor: <b>v${data.remote}</b><br>Requiere reinicio del panel.`;
-                        actions.innerHTML = `
-                            <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
-                            <button class="btn btn-primary" onclick="performUpdate('hard')">Actualizar y Reiniciar</button>
-                        `;
-                    } else if (data.type === 'soft') {
-                        text.innerHTML = `Mejoras visuales disponibles.<br>No requiere reinicio.`;
-                        actions.innerHTML = `
-                            <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
-                            <button class="btn btn-primary" onclick="performUpdate('soft')">Aplicar Cambios</button>
-                        `;
-                    }
-                })
-                .catch(() => Toastify({ text: "❌ Error al conectar con servidor de updates", style: { background: "red" } }).showToast());
-        }
-
-        // Ejecutar actualización
-        function performUpdate(type) {
-            fetch('/api/update/perform', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type })
-            })
-            .then(res => res.json())
-            .then(d => {
-                closeAllModals();
-                if (type === 'hard') {
-                    Toastify({ text: "🚀 Reiniciando sistema... Espera 10s", duration: 10000 }).showToast();
-                    setTimeout(() => location.reload(), 10000);
-                } else {
-                    Toastify({ text: "✨ Interfaz actualizada", style: { background: "green" } }).showToast();
-                    setTimeout(() => location.reload(), 1000);
+            closeAllModals();
+            Toastify({text:"🔍 Buscando...", duration:2000}).showToast();
+            fetch('/api/update/check').then(r=>r.json()).then(d=>{
+                if(d.type==='none') Toastify({text:"✅ Actualizado", style:{background:"green"}}).showToast();
+                else {
+                    document.getElementById('update-modal').classList.add('active');
+                    document.getElementById('update-text').innerHTML = d.type==='hard' ? `Nueva v${d.remote}` : 'Mejoras visuales';
+                    document.getElementById('up-actions').innerHTML = `<button class="btn btn-primary" onclick="performUpdate('${d.type}')">Actualizar</button>`;
                 }
             });
         }
+        function performUpdate(t) { fetch('/api/update/perform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:t})}).then(r=>location.reload()); }
+        function forceUIUpdate() { document.getElementById('force-ui-modal').classList.add('active'); }
+        function performForceUpdate() { performUpdate('soft'); }
+        function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); }
 
-        // Botón "Recargar UI" (Abre modal de confirmación)
-        function forceUIUpdate() {
-            closeAllModals(); // Cierra el menú de personalización
-            document.getElementById('force-ui-modal').classList.add('active');
+        // === 3. LÓGICA DE GRÁFICAS Y MONITOR (SOLUCIÓN) ===
+        let cpuChart, ramChart;
+
+        function initCharts() {
+            const commonOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: false, min: 0, max: 100 } 
+                },
+                elements: { point: { radius: 0 } }
+            };
+
+            const ctxCpu = document.getElementById('cpu-chart').getContext('2d');
+            cpuChart = new Chart(ctxCpu, {
+                type: 'line',
+                data: { labels: Array(10).fill(''), datasets: [{ data: Array(10).fill(0), borderColor: '#a855f7', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(168, 85, 247, 0.2)' }] },
+                options: commonOptions
+            });
+
+            const ctxRam = document.getElementById('ram-chart').getContext('2d');
+            ramChart = new Chart(ctxRam, {
+                type: 'line',
+                data: { labels: Array(10).fill(''), datasets: [{ data: Array(10).fill(0), borderColor: '#3b82f6', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.2)' }] },
+                options: commonOptions
+            });
         }
 
-        // Confirmar "Recargar UI" (Fuerza soft update)
-        function performForceUpdate() {
-             performUpdate('soft');
+        function updateStats() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    // Actualizar Textos
+                    document.getElementById('cpu-val').innerText = Math.round(data.cpu) + '%';
+                    document.getElementById('ram-val').innerText = (data.ram_used / 1024).toFixed(1) + ' GB';
+                    document.getElementById('ram-max').innerText = 'de ' + (data.ram_total / 1024).toFixed(0) + ' GB';
+                    
+                    const diskUsedMB = Math.round(data.disk_used);
+                    document.getElementById('disk-val').innerText = diskUsedMB + ' MB';
+                    const diskPercent = (diskUsedMB / data.disk_total) * 100;
+                    document.getElementById('disk-bar').style.width = diskPercent + '%';
+
+                    // Actualizar Gráficas (Rolling buffer)
+                    if(cpuChart) {
+                        cpuChart.data.datasets[0].data.push(data.cpu);
+                        cpuChart.data.datasets[0].data.shift();
+                        cpuChart.update('none'); // 'none' para animación suave
+                    }
+                    if(ramChart) {
+                        const ramPercent = (data.ram_used / data.ram_total) * 100;
+                        ramChart.data.datasets[0].data.push(ramPercent);
+                        ramChart.data.datasets[0].data.shift();
+                        ramChart.update('none');
+                    }
+                })
+                .catch(e => console.error("Error stats:", e));
         }
 
-        // Mock para desarrollo
-        if(typeof io === 'undefined'){
-            window.io = () => ({ on: (e,c)=>{if(e==='status_change')setTimeout(()=>c('ONLINE'),2000)}, emit: ()=>{} });
-        }
+        // Iniciar todo al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            setInterval(updateStats, 2000); // Actualizar cada 2 segundos
+        });
     </script>
 </body>
 </html>
