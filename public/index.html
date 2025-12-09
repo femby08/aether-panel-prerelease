@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aether Panel Corregido</title>
+    <title>Aether Panel</title>
+    <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Librerías -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -16,12 +19,13 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+
     <div class="background-layer">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- MODAL PERSONALIZACIÓN (Corregido) -->
+    <!-- MODAL PERSONALIZACIÓN -->
     <div id="appearance-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -46,7 +50,7 @@
                         </div>
                     </div>
                     <div class="setting-row">
-                        <span>Color</span>
+                        <span>Color Acento</span>
                         <input type="color" onchange="setAccentColor(this.value)" value="#8b5cf6">
                     </div>
                 </div>
@@ -55,6 +59,7 @@
     </div>
 
     <div class="app-layout">
+        <!-- SIDEBAR -->
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
@@ -80,6 +85,7 @@
             </div>
         </aside>
 
+        <!-- MAIN CONTENT -->
         <main class="main-content">
             <header class="top-bar">
                 <h1 style="font-weight:800; font-size:1.8rem;">Panel de Control</h1>
@@ -87,10 +93,11 @@
                     <button onclick="apiPower('start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
                     <button onclick="apiPower('restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
                     <button onclick="apiPower('stop')" class="action-btn stop"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="apiPower('kill')" class="action-btn" style="background:#374151"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
-            <!-- MONITOR -->
+            <!-- TAB: MONITOR -->
             <div id="tab-stats" class="tab-view active">
                 <div class="stats-grid">
                     <div class="card glass-panel">
@@ -111,7 +118,7 @@
                 </div>
             </div>
 
-            <!-- CONSOLA -->
+            <!-- TAB: CONSOLA -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
                     <div class="console-header"><span>root@server:~</span></div>
@@ -119,7 +126,7 @@
                 </div>
             </div>
 
-            <!-- AJUSTES (AQUÍ VA LA MAGIA) -->
+            <!-- TAB: AJUSTES (Con Whitelist) -->
             <div id="tab-config" class="tab-view">
                 <div class="glass-panel" style="padding: 24px;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -127,8 +134,7 @@
                         <button class="btn btn-primary" onclick="saveCfg()"><i class="fa-solid fa-save"></i> Guardar Todo</button>
                     </div>
                     <div id="cfg-list" class="settings-layout">
-                        <!-- JS llena esto con Whitelist y Properties -->
-                        <p style="text-align:center; padding:20px;">Cargando configuración...</p>
+                        <p style="text-align:center; padding:20px; color:gray">Cargando configuración...</p>
                     </div>
                 </div>
             </div>
