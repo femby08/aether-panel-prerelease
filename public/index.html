@@ -93,6 +93,7 @@
             <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
+    
     <div id="update-modal" class="modal-overlay" role="alertdialog" aria-modal="true">
         <div class="modal-card" style="max-width: 400px; text-align: center;">
             <div class="modal-body">
@@ -103,6 +104,7 @@
             </div>
         </div>
     </div>
+    
     <div id="force-ui-modal" class="modal-overlay" role="alertdialog" aria-modal="true">
         <div class="modal-card" style="max-width: 350px;">
             <div class="modal-header"><h3>Recargar UI</h3></div>
@@ -110,7 +112,7 @@
                 <p style="color:var(--text-muted); margin-bottom:20px;">¿Redescargar interfaz?</p>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeAllModals()">No</button>
-                    <button class="btn btn-primary" onclick="confirmForceUI()">Sí</button>
+                    <button class="btn btn-primary" onclick="performForceUpdate()">Sí</button>
                 </div>
             </div>
         </div>
@@ -181,15 +183,13 @@
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
                         <div class="click-hint">Ver Detalles</div>
                     </div>
-                    
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
                         <div>
                             <span class="big-number" id="players-val">0/0</span>
                             <div style="font-size:0.9rem; color:var(--text-muted)">En línea</div>
                         </div>
-                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;">
-                            </div>
+                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;"></div>
                         <div class="click-hint">Ver Lista</div>
                     </div>
                 </div>
@@ -200,8 +200,7 @@
                         <thead>
                             <tr><th>Evento</th><th>Usuario</th><th>Hora</th><th style="text-align: right;">Estado</th></tr>
                         </thead>
-                        <tbody id="activity-table-body">
-                            </tbody>
+                        <tbody id="activity-table-body"></tbody>
                     </table>
                     <div class="click-hint-bottom">Click para ver historial completo</div>
                 </div>
@@ -277,7 +276,7 @@
     
     <script src="app.js"></script>
     <script>
-        // PARCHE: Cargar versión automáticamente (sin tocar app.js)
+        // === 1. PARCHE DE VERSIÓN (FIX VISUAL) ===
         document.addEventListener('DOMContentLoaded', () => {
             fetch('/api/info')
                 .then(r => r.json())
@@ -288,7 +287,76 @@
                 .catch(() => document.getElementById('version-display').style.display='none');
         });
 
-        // Mock para desarrollo si no hay Socket.io
+        // === 2. LÓGICA DE ACTUALIZACIONES (BOTONES MANTENIMIENTO) ===
+        
+        // Botón "Actualizar"
+        function checkUpdate() {
+            closeAllModals(); // Cierra el menú de personalización
+            Toastify({ text: "🔍 Buscando actualizaciones...", duration: 2000 }).showToast();
+            
+            fetch('/api/update/check')
+                .then(res => res.json())
+                .then(data => {
+                    const modal = document.getElementById('update-modal');
+                    const text = document.getElementById('update-text');
+                    const actions = document.getElementById('up-actions');
+                    
+                    if (data.type === 'none') {
+                        Toastify({ text: "✅ Sistema actualizado", style: { background: "green" } }).showToast();
+                        return;
+                    }
+                    
+                    // Configurar Modal
+                    modal.classList.add('active');
+                    if (data.type === 'hard') {
+                        text.innerHTML = `Nueva versión mayor: <b>v${data.remote}</b><br>Requiere reinicio del panel.`;
+                        actions.innerHTML = `
+                            <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
+                            <button class="btn btn-primary" onclick="performUpdate('hard')">Actualizar y Reiniciar</button>
+                        `;
+                    } else if (data.type === 'soft') {
+                        text.innerHTML = `Mejoras visuales disponibles.<br>No requiere reinicio.`;
+                        actions.innerHTML = `
+                            <button class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button>
+                            <button class="btn btn-primary" onclick="performUpdate('soft')">Aplicar Cambios</button>
+                        `;
+                    }
+                })
+                .catch(() => Toastify({ text: "❌ Error al conectar con servidor de updates", style: { background: "red" } }).showToast());
+        }
+
+        // Ejecutar actualización
+        function performUpdate(type) {
+            fetch('/api/update/perform', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type })
+            })
+            .then(res => res.json())
+            .then(d => {
+                closeAllModals();
+                if (type === 'hard') {
+                    Toastify({ text: "🚀 Reiniciando sistema... Espera 10s", duration: 10000 }).showToast();
+                    setTimeout(() => location.reload(), 10000);
+                } else {
+                    Toastify({ text: "✨ Interfaz actualizada", style: { background: "green" } }).showToast();
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+        }
+
+        // Botón "Recargar UI" (Abre modal de confirmación)
+        function forceUIUpdate() {
+            closeAllModals(); // Cierra el menú de personalización
+            document.getElementById('force-ui-modal').classList.add('active');
+        }
+
+        // Confirmar "Recargar UI" (Fuerza soft update)
+        function performForceUpdate() {
+             performUpdate('soft');
+        }
+
+        // Mock para desarrollo
         if(typeof io === 'undefined'){
             window.io = () => ({ on: (e,c)=>{if(e==='status_change')setTimeout(()=>c('ONLINE'),2000)}, emit: ()=>{} });
         }
