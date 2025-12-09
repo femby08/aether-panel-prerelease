@@ -37,7 +37,6 @@
                 
                 <div class="settings-card">
                     <div class="card-subtitle">APARIENCIA</div>
-                    
                     <div class="setting-row">
                         <span>Tema</span>
                         <div class="segment-box">
@@ -46,7 +45,6 @@
                             <button class="seg-btn" onclick="setTheme('auto')">Auto</button>
                         </div>
                     </div>
-
                     <div class="setting-row">
                         <span>Diseño</span>
                         <div class="segment-box">
@@ -54,12 +52,11 @@
                             <button class="seg-btn" onclick="setDesign('material')">Flat</button>
                         </div>
                     </div>
-
                     <div class="setting-row">
                         <span>Acento</span>
                         <div class="color-row">
                             <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
-                            <button class="seg-btn active" style="background:var(--primary); color:white; min-width:60px;" onclick="setAccentMode('auto')">Reset</button>
+                            <button class="seg-btn active" onclick="setAccentMode('auto')">Reset</button>
                         </div>
                     </div>
                 </div>
@@ -100,7 +97,7 @@
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
                 <div class="logo-text">
                     <span class="title">Aether</span>
-                    <span class="subtitle" id="version-display" style="opacity:0.7; margin-left:5px">Cargando...</span>
+                    <span class="subtitle" id="version-display" style="margin-left: 5px;">Cargando...</span>
                 </div>
             </div>
             
@@ -125,10 +122,11 @@
                 </button>
             </nav>
 
-            <div class="sidebar-footer">
-                <button class="btn-secondary" style="width:100%; justify-content:center; margin-bottom:15px;" onclick="document.getElementById('appearance-modal').classList.add('active')">
+            <div class="sidebar-footer" style="margin-top: auto;">
+                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width: 100%; margin-bottom: 15px;">
                     <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
+                
                 <div class="user-card">
                     <div id="status-dot" class="status-dot offline"></div>
                     <div class="user-info">
@@ -163,19 +161,19 @@
                     <div class="card glass-panel interactive">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
                         <div><span class="big-number" id="ram-val">0 GB</span></div>
-                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">de 4 GB</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">de 4 GB</div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
                     </div>
                     <div class="card glass-panel interactive">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
                         <div><span class="big-number" id="disk-val">0 MB</span></div>
-                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Usado</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">Usado</div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
                     </div>
                     <div class="card glass-panel interactive">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
                         <div><span class="big-number" id="players-val">0/0</span></div>
-                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">En línea</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">En línea</div>
                     </div>
                 </div>
 
@@ -204,8 +202,8 @@
                 </div>
             </div>
 
-            <div id="tab-versions" class="tab-view"><h2>Versiones</h2><p>Selector...</p></div>
-            <div id="tab-labs" class="tab-view"><h2>Labs</h2><p>Experimentos...</p></div>
+            <div id="tab-versions" class="tab-view"><h2>Versiones</h2></div>
+            <div id="tab-labs" class="tab-view"><h2>Labs</h2></div>
 
         </main>
     </div>
