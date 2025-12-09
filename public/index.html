@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aether Panel</title>
 
-    <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -13,7 +12,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <link rel="stylesheet" href="style.css">
 
-    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -26,7 +24,6 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- MODAL DETALLES -->
     <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-card detail-card-size">
             <div class="modal-header">
@@ -34,12 +31,10 @@
                 <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="detail-body" class="modal-body" style="display:flex; flex-direction:column; height:100%; padding: 0;">
-                <!-- Contenido dinámico -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- MODAL AJUSTES (ESTRUCTURA COMPLETA) -->
     <div id="appearance-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-app">
         <div class="modal-card">
             <div class="modal-header">
@@ -48,7 +43,6 @@
             </div>
             <div class="modal-body settings-layout">
                 
-                <!-- SECCIÓN 1: APARIENCIA (ESTO FALTABA) -->
                 <div class="settings-card">
                     <div class="card-subtitle">Apariencia</div>
                     <div class="setting-row">
@@ -75,7 +69,6 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: MANTENIMIENTO -->
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
@@ -94,7 +87,6 @@
         </div>
     </div>
 
-    <!-- Otros Modales -->
     <div id="version-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-card" style="max-width: 800px; max-height: 85vh;">
             <div class="modal-header"><h3 id="modal-title">Título</h3><button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
@@ -128,7 +120,7 @@
         <aside class="sidebar glass-panel">
             <div class="brand-area">
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">Cargando...</span></div>
+                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display" style="margin-left: 8px; opacity: 0.8;"></span></div>
             </div>
             
             <nav class="nav-menu" id="main-nav" role="tablist">
@@ -169,24 +161,20 @@
                 </div>
             </header>
 
-            <!-- MONITOR -->
             <div id="tab-stats" class="tab-view active" role="tabpanel" aria-labelledby="nav-stats">
                 <div class="stats-grid">
-                    <!-- CPU CARD (Clickable) -->
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('cpu')">
                         <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div>
                         <div><span class="big-number" id="cpu-val">0%</span></div>
                         <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
                         <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <!-- RAM CARD (Clickable) -->
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('ram')">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
                         <div><span class="big-number" id="ram-val">0 GB</span><div style="font-size:0.9rem; color:var(--text-muted)" id="ram-max">de 4 GB</div></div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
                         <div class="click-hint">Ver Detalles</div>
                     </div>
-                    <!-- DISK CARD (Clickable) -->
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('disk')">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
                         <div><span class="big-number" id="disk-val">0 MB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usado</div></div>
@@ -194,22 +182,18 @@
                         <div class="click-hint">Ver Detalles</div>
                     </div>
                     
-                    <!-- JUGADORES CARD (CLICKEABLE FIX) -->
-                    <!-- Se eliminan z-index internos conflictivos para que el click funcione en todo el div -->
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
                         <div>
                             <span class="big-number" id="players-val">0/0</span>
                             <div style="font-size:0.9rem; color:var(--text-muted)">En línea</div>
                         </div>
-                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;"> <!-- pointer-events: none para que el click pase al padre -->
-                            <!-- JS llena esto -->
-                        </div>
+                        <div id="players-preview" class="avatar-stack" style="pointer-events: none;">
+                            </div>
                         <div class="click-hint">Ver Lista</div>
                     </div>
                 </div>
 
-                <!-- ACTIVIDAD RECIENTE (CLICKEABLE) -->
                 <h3 style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Actividad Reciente</h3>
                 <div class="glass-panel interactive" style="overflow: hidden; cursor:pointer" onclick="openDetail('activity')">
                     <table class="activity-table">
@@ -217,14 +201,12 @@
                             <tr><th>Evento</th><th>Usuario</th><th>Hora</th><th style="text-align: right;">Estado</th></tr>
                         </thead>
                         <tbody id="activity-table-body">
-                            <!-- JS llena esto -->
-                        </tbody>
+                            </tbody>
                     </table>
                     <div class="click-hint-bottom">Click para ver historial completo</div>
                 </div>
             </div>
 
-            <!-- CONSOLA -->
             <div id="tab-console" class="tab-view" role="tabpanel" aria-labelledby="nav-console">
                 <div class="console-full glass-panel">
                     <div class="console-header"><span><i class="fa-solid fa-terminal"></i> root@server:~</span><span style="font-size:0.7rem; opacity:0.5">BASH</span></div>
@@ -232,7 +214,6 @@
                 </div>
             </div>
 
-            <!-- VERSIONES -->
             <div id="tab-versions" class="tab-view" role="tabpanel" aria-labelledby="nav-versions">
                 <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
@@ -243,7 +224,6 @@
                 </div>
             </div>
 
-            <!-- LABS -->
             <div id="tab-labs" class="tab-view" role="tabpanel" aria-labelledby="nav-labs">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
@@ -268,7 +248,6 @@
                 </div>
             </div>
 
-            <!-- FILES & BACKUPS & CONFIG -->
             <div id="tab-files" class="tab-view" role="tabpanel">
                 <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
                     <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
@@ -289,15 +268,27 @@
                 <div class="glass-panel" style="padding: 24px;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
                     <div id="cfg-list" class="settings-layout">
-                        <!-- JS llena esto -->
-                    </div>
+                        </div>
                 </div>
             </div>
 
         </main>
     </div>
+    
     <script src="app.js"></script>
     <script>
+        // PARCHE: Cargar versión automáticamente (sin tocar app.js)
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/info')
+                .then(r => r.json())
+                .then(d => {
+                    const el = document.getElementById('version-display');
+                    if(el) el.textContent = 'v' + (d.version || '1.0.0');
+                })
+                .catch(() => document.getElementById('version-display').style.display='none');
+        });
+
+        // Mock para desarrollo si no hay Socket.io
         if(typeof io === 'undefined'){
             window.io = () => ({ on: (e,c)=>{if(e==='status_change')setTimeout(()=>c('ONLINE'),2000)}, emit: ()=>{} });
         }
