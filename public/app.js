@@ -4,10 +4,12 @@ let currentPath = '';
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Setup Xterm
-    term.open(document.getElementById('terminal'));
-    term.loadAddon(fitAddon);
-    term.writeln('\x1b[1;36m>>> CONECTADO A AETHER PANEL.\x1b[0m\r\n');
-    setTimeout(() => fitAddon.fit(), 200);
+    if(document.getElementById('terminal')) {
+        term.open(document.getElementById('terminal'));
+        term.loadAddon(fitAddon);
+        term.writeln('\x1b[1;36m>>> CONECTADO A AETHER PANEL.\x1b[0m\r\n');
+        setTimeout(() => fitAddon.fit(), 200);
+    }
 
     // 2. Info Servidor
     fetch('/api/info').then(r => r.json()).then(d => {
@@ -20,73 +22,86 @@ document.addEventListener('DOMContentLoaded', () => {
     setDesign(localStorage.getItem('design_mode') || 'glass');
     setAccentMode(localStorage.getItem('accent_mode') || 'auto');
 
-    // 4. Setup Global Shortcuts
+    // 4. Setup Shortcuts
     setupGlobalShortcuts();
 });
 
-// --- ATAJOS DE TECLADO Y NAVEGACIÓN ---
+// --- ATAJOS Y NAVEGACIÓN ---
 function setupGlobalShortcuts() {
     document.addEventListener('keydown', (e) => {
-        // --- ATAJOS ALT+NUMERO ---
+        // Alt + 1-5 (Navegación directa)
         if (e.altKey) {
             switch(e.key) {
                 case '1': e.preventDefault(); setTab('stats'); break;
                 case '2': e.preventDefault(); setTab('console'); break;
-                case '3': e.preventDefault(); setTab('files'); break; // Ahora abre la vista files directamente
+                case '3': e.preventDefault(); setTab('versions'); break;
                 case '4': e.preventDefault(); setTab('labs'); break;
                 case '5': e.preventDefault(); setTab('config'); break;
             }
         }
-
-        // --- SALIR ---
+        
+        // Escape (Cerrar modales)
         if (e.key === 'Escape') closeAllModals();
 
-        // --- NAVEGACIÓN POR FLECHAS (SIDEBAR) ---
-        // Solo si no estamos escribiendo en un input
-        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                e.preventDefault();
-                navigateSidebar(e.key === 'ArrowDown' ? 1 : -1);
-            }
+        // Flechas (Navegación Sidebar)
+        // Solo si no estamos escribiendo
+        if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); navigateSidebar(1); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
         }
+    });
+
+    // Permitir activar botones con ENTER (Accesibilidad)
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') btn.click();
+        });
     });
 }
 
 function navigateSidebar(direction) {
-    const navItems = Array.from(document.querySelectorAll('.nav-item'));
+    // Buscar botones visibles
+    const buttons = Array.from(document.querySelectorAll('.nav-item'));
     const current = document.activeElement;
-    let index = navItems.indexOf(current);
+    let idx = buttons.indexOf(current);
 
-    if (index === -1) {
-        // Si nada está enfocado, enfocar el primero (o el activo actual)
+    if (idx === -1) {
+        // Si no hay foco, ir al activo
         const active = document.querySelector('.nav-item.active');
-        index = navItems.indexOf(active);
-        if(index === -1) index = 0;
-    } else {
-        index += direction;
-        // Loop around
-        if (index >= navItems.length) index = 0;
-        if (index < 0) index = navItems.length - 1;
+        idx = buttons.indexOf(active);
     }
-    
-    navItems[index].focus();
+
+    // Calcular nuevo índice (cíclico)
+    let newIdx = idx + direction;
+    if (newIdx >= buttons.length) newIdx = 0;
+    if (newIdx < 0) newIdx = buttons.length - 1;
+
+    buttons[newIdx].focus();
 }
 
-// --- LÓGICA DE PESTAÑAS ---
+// --- PESTAÑAS ---
 function setTab(t, btn) {
+    // 1. Ocultar todo
     document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
     
-    document.getElementById('tab-' + t).classList.add('active');
+    // 2. Mostrar destino
+    const target = document.getElementById('tab-' + t);
+    if(target) target.classList.add('active');
     
+    // 3. Activar botón
     if (btn) {
         btn.classList.add('active');
+        btn.focus(); // Enfocar para accesibilidad
     } else {
-        // Buscar botón correspondiente si se activó por atajo
         const sbBtn = document.querySelector(`.nav-item[onclick*="'${t}'"]`);
-        if(sbBtn) sbBtn.classList.add('active');
+        if(sbBtn) {
+            sbBtn.classList.add('active');
+            sbBtn.focus();
+        }
     }
 
+    // 4. Cargas específicas
     if(t==='console') setTimeout(()=>fitAddon.fit(),100);
     if(t==='files') loadFiles('');
     if(t==='config') loadConfig();
@@ -123,7 +138,7 @@ function setAccentColor(color, save = true) {
     document.documentElement.style.setProperty('--primary-glow', color + '66');
 }
 
-// --- SYSTEM ACTIONS (PERSONALIZACIÓN) ---
+// --- MANTENIMIENTO ---
 function checkUpdate(){
     Toastify({text:'Buscando actualizaciones...',style:{background:'#8b5cf6'}}).showToast();
     fetch('/api/update/check').then(r=>r.json()).then(d=>{
@@ -157,7 +172,6 @@ function doUpdate(type){
 const term = new Terminal({ fontFamily: 'JetBrains Mono', theme: { background: '#00000000' }, fontSize: 13, convertEol: true });
 const fitAddon = new FitAddon.FitAddon();
 window.onresize = ()=>fitAddon.fit();
-
 term.onData(d => socket.emit('command', d));
 socket.on('console_data', d => term.write(d));
 socket.on('logs_history', d => { term.write(d); setTimeout(()=>fitAddon.fit(), 200); });
