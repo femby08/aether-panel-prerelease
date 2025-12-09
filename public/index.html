@@ -31,7 +31,7 @@
         <div class="modal-card detail-card-size">
             <div class="modal-header">
                 <h3 id="detail-title" style="display:flex; align-items:center; gap:10px; font-size: 1.2rem;">Detalles</h3>
-                <button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="detail-body" class="modal-body" style="display:flex; flex-direction:column; height:100%; padding: 0;"></div>
         </div>
@@ -73,15 +73,15 @@
 
                 <div class="settings-card">
                     <div class="card-subtitle" style="color:var(--warning)">MANTENIMIENTO</div>
-                    <div class="actions-grid">
-                        <button onclick="checkUpdate()" class="maint-btn">
-                            <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                            <div class="maint-info"><span>Actualizar</span><small>Buscar versión</small></div>
-                        </button>
-                        <button onclick="forceUIUpdate()" class="maint-btn">
-                            <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
-                            <div class="maint-info"><span>Recargar UI</span><small>Reparar fallos</small></div>
-                        </button>
+                    <div class="maint-grid">
+                        <div class="maint-card" onclick="checkUpdate()">
+                            <div class="maint-icon green"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                            <div class="maint-text"><span>Actualizar</span><small>Buscar versión</small></div>
+                        </div>
+                        <div class="maint-card" onclick="forceUIUpdate()">
+                            <div class="maint-icon orange"><i class="fa-solid fa-rotate"></i></div>
+                            <div class="maint-text"><span>Recargar UI</span><small>Reparar fallos</small></div>
+                        </div>
                     </div>
                 </div>
 
@@ -94,7 +94,7 @@
             <div class="modal-body">
                 <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
                 <h3 style="margin-bottom: 10px;">Actualización Disponible</h3>
-                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;">Nueva versión detectada.</p>
+                <p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;"></p>
                 <div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
             </div>
         </div>
@@ -107,29 +107,18 @@
                 <div class="logo-box"><i class="fa-solid fa-bolt"></i></div>
                 <div class="logo-text">
                     <span class="title">Aether</span>
-                    <span class="subtitle" id="version-display" style="margin-left: 5px;">Cargando...</span>
+                    <span class="subtitle" id="version-display">Cargando...</span>
                 </div>
             </div>
             
             <nav class="nav-menu" id="main-nav">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats')" class="nav-item active" id="nav-stats">
-                    <i class="fa-solid fa-chart-pie"></i> <span>Monitor</span>
-                </button>
-                <button onclick="setTab('console')" class="nav-item" id="nav-console">
-                    <i class="fa-solid fa-terminal"></i> <span>Consola</span>
-                </button>
-                <button onclick="setTab('versions')" class="nav-item" id="nav-versions">
-                    <i class="fa-solid fa-layer-group"></i> <span>Versiones</span>
-                </button>
-
+                <button onclick="setTab('stats')" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console')" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions')" class="nav-item" id="nav-versions"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs')" class="nav-item" id="nav-labs">
-                    <i class="fa-solid fa-flask"></i> <span>Labs</span>
-                </button>
-                <button onclick="setTab('config')" class="nav-item" id="nav-config">
-                    <i class="fa-solid fa-sliders"></i> <span>Ajustes</span>
-                </button>
+                <button onclick="setTab('labs')" class="nav-item" id="nav-labs"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config')" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
@@ -170,19 +159,22 @@
                     </div>
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('ram')">
                         <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div>
-                        <div><span class="big-number" id="ram-val">0 GB</span><div style="font-size:0.9rem; color:var(--text-muted)">de 4 GB</div></div>
+                        <div><span class="big-number" id="ram-val">0 GB</span></div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">En uso</div>
                         <div class="chart-container"><canvas id="ram-chart"></canvas></div>
                         <div class="click-hint">Ver Detalles</div>
                     </div>
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('disk')">
                         <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div>
-                        <div><span class="big-number" id="disk-val">0 MB</span><div style="font-size:0.9rem; color:var(--text-muted)">Usado</div></div>
+                        <div><span class="big-number" id="disk-val">0 MB</span></div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">Usado</div>
                         <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div>
                         <div class="click-hint">Ver Detalles</div>
                     </div>
                     <div class="card glass-panel interactive" tabindex="0" onclick="openDetail('players')">
                         <div class="card-title">JUGADORES <i class="fa-solid fa-users"></i></div>
-                        <div><span class="big-number" id="players-val">0/0</span><div style="font-size:0.9rem; color:var(--text-muted)">En línea</div></div>
+                        <div><span class="big-number" id="players-val">0/0</span></div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">En línea</div>
                         <div class="click-hint">Ver Lista</div>
                     </div>
                 </div>
@@ -207,59 +199,27 @@
             <div id="tab-versions" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
-                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')" role="button" tabindex="0"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
-                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')" role="button" tabindex="0"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
-                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')" role="button" tabindex="0"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
-                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')" role="button" tabindex="0"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
+                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial</p></div>
+                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Optimizado</p></div>
+                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
+                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
                 </div>
             </div>
 
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
-                    <div class="mod-card-modern lab-purple">
-                        <span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda Mods</div><p class="mod-desc">Instala plugins y mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-orange">
-                        <span class="lab-tag alpha">ALPHA</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-blue">
-                        <span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
-                    </div>
-                    <div class="mod-card-modern lab-teal">
-                        <span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
-                        <div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización CPU.</p>
-                            <div class="switch-container"><span class="switch-label">ESTADO</span><label class="toggle-switch"><input type="checkbox" id="lab-turbo"><span class="slider"></span></label></div>
-                        </div>
-                    </div>
+                    <div class="mod-card-modern lab-purple"><span class="lab-tag new">NEW</span><div class="mod-cover"><i class="fa-solid fa-store"></i></div><div class="mod-body"><div class="mod-title">Tienda Mods</div><p class="mod-desc">Instala plugins y mods.</p><button class="btn-install" onclick="openModStore()">Abrir</button></div></div>
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag alpha">ALPHA</span><div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div><div class="mod-body"><div class="mod-title">Archivos</div><p class="mod-desc">Explorador web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div></div>
+                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div><div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Copias seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div></div>
+                    <div class="mod-card-modern lab-teal"><span class="lab-tag beta">BETA</span><div class="mod-cover"><i class="fa-solid fa-bolt"></i></div><div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización CPU.</p><div class="switch-container"><span class="switch-label">ESTADO</span><label class="toggle-switch"><input type="checkbox" id="lab-turbo"><span class="slider"></span></label></div></div></div>
                 </div>
             </div>
 
-            <div id="tab-files" class="tab-view">
-                <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
-                    <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
-                        <div><button onclick="setTab('labs')" class="btn btn-secondary" style="margin-right:10px"><i class="fa-solid fa-arrow-left"></i></button><span id="breadcrumb" style="font-family:monospace; color:var(--text-muted); font-weight: 600;">/home/container</span></div>
-                        <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
-                    </div>
-                    <div id="file-list" style="padding: 10px;"><p style="color:gray; padding:20px; text-align:center">Simulación: Sin conexión.</p></div>
-                </div>
-            </div>
-            <div id="tab-backups" class="tab-view">
-                <div class="glass-panel">
-                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;"><h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Backups</h3><button class="btn btn-primary" onclick="createBackup()">Crear Nuevo</button></div>
-                    <button onclick="setTab('labs')" class="btn btn-secondary" style="margin:20px 0 0 20px"><i class="fa-solid fa-arrow-left"></i> Volver</button>
-                    <div id="backup-list" style="padding: 20px;"></div>
-                </div>
-            </div>
-            <div id="tab-config" class="tab-view">
-                <div class="glass-panel" style="padding: 24px;">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
-                    <div id="cfg-list" class="settings-layout"></div>
-                </div>
-            </div>
+            <div id="tab-config" class="tab-view"><div class="glass-panel" style="padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div><div id="cfg-list" class="settings-layout"></div></div></div>
+
+            <div id="tab-files" class="tab-view"><div class="glass-panel" style="padding:20px;"><div id="file-list"></div></div></div>
+            <div id="tab-backups" class="tab-view"><div class="glass-panel" style="padding:20px;"><div id="backup-list"></div></div></div>
 
         </main>
     </div>
