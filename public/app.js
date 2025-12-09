@@ -2,8 +2,12 @@ const socket = io();
 let currentPath = '';
 
 // Variables para Charts
-let cpuChart, ramChart;
+let cpuChart, ramChart, detailChart;
 const MAX_DATA_POINTS = 20;
+
+// === MODO SERVIDOR (CONFIGURACIÓN) ===
+// Cambia esto a 'premium' para ver skins, o 'cracked' para ver iniciales
+const SERVER_MODE = 'cracked'; // Opciones: 'premium' | 'cracked'
 
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,24 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     }
 
-    // 2. Info Servidor (Lógica Mejorada: Lee package.json)
+    // 2. Info Servidor
     fetch('package.json')
         .then(response => {
             if (!response.ok) throw new Error("No package.json");
             return response.json();
         })
         .then(data => {
-            // Prioridad: Versión del package.json
             const el = document.getElementById('version-display');
             if (el && data.version) el.innerText = `v${data.version}`;
         })
-        .catch(() => {
-            // Fallback: Si falla, usa la API antigua
-            fetch('/api/info').then(r => r.json()).then(d => {
-                const el = document.getElementById('version-display');
-                if(el) el.innerText = `v${d.version} ${d.channel || ''}`;
-            });
-        });
+        .catch(() => {});
 
     // 3. Init Config Visual
     updateThemeUI(localStorage.getItem('theme') || 'dark');
@@ -45,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupGlobalShortcuts();
     setupAccessibility();
     initCharts();
+    
+    // Inicializar avatares en la tarjeta
+    updateDashboardAvatars();
 });
 
 // --- CHARTS SYSTEM ---
@@ -63,7 +63,6 @@ function initCharts() {
         const grad = ctxCpu.createLinearGradient(0, 0, 0, 100);
         grad.addColorStop(0, 'rgba(139, 92, 246, 0.5)');
         grad.addColorStop(1, 'rgba(139, 92, 246, 0)');
-
         cpuChart = new Chart(ctxCpu, {
             type: 'line',
             data: { labels: Array(MAX_DATA_POINTS).fill(''), datasets: [{ data: Array(MAX_DATA_POINTS).fill(0), borderColor: '#8b5cf6', backgroundColor: grad, fill: true }] },
@@ -76,7 +75,6 @@ function initCharts() {
         const grad = ctxRam.createLinearGradient(0, 0, 0, 100);
         grad.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
         grad.addColorStop(1, 'rgba(6, 182, 212, 0)');
-
         ramChart = new Chart(ctxRam, {
             type: 'line',
             data: { labels: Array(MAX_DATA_POINTS).fill(''), datasets: [{ data: Array(MAX_DATA_POINTS).fill(0), borderColor: '#06b6d4', backgroundColor: grad, fill: true }] },
@@ -93,44 +91,169 @@ function updateChart(chart, value) {
     chart.update();
 }
 
-// --- ACCESIBILIDAD ---
+// === LÓGICA DE JUGADORES & AVATARES ===
+
+function getAvatarHTML(name, size = 'sm') {
+    // Colores fijos para modo cracked
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    const color = colors[name.length % colors.length];
+    
+    if (SERVER_MODE === 'premium') {
+        // Skin real
+        const sizePx = size === 'lg' ? 64 : 32;
+        return `<img src="https://minotar.net/helm/${name}/${sizePx}.png" class="avatar-img ${size}" alt="${name}">`;
+    } else {
+        // Inicial con color
+        const initial = name.charAt(0).toUpperCase();
+        return `<div class="avatar-initial ${size}" style="background-color: ${color}">${initial}</div>`;
+    }
+}
+
+function updateDashboardAvatars() {
+    const container = document.getElementById('players-preview');
+    if (!container) return;
+    
+    // Simulación de jugadores
+    const players = ["Steve", "Alex", "Vegetta", "Rubius"];
+    let html = '';
+    
+    // Crear avatares superpuestos
+    players.slice(0, 3).forEach((p, i) => {
+        html += `<div class="avatar-stack-item" style="z-index: ${4-i}">${getAvatarHTML(p, 'sm')}</div>`;
+    });
+    
+    // Indicador de "+N"
+    if(players.length > 3) {
+        html += `<div class="avatar-stack-item count" style="z-index: 0">+${players.length - 3}</div>`;
+    }
+    
+    container.innerHTML = html;
+}
+
+// === SISTEMA DE DETALLES (MODALES) ===
+function openDetail(type) {
+    const modal = document.getElementById('detail-modal');
+    const title = document.getElementById('detail-title');
+    const body = document.getElementById('detail-body');
+    
+    // Limpiar contenido previo
+    body.innerHTML = '';
+    
+    if (type === 'cpu') {
+        title.innerHTML = '<i class="fa-solid fa-microchip"></i> Historial de CPU';
+        body.innerHTML = '<div style="flex:1; width:100%; min-height:300px; padding:20px"><canvas id="detail-chart"></canvas></div><p style="text-align:center; color:gray; margin-bottom:20px">Uso de CPU en los últimos 30 minutos</p>';
+        setTimeout(() => createDetailChart('#8b5cf6', 'CPU Load %'), 100);
+    } 
+    else if (type === 'ram') {
+        title.innerHTML = '<i class="fa-solid fa-memory"></i> Uso de Memoria';
+        body.innerHTML = '<div style="flex:1; width:100%; min-height:300px; padding:20px"><canvas id="detail-chart"></canvas></div><p style="text-align:center; color:gray; margin-bottom:20px">Consumo de RAM vs Total Asignado</p>';
+        setTimeout(() => createDetailChart('#06b6d4', 'RAM Usage (MB)'), 100);
+    }
+    else if (type === 'disk') {
+        title.innerHTML = '<i class="fa-solid fa-hard-drive"></i> Almacenamiento';
+        body.innerHTML = '<div style="padding:60px; text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center"><h2 style="font-size:5rem; margin-bottom:10px; color:white">45%</h2><div class="progress-bar-bg" style="height:30px; margin-bottom:20px; background:rgba(255,255,255,0.1)"><div class="progress-bar-fill warning" style="width:45%"></div></div><p style="font-size:1.2rem; color:#94a3b8">4.5 GB de 10 GB Usados</p></div>';
+    }
+    else if (type === 'players') {
+        title.innerHTML = '<i class="fa-solid fa-users"></i> Jugadores en Línea (15/50)';
+        
+        // Simulación lista larga
+        const players = ["Steve", "Alex", "Vegetta777", "Willyrex", "Rubius", "Ibai", "Auron", "Grefg", "Juan", "Pedro", "Luis", "Ana", "Maria", "Sofia", "Lucia"];
+        
+        let html = '<div class="players-detail-grid">';
+        players.forEach(p => {
+            html += `
+            <div class="player-card">
+                ${getAvatarHTML(p, 'lg')}
+                <span class="player-name">${p}</span>
+                <span class="player-ping">12ms</span>
+            </div>`;
+        });
+        html += '</div>';
+        
+        body.innerHTML = `<div style="overflow-y:auto; padding:20px; flex:1">${html}</div>`;
+    }
+    else if (type === 'activity') {
+        title.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Historial Completo';
+        let rows = '';
+        for(let i=0; i<15; i++) {
+            rows += `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                <td style="padding:15px"><div class="event-indicator ${i%3==0?'success':(i%2==0?'info':'warning')}"></div> Evento Registrado #${i+100}</td>
+                <td style="padding:15px">Sistema</td>
+                <td style="padding:15px; color:gray">Hace ${i*10 + 5}m</td>
+                <td style="padding:15px; text-align:right"><span class="status-badge ${i%3==0?'success':'info'}">OK</span></td>
+            </tr>`;
+        }
+        body.innerHTML = `<div style="overflow-y:auto; flex:1"><table style="width:100%; border-collapse:collapse; font-size:0.9rem">${rows}</table></div>`;
+    }
+
+    modal.classList.add('active');
+    modal.querySelector('button').focus();
+}
+
+function createDetailChart(color, label) {
+    const ctx = document.getElementById('detail-chart').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 400);
+    grad.addColorStop(0, color + '80');
+    grad.addColorStop(1, color + '00');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                label: label,
+                data: Array.from({length: 30}, () => Math.floor(Math.random() * 40) + 10),
+                borderColor: color,
+                backgroundColor: grad,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true, labels: { color: 'white' } } },
+            scales: { 
+                x: { display: false }, 
+                y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } 
+            }
+        }
+    });
+}
+
+// --- RESTO FUNCIONES (Navegación, API, etc.) ---
 function setupAccessibility() {
     document.body.addEventListener('keydown', (e) => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute('role') === 'button') {
             e.preventDefault(); e.target.click();
         }
     });
-    document.querySelectorAll('.modal-overlay').forEach(modal => {
-        modal.addEventListener('keydown', (e) => {
-            if(e.key === 'Escape') closeAllModals();
-            if(e.key === 'Tab') trapFocus(e, modal);
-        });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal-overlay.active');
+            if (activeModal) closeAllModals();
+            else if (document.activeElement.classList.contains('nav-item')) document.activeElement.blur();
+        }
     });
 }
-
-function trapFocus(e, modal) {
-    const els = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = els[0];
-    const last = els[els.length - 1];
-    if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
-    else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
-}
-
-// --- ATAJOS ---
 function setupGlobalShortcuts() {
     document.addEventListener('keydown', (e) => {
         if (e.altKey) {
             const tabs = {'1':'stats','2':'console','3':'versions','4':'labs','5':'config'};
             if(tabs[e.key]) { e.preventDefault(); setTab(tabs[e.key]); }
         }
-        if (document.activeElement.classList.contains('nav-item')) {
+        const activeEl = document.activeElement;
+        if (activeEl.classList.contains('nav-item')) {
             if (e.key === 'ArrowDown') { e.preventDefault(); navigateSidebar(1); }
-            if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
+            else if (e.key === 'Enter') { e.preventDefault(); activeEl.click(); }
         }
     });
 }
 function navigateSidebar(dir) {
-    const btns = Array.from(document.querySelectorAll('.nav-item'));
+    const btns = Array.from(document.querySelectorAll('.nav-menu .nav-item'));
     const idx = btns.indexOf(document.activeElement);
     const start = idx === -1 ? btns.indexOf(document.querySelector('.nav-item.active')) : idx;
     let next = start + dir;
@@ -138,7 +261,6 @@ function navigateSidebar(dir) {
     btns[next].focus();
 }
 
-// --- STATS UPDATE ---
 setInterval(()=>{
     if(!document.getElementById('tab-stats').classList.contains('active')) return;
     fetch('/api/stats').then(r=>r.json()).then(d=>{
@@ -152,7 +274,6 @@ setInterval(()=>{
     }).catch(()=>{});
 }, 1000);
 
-// --- RESTO DE FUNCIONES ---
 socket.on('status_change', s => {
     const el = document.getElementById('status-text');
     const dot = document.getElementById('status-dot');
@@ -214,7 +335,7 @@ function loadFiles(p){ currentPath = p; document.getElementById('breadcrumb').in
 function uploadFile(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const fd=new FormData(); fd.append('file',e.target.files[0]); fetch('/api/files/upload',{method:'POST',body:fd}).then(()=>loadFiles(currentPath)); }; i.click(); }
 
 const modsDB=[{name:"Jei",url:"#",icon:"fa-book",color:"#2ecc71"},{name:"JourneyMap",url:"#",icon:"fa-map",color:"#3498db"}];
-function openModStore(){ showModal('Mods', '<div id="mod-store-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px"></div>'); const l=document.getElementById('mod-store-grid'); modsDB.forEach(m=>{ l.innerHTML+=`<div class="glass-panel" style="padding:15px; text-align:center"><i class="fa-solid ${m.icon}" style="color:${m.color}; font-size:2rem; margin-bottom:10px"></i><h4>${m.name}</h4><button class="btn btn-secondary" onclick="closeAllModals()">Instalar</button></div>`; }); }
+function openModStore(){ showModal('Mods', '<div id="mod-store-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px"></div>'); const l=document.getElementById('mod-store-grid'); modsDB.forEach(m=>{ l.innerHTML+=`<div class="glass-panel" style="padding:15px; text-align:center"><i class="fa-solid ${m.icon}" style="color:${m.color}; font-size:2rem; margin-bottom:10px\"></i><h4>${m.name}</h4><button class=\"btn btn-secondary\" onclick=\"closeAllModals()\">Instalar</button></div>`; }); }
 
 function createBackup(){ api('backups/create').then(()=>loadBackups()); }
 function loadBackups(){ api('backups').then(list=>{ let html=''; list.forEach(b=>html+=`<div class="file-row"><span>${b.name}</span><button class="btn btn-secondary">Restaurar</button></div>`); document.getElementById('backup-list').innerHTML=html; }); }
