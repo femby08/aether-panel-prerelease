@@ -2,8 +2,9 @@ const socket = io();
 let cpuChart, ramChart;
 const MAX_DATA = 20;
 
+// === INICIO ===
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Cargar Versión
+    // 1. Versión
     fetch('/api/info').then(r => r.json()).then(d => {
         const el = document.getElementById('version-display');
         if (el) {
@@ -12,37 +13,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Gráficas
+    // 2. Iniciar
     initCharts();
-
-    // 3. Monitor
     setInterval(updateStats, 2000);
     updateStats();
-
-    // 4. Terminal
     initTerminal();
 
-    // 5. Configuración
-    if (document.getElementById('tab-config')?.classList.contains('active')) {
-        loadConfig();
-    }
+    if (document.getElementById('tab-config')?.classList.contains('active')) loadConfig();
 });
 
-// ==========================================
-// FORMATEO DE DATOS (FIX NÚMEROS LOCOS)
-// ==========================================
+// === FORMATO DE BYTES (FIX RAM LOCA) ===
 function formatBytes(bytes, decimals = 1) {
-    if (bytes === 0) return '0 B';
+    if (!+bytes) return '0 B';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-// ==========================================
-// ACTUALIZAR ESTADÍSTICAS
-// ==========================================
+// === ACTUALIZAR DATOS ===
 async function updateStats() {
     try {
         const res = await fetch('/api/stats');
@@ -52,29 +42,24 @@ async function updateStats() {
         if(document.getElementById('cpu-val')) 
             document.getElementById('cpu-val').innerText = Math.round(data.cpu) + '%';
 
-        // RAM (SOLUCIÓN NÚMEROS LARGOS)
+        // RAM (Con formato bonito)
         if(document.getElementById('ram-val')) {
-            // data.ram_used viene en bytes, usamos formatBytes
             document.getElementById('ram-val').innerText = formatBytes(data.ram_used);
         }
 
         // DISCO
         if(document.getElementById('disk-val')) {
-            // data.disk_used viene en bytes
             document.getElementById('disk-val').innerText = formatBytes(data.disk_used);
         }
         
-        // BARRA DE DISCO
+        // Barra Disco
         const bar = document.getElementById('disk-bar');
-        if(bar) {
-            const percent = (data.disk_used / data.disk_total) * 100;
-            bar.style.width = Math.min(percent, 100) + '%';
-        }
+        if(bar) bar.style.width = Math.min((data.disk_used / data.disk_total) * 100, 100) + '%';
 
-        // GRÁFICAS
+        // Gráficas
         if (cpuChart) pushData(cpuChart, data.cpu);
         if (ramChart) {
-            // Calcular porcentaje RAM para la gráfica
+            // Calcular % para la gráfica (que solo entiende 0-100)
             const ramPercent = (data.ram_used / data.ram_total) * 100;
             pushData(ramChart, ramPercent);
         }
@@ -88,9 +73,7 @@ function pushData(chart, val) {
     chart.update('none');
 }
 
-// ==========================================
-// CONFIGURACIÓN (EDITOR VISUAL MEJORADO)
-// ==========================================
+// === CONFIGURACIÓN (EDITOR VISUAL MEJORADO) ===
 window.loadConfig = function() {
     const list = document.getElementById('cfg-list');
     if (!list) return;
@@ -151,7 +134,9 @@ window.saveCfg = function() {
 
     fetch('/api/config', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newConf)
-    }).then(() => {
+    })
+    .then(r => r.json())
+    .then(() => {
         if(window.Toastify) Toastify({text: "Guardado", style:{background:"#10b981"}}).showToast();
         window.loadConfig();
     });
@@ -172,7 +157,7 @@ function initCharts() {
     if (ctxCpu) {
         const grad = ctxCpu.getContext('2d').createLinearGradient(0, 0, 0, 100);
         grad.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); grad.addColorStop(1, 'rgba(139, 92, 246, 0)');
-        cpuChart = new Chart(ctxCpu, { type: 'line', data: { labels: Array(MAX_DATA).fill(''), datasets: [{ data: Array(MAX_DATA).fill(0), borderColor: '#a855f7', borderWidth: 2, fill: true, backgroundColor: grad }] }, options: commonOpts });
+        cpuChart = new Chart(ctxCpu, { type: 'line', data: { labels: Array(MAX_DATA).fill(''), datasets: [{ data: Array(MAX_DATA).fill(0), borderColor: '#8b5cf6', borderWidth: 2, fill: true, backgroundColor: grad }] }, options: commonOpts });
     }
 
     const ctxRam = document.getElementById('ram-chart');
