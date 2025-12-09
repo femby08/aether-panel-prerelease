@@ -32,7 +32,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-paintbrush"></i> Personalización</h3>
-                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()" tabindex="0" title="Cerrar (Esc)"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body settings-layout">
                 
@@ -42,36 +42,36 @@
                     <div class="setting-row">
                         <span>Tema</span>
                         <div class="segment-box">
-                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn"><i class="fa-solid fa-sun"></i></button>
-                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active"><i class="fa-solid fa-moon"></i></button>
-                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-btn">Auto</button>
+                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-btn" tabindex="0"><i class="fa-solid fa-sun"></i></button>
+                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-btn active" tabindex="0"><i class="fa-solid fa-moon"></i></button>
+                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-btn" tabindex="0">Auto</button>
                         </div>
                     </div>
                     <div class="setting-row">
                         <span>Diseño</span>
                         <div class="segment-box">
-                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-btn active">Glass</button>
-                            <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn">Flat</button>
+                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-btn active" tabindex="0">Glass</button>
+                            <button onclick="setDesign('material')" id="modal-btn-material" class="seg-btn" tabindex="0">Flat</button>
                         </div>
                     </div>
                     <div class="setting-row">
                         <span>Color Acento</span>
                         <div class="color-row">
-                            <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
-                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem">Reset</button>
+                            <input type="color" id="accent-picker" onchange="setAccentColor(this.value)" tabindex="0">
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn active" style="font-size:0.75rem" tabindex="0">Reset</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- SECCIÓN SISTEMA -->
                 <div class="settings-card">
-                    <div class="card-subtitle" style="color: var(--warning)">Zona de Mantenimiento</div>
+                    <div class="card-subtitle" style="color: var(--warning)">Mantenimiento</div>
                     <div class="actions-grid">
-                        <button onclick="checkUpdate()" class="maint-btn">
+                        <button onclick="checkUpdate()" class="maint-btn" tabindex="0">
                             <div class="icon-box"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                             <div class="maint-info"><span>Buscar Update</span><small>Verificar versión</small></div>
                         </button>
-                        <button onclick="forceUIUpdate()" class="maint-btn">
+                        <button onclick="forceUIUpdate()" class="maint-btn" tabindex="0">
                             <div class="icon-box warn"><i class="fa-solid fa-rotate"></i></div>
                             <div class="maint-info"><span>Recargar UI</span><small>Reparar errores</small></div>
                         </button>
@@ -87,14 +87,14 @@
         <div class="modal-card" style="max-width: 800px; max-height: 85vh;">
             <div class="modal-header">
                 <h3 id="modal-title">Título</h3>
-                <button class="btn btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-icon-sm" onclick="closeAllModals()" tabindex="0"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
     
     <div id="update-modal" class="modal-overlay"><div class="modal-card" style="max-width: 400px; text-align: center;"><div class="modal-body"><div style="font-size: 3rem; margin-bottom: 15px;">🚀</div><h3 style="margin-bottom: 10px;">Actualización Disponible</h3><p id="update-text" style="color: var(--text-muted); margin-bottom: 25px;">Nueva versión lista.</p><div id="up-actions" style="display: flex; gap: 10px; justify-content: center;"></div></div></div></div>
-    <div id="force-ui-modal" class="modal-overlay"><div class="modal-card" style="max-width: 350px;"><div class="modal-header"><h3>Recargar UI</h3></div><div class="modal-body"><p style="color:var(--text-muted); margin-bottom:20px;">¿Redescargar interfaz?</p><div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="btn btn-secondary" onclick="closeAllModals()">No</button><button class="btn btn-primary" onclick="confirmForceUI()">Sí</button></div></div></div></div>
+    <div id="force-ui-modal" class="modal-overlay"><div class="modal-card" style="max-width: 350px;"><div class="modal-header"><h3>Recargar UI</h3></div><div class="modal-body"><p style="color:var(--text-muted); margin-bottom:20px;">¿Redescargar interfaz?</p><div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="btn btn-secondary" onclick="closeAllModals()" tabindex="0">No</button><button class="btn btn-primary" onclick="confirmForceUI()" tabindex="0">Sí</button></div></div></div></div>
 
     <div class="app-layout">
         
@@ -107,22 +107,26 @@
             
             <nav class="nav-menu" id="main-nav" role="tablist">
                 <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats', this)" class="nav-item active" title="Alt+1"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console', this)" class="nav-item" title="Alt+2"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions', this)" class="nav-item" title="Alt+3"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
+                <button onclick="setTab('stats', this)" class="nav-item active" role="tab" tabindex="0" title="Monitor (Alt+1)"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-item" role="tab" tabindex="0" title="Consola (Alt+2)"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-item" role="tab" tabindex="0" title="Versiones (Alt+3)"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
                 
                 <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs', this)" class="nav-item" title="Alt+4"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config', this)" class="nav-item" title="Alt+5"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
+                <button onclick="setTab('labs', this)" class="nav-item" role="tab" tabindex="0" title="Labs (Alt+4)"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-item" role="tab" tabindex="0" title="Ajustes (Alt+5)"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
             </nav>
 
             <div class="sidebar-footer">
-                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('appearance-modal').classList.add('active')" style="width:100%; justify-content:center; margin-bottom:15px;" tabindex="0">
                     <i class="fa-solid fa-palette"></i> Personalizar
                 </button>
                 <div class="user-card">
-                    <div id="status-dot" class="status-dot"></div>
-                    <div class="user-info"><span style="font-weight:700" id="status-text">OFFLINE</span><span style="font-size:0.75rem; color:var(--text-muted)">Estado</span></div>
+                    <!-- Status Dot Animado -->
+                    <div id="status-dot" class="status-dot offline"></div>
+                    <div class="user-info">
+                        <span id="status-text" class="status-text">OFFLINE</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Estado</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -132,13 +136,13 @@
             <header class="top-bar">
                 <div>
                     <h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1>
-                    <div class="server-badge" onclick="copyIP()"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div>
+                    <div class="server-badge" onclick="copyIP()" tabindex="0" role="button"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div>
                 </div>
                 <div class="header-actions">
-                    <button onclick="api('power/start')" class="action-btn start" title="Iniciar"><i class="fa-solid fa-play"></i></button>
-                    <button onclick="api('power/restart')" class="action-btn restart" title="Reiniciar"><i class="fa-solid fa-rotate"></i></button>
-                    <button onclick="api('power/stop')" class="action-btn stop" title="Detener"><i class="fa-solid fa-stop"></i></button>
-                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151" title="Forzar"><i class="fa-solid fa-skull"></i></button>
+                    <button onclick="api('power/start')" class="action-btn start" title="Iniciar" tabindex="0"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="api('power/restart')" class="action-btn restart" title="Reiniciar" tabindex="0"><i class="fa-solid fa-rotate"></i></button>
+                    <button onclick="api('power/stop')" class="action-btn stop" title="Detener" tabindex="0"><i class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151" title="Forzar" tabindex="0"><i class="fa-solid fa-skull"></i></button>
                 </div>
             </header>
 
@@ -163,61 +167,84 @@
                 </div>
             </div>
 
-            <!-- CONSOLA -->
+            <!-- CONSOLA (MEJORADA) -->
             <div id="tab-console" class="tab-view">
                 <div class="console-full glass-panel">
-                    <div class="console-header"><i class="fa-solid fa-terminal"></i> root@server:~</div>
-                    <div id="terminal" class="console-output" style="padding:0; height: 100%;"></div>
+                    <div class="console-header">
+                        <span><i class="fa-solid fa-terminal"></i> root@server:~</span>
+                        <span style="font-size:0.7rem; opacity:0.5">BASH</span>
+                    </div>
+                    <div id="terminal" class="console-output"></div>
                 </div>
             </div>
 
-            <!-- VERSIONES (CORREGIDO) -->
+            <!-- VERSIONES -->
             <div id="tab-versions" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:700">Selector de Software</h2>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
-                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial de Mojang</p></div>
-                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Alto Rendimiento</p></div>
-                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
-                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
+                    <div class="glass-panel ver-card vanilla" onclick="loadVersions('vanilla')" tabindex="0"><i class="fa-solid fa-cube"></i><h3>Vanilla</h3><p>Oficial de Mojang</p></div>
+                    <div class="glass-panel ver-card paper" onclick="loadVersions('paper')" tabindex="0"><i class="fa-solid fa-paper-plane"></i><h3>Paper</h3><p>Alto Rendimiento</p></div>
+                    <div class="glass-panel ver-card fabric" onclick="loadVersions('fabric')" tabindex="0"><i class="fa-solid fa-scroll"></i><h3>Fabric</h3><p>Mods Ligeros</p></div>
+                    <div class="glass-panel ver-card forge" onclick="loadVersions('forge')" tabindex="0"><i class="fa-solid fa-hammer"></i><h3>Forge</h3><p>Mods Clásicos</p></div>
                 </div>
             </div>
 
-            <!-- LABS -->
+            <!-- LABS (ICONOS GRANDES + SWITCH TURBO) -->
             <div id="tab-labs" class="tab-view">
                 <h2 style="margin-bottom:20px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     
-                    <!-- TIENDA (Violeta) -->
+                    <!-- Tienda -->
                     <div class="mod-card-modern lab-purple">
                         <span class="lab-tag new">NEW</span> <div class="mod-cover"><i class="fa-solid fa-store"></i></div>
-                        <div class="mod-body"><div class="mod-title">Tienda de Mods</div><p class="mod-desc">Instala plugins y mods populares.</p><button class="btn-install" onclick="openModStore()">Abrir Tienda</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Tienda de Mods</div>
+                            <p class="mod-desc">Instala plugins y mods populares fácilmente.</p>
+                            <button class="btn-install" onclick="openModStore()" tabindex="0">Abrir Tienda</button>
+                        </div>
                     </div>
                     
-                    <!-- ARCHIVOS (Naranja) -->
+                    <!-- Archivos -->
                     <div class="mod-card-modern lab-orange">
                         <span class="lab-tag alpha">ALPHA</span> <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
-                        <div class="mod-body"><div class="mod-title">Gestor Archivos</div><p class="mod-desc">Explorador de archivos web.</p><button class="btn-install" onclick="setTab('files')">Abrir</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Gestor Archivos</div>
+                            <p class="mod-desc">Explorador de archivos web.</p>
+                            <button class="btn-install" onclick="setTab('files')" tabindex="0">Abrir</button>
+                        </div>
                     </div>
 
-                    <!-- BACKUPS (Azul) -->
+                    <!-- Backups -->
                     <div class="mod-card-modern lab-blue">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="mod-body"><div class="mod-title">Backups</div><p class="mod-desc">Crea copias de seguridad.</p><button class="btn-install" onclick="setTab('backups')">Gestionar</button></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Backups</div>
+                            <p class="mod-desc">Gestión de copias de seguridad.</p>
+                            <button class="btn-install" onclick="setTab('backups')" tabindex="0">Gestionar</button>
+                        </div>
                     </div>
 
-                    <!-- TURBO (Verde) -->
+                    <!-- TURBO (Switch Mejorado) -->
                     <div class="mod-card-modern lab-teal">
                         <span class="lab-tag beta">BETA</span> <div class="mod-cover"><i class="fa-solid fa-bolt"></i></div>
-                        <div class="mod-body"><div class="mod-title">Modo Turbo</div><p class="mod-desc">Optimización extrema de CPU.</p><div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center"><span style="font-size:0.75rem; font-weight:700; color:var(--text-muted)">ESTADO</span><label class="switch"><input type="checkbox" id="lab-turbo"><span class="slider round"></span></label></div></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Modo Turbo</div>
+                            <p class="mod-desc">Optimización extrema de arranque.</p>
+                            <div class="switch-container">
+                                <span class="switch-label">ESTADO</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="lab-turbo" tabindex="0">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- PROGRAMADOR (Rojo) -->
+                    <!-- Otros... -->
                     <div class="mod-card-modern lab-red">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-calendar-days"></i></div>
                         <div class="mod-body"><div class="mod-title">Programador</div><p class="mod-desc">Automatiza tareas.</p><button class="btn-install" disabled>Próximamente</button></div>
                     </div>
-
-                    <!-- RED (Indigo) -->
                     <div class="mod-card-modern lab-indigo">
                         <span class="lab-tag wip">WIP</span> <div class="mod-cover"><i class="fa-solid fa-network-wired"></i></div>
                         <div class="mod-body"><div class="mod-title">Red & Puertos</div><p class="mod-desc">Gestión avanzada.</p><button class="btn-install" disabled>Próximamente</button></div>
@@ -226,15 +253,15 @@
                 </div>
             </div>
 
-            <!-- VISTAS SECUNDARIAS (FILES / BACKUPS) -->
+            <!-- VISTAS SECUNDARIAS -->
             <div id="tab-files" class="tab-view">
                 <div class="glass-panel" style="min-height:500px; display: flex; flex-direction: column;">
                     <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items: center;">
                         <div>
-                            <button onclick="setTab('labs')" class="btn btn-secondary" style="margin-right:10px"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button onclick="setTab('labs')" class="btn btn-secondary" style="margin-right:10px" tabindex="0"><i class="fa-solid fa-arrow-left"></i></button>
                             <span id="breadcrumb" style="font-family:monospace; color:var(--text-muted); font-weight: 600;">/home/container</span>
                         </div>
-                        <button class="btn btn-primary" onclick="uploadFile()"><i class="fa-solid fa-upload"></i> Subir</button>
+                        <button class="btn btn-primary" onclick="uploadFile()" tabindex="0"><i class="fa-solid fa-upload"></i> Subir</button>
                     </div>
                     <div id="file-list" style="padding: 10px;"></div>
                 </div>
@@ -242,8 +269,8 @@
 
             <div id="tab-backups" class="tab-view">
                 <div class="glass-panel">
-                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;"><h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Copias de Seguridad</h3><button class="btn btn-primary" onclick="createBackup()">Crear Backup Nuevo</button></div>
-                    <button onclick="setTab('labs')" class="btn btn-secondary" style="margin:20px 0 0 20px"><i class="fa-solid fa-arrow-left"></i> Volver a Labs</button>
+                    <div style="padding:20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;"><h3 style="margin:0"><i class="fa-solid fa-box-archive"></i> Copias de Seguridad</h3><button class="btn btn-primary" onclick="createBackup()" tabindex="0">Crear Backup Nuevo</button></div>
+                    <button onclick="setTab('labs')" class="btn btn-secondary" style="margin:20px 0 0 20px" tabindex="0"><i class="fa-solid fa-arrow-left"></i> Volver a Labs</button>
                     <div id="backup-list" style="padding: 20px;"></div>
                 </div>
             </div>
@@ -251,7 +278,7 @@
             <!-- CONFIG -->
             <div id="tab-config" class="tab-view">
                 <div class="glass-panel" style="padding: 24px;">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()">Guardar</button></div>
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h3>Configuración</h3><button class="btn btn-primary" onclick="saveCfg()" tabindex="0">Guardar</button></div>
                     <div id="cfg-list" class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
                 </div>
             </div>
