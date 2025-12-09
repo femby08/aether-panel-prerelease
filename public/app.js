@@ -3,7 +3,7 @@ let currentPath = '';
 
 // Variables para Charts
 let cpuChart, ramChart;
-const MAX_DATA_POINTS = 20; // Cuántos puntos mostrar en el historial
+const MAX_DATA_POINTS = 20;
 
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,11 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     }
 
-    // 2. Info Servidor
-    fetch('/api/info').then(r => r.json()).then(d => {
-        const el = document.getElementById('version-display');
-        if(el) el.innerText = `v${d.version} ${d.channel || ''}`;
-    });
+    // 2. Info Servidor (Lógica Mejorada: Lee package.json)
+    fetch('package.json')
+        .then(response => {
+            if (!response.ok) throw new Error("No package.json");
+            return response.json();
+        })
+        .then(data => {
+            // Prioridad: Versión del package.json
+            const el = document.getElementById('version-display');
+            if (el && data.version) el.innerText = `v${data.version}`;
+        })
+        .catch(() => {
+            // Fallback: Si falla, usa la API antigua
+            fetch('/api/info').then(r => r.json()).then(d => {
+                const el = document.getElementById('version-display');
+                if(el) el.innerText = `v${d.version} ${d.channel || ''}`;
+            });
+        });
 
     // 3. Init Config Visual
     updateThemeUI(localStorage.getItem('theme') || 'dark');
@@ -31,66 +44,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Inicializar Sistemas
     setupGlobalShortcuts();
     setupAccessibility();
-    initCharts(); // Iniciar gráficos
+    initCharts();
 });
 
-// --- CHARTS SYSTEM (VISUAL UPGRADE) ---
+// --- CHARTS SYSTEM ---
 function initCharts() {
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-            x: { display: false },
-            y: { display: false, min: 0, max: 100 }
-        },
-        elements: {
-            point: { radius: 0 },
-            line: { tension: 0.4, borderWidth: 2 }
-        },
-        animation: { duration: 0 } // Rendimiento
+        scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } },
+        elements: { point: { radius: 0 }, line: { tension: 0.4, borderWidth: 2 } },
+        animation: { duration: 0 }
     };
 
     const ctxCpu = document.getElementById('cpu-chart')?.getContext('2d');
     if(ctxCpu) {
-        // Crear gradiente CPU
         const grad = ctxCpu.createLinearGradient(0, 0, 0, 100);
-        grad.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); // Primary color
+        grad.addColorStop(0, 'rgba(139, 92, 246, 0.5)');
         grad.addColorStop(1, 'rgba(139, 92, 246, 0)');
 
         cpuChart = new Chart(ctxCpu, {
             type: 'line',
-            data: {
-                labels: Array(MAX_DATA_POINTS).fill(''),
-                datasets: [{
-                    data: Array(MAX_DATA_POINTS).fill(0),
-                    borderColor: '#8b5cf6',
-                    backgroundColor: grad,
-                    fill: true
-                }]
-            },
+            data: { labels: Array(MAX_DATA_POINTS).fill(''), datasets: [{ data: Array(MAX_DATA_POINTS).fill(0), borderColor: '#8b5cf6', backgroundColor: grad, fill: true }] },
             options: commonOptions
         });
     }
 
     const ctxRam = document.getElementById('ram-chart')?.getContext('2d');
     if(ctxRam) {
-        // Crear gradiente RAM
         const grad = ctxRam.createLinearGradient(0, 0, 0, 100);
-        grad.addColorStop(0, 'rgba(6, 182, 212, 0.5)'); // Accent color
+        grad.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
         grad.addColorStop(1, 'rgba(6, 182, 212, 0)');
 
         ramChart = new Chart(ctxRam, {
             type: 'line',
-            data: {
-                labels: Array(MAX_DATA_POINTS).fill(''),
-                datasets: [{
-                    data: Array(MAX_DATA_POINTS).fill(0),
-                    borderColor: '#06b6d4',
-                    backgroundColor: grad,
-                    fill: true
-                }]
-            },
+            data: { labels: Array(MAX_DATA_POINTS).fill(''), datasets: [{ data: Array(MAX_DATA_POINTS).fill(0), borderColor: '#06b6d4', backgroundColor: grad, fill: true }] },
             options: commonOptions
         });
     }
@@ -100,20 +89,17 @@ function updateChart(chart, value) {
     if(!chart) return;
     const data = chart.data.datasets[0].data;
     data.push(value);
-    data.shift(); // Eliminar el más antiguo
+    data.shift();
     chart.update();
 }
 
 // --- ACCESIBILIDAD ---
 function setupAccessibility() {
-    // Permitir clic con Enter/Espacio
     document.body.addEventListener('keydown', (e) => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute('role') === 'button') {
             e.preventDefault(); e.target.click();
         }
     });
-
-    // Atrapar foco en modales
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('keydown', (e) => {
             if(e.key === 'Escape') closeAllModals();
@@ -126,7 +112,6 @@ function trapFocus(e, modal) {
     const els = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
     const first = els[0];
     const last = els[els.length - 1];
-
     if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
     else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
 }
@@ -138,8 +123,6 @@ function setupGlobalShortcuts() {
             const tabs = {'1':'stats','2':'console','3':'versions','4':'labs','5':'config'};
             if(tabs[e.key]) { e.preventDefault(); setTab(tabs[e.key]); }
         }
-        
-        // Navegación vertical menú
         if (document.activeElement.classList.contains('nav-item')) {
             if (e.key === 'ArrowDown') { e.preventDefault(); navigateSidebar(1); }
             if (e.key === 'ArrowUp') { e.preventDefault(); navigateSidebar(-1); }
@@ -155,28 +138,21 @@ function navigateSidebar(dir) {
     btns[next].focus();
 }
 
-// --- STATS UPDATE (MODIFICADO PARA CHARTS) ---
+// --- STATS UPDATE ---
 setInterval(()=>{
     if(!document.getElementById('tab-stats').classList.contains('active')) return;
     fetch('/api/stats').then(r=>r.json()).then(d=>{
-        // Textos
         document.getElementById('cpu-val').innerText = d.cpu.toFixed(1)+'%';
         document.getElementById('ram-val').innerText = (d.ram_used/1024).toFixed(1) + ' GB';
-        
-        // Barras (Disco se queda como barra)
         const db = document.getElementById('disk-bar');
         if(db) db.style.width = Math.min((d.disk_used/d.disk_total)*100, 100)+'%';
         document.getElementById('disk-val').innerText = (d.disk_used/1024).toFixed(0)+' MB';
-
-        // Gráficos (Actualización visual)
         updateChart(cpuChart, d.cpu);
         updateChart(ramChart, (d.ram_used/d.ram_total)*100);
-
     }).catch(()=>{});
 }, 1000);
 
-// --- RESTO DE FUNCIONES (Socket, Tabs, Utils) ---
-// (Mantenidas idénticas para funcionamiento)
+// --- RESTO DE FUNCIONES ---
 socket.on('status_change', s => {
     const el = document.getElementById('status-text');
     const dot = document.getElementById('status-dot');
