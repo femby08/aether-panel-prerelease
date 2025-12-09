@@ -81,6 +81,7 @@ body { font-family: var(--font-main); background-color: var(--bg-color); color: 
 .segment-box { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px; }
 .seg-btn { background: transparent; border: none; padding: 6px 12px; color: var(--text-muted); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
 .seg-btn.active { background: var(--primary); color: white; }
+.color-row { display: flex; align-items: center; gap: 10px; }
 .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; }
