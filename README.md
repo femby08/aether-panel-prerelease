@@ -8,8 +8,8 @@
 **The lightweight, modern, and powerful control panel for Minecraft servers.**  
 Smart management, real-time monitoring, and beautiful Glassmorphism design.
 
-[![Version](https://img.shields.io/badge/version-1.7.0-8b5cf6?style=for-the-badge&logo=git)](https://github.com/reychampi/aether-panel)
-[![Status](https://img.shields.io/badge/status-stable-10b981?style=for-the-badge)](https://github.com/reychampi/aether-panel)
+[![Version](https://img.shields.io/badge/version-1.7.0--beta-orange?style=for-the-badge&logo=git)](https://github.com/femby08/aether-panel-prerelease)
+[![Status](https://img.shields.io/badge/status-experimental-orange?style=for-the-badge)](https://github.com/femby08/aether-panel-prerelease)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D16-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
 ![Windows](https://img.shields.io/badge/Windows-Native%20(Untested)-FFD600?style=for-the-badge&logo=windows)
 
@@ -71,7 +71,7 @@ Aether Panel is **universal** and works on most modern systems.
 Run as **root**:
 
 <pre>
-curl -sL https://raw.githubusercontent.com/reychampi/aether-panel/refs/heads/main/installserver.sh | bash
+curl -sL https://raw.githubusercontent.com/femby08/aether-panel-prerelease/main/installserver.sh | bash
 </pre>
 
 ---

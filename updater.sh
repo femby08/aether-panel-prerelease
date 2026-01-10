@@ -1,110 +1,118 @@
 #!/bin/bash
 
 # ============================================================
-# AETHER PANEL - SMART UPDATER (Final Version)
+# AETHER PANEL - SMART UPDATER (FAIL-SAFE EDITION)
+# 1. Soft Update: Cambios en /public -> Hot Swap (Sin reinicio)
+# 2. Hard Update: Cambio de versión -> Reinicio + Rollback si falla
 # ============================================================
 
-APP_DIR="/opt/aetherpanel"
 LOG="/opt/aetherpanel/update.log"
+APP_DIR="/opt/aetherpanel"
 BACKUP_DIR="/opt/aetherpanel_backup_temp"
-TEMP_DIR="/tmp/aether_update_temp"
-
-# 1. DETERMINAR CANAL (Lectura inteligente)
-if [ -f "$APP_DIR/.channel" ]; then
-    CHANNEL=$(cat "$APP_DIR/.channel" | tr -d '[:space:]')
-else
-    # Si no existe archivo de canal, intentamos detectar por argumento legado
-    if [ "$1" == "-pre" ]; then
-        CHANNEL="prerelease"
-    else
-        CHANNEL="stable"
-    fi
-    # Guardamos la preferencia para el futuro
-    echo "$CHANNEL" > "$APP_DIR/.channel"
-fi
-
-# 2. SELECCIONAR REPOSITORIO
-if [ "$CHANNEL" == "prerelease" ]; then
-    REPO_ZIP="https://github.com/femby08/aether-panel-prerelease/archive/refs/heads/main.zip"
-else
-    REPO_ZIP="https://github.com/femby08/aether-panel/archive/refs/heads/main.zip"
-fi
+TEMP_DIR="/tmp/nebula_update_temp"
+# [CHANGE] Updated Repository URL (Experimental)
+REPO_ZIP="https://github.com/femby08/aether-panel-prerelease/archive/refs/heads/main.zip"
 
 log_msg() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> $LOG
     echo -e "$1"
 }
 
-log_msg "--- 🌌 INICIANDO ACTUALIZACIÓN (Canal: $CHANNEL) ---"
+log_msg "--- 🌌 UPDATE PROCESS STARTED ---"
 
-# 3. PREPARACIÓN
+# 1. PREPARACIÓN Y DESCARGA
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR"
 
-# Descargar
-log_msg "⬇️ Descargando código fuente..."
-wget -q "$REPO_ZIP" -O /tmp/aether_update.zip || curl -L "$REPO_ZIP" -o /tmp/aether_update.zip
+# Descargar Repo
+wget -q "$REPO_ZIP" -O /tmp/nebula_update.zip || curl -L "$REPO_ZIP" -o /tmp/nebula_update.zip
+unzip -q -o /tmp/nebula_update.zip -d "$TEMP_DIR"
 
-if [ ! -s /tmp/aether_update.zip ]; then
-    log_msg "❌ ERROR CRÍTICO: No se pudo descargar el archivo ZIP."
-    exit 1
-fi
-
-unzip -q -o /tmp/aether_update.zip -d "$TEMP_DIR"
-
-# Encontrar la carpeta raíz descomprimida (a veces github añade -main al nombre)
+# Encontrar raíz (donde está package.json)
 NEW_SOURCE=$(find "$TEMP_DIR" -name "package.json" | head -n 1 | xargs dirname)
+
 if [ -z "$NEW_SOURCE" ]; then
-    log_msg "❌ ERROR: El ZIP descargado no contiene un panel válido."
+    log_msg "❌ ERROR: ZIP corrupto o estructura inválida."
     exit 1
 fi
 
-# 4. BACKUP DE SEGURIDAD
-log_msg "💾 Creando copia de seguridad..."
-rm -rf "$BACKUP_DIR"
-# Solo hacemos backup si existe el directorio
-if [ -d "$APP_DIR" ]; then
-    cp -r "$APP_DIR" "$BACKUP_DIR"
-fi
-
-# 5. INSTALACIÓN
-log_msg "⚙️ Aplicando actualización..."
-systemctl stop aetherpanel 2>/dev/null
-
-# Asegurar directorio destino
-mkdir -p "$APP_DIR"
-
-# Copiar archivos (Sobrescribir)
-cp -rf "$NEW_SOURCE/"* "$APP_DIR/"
-
-# Restaurar archivo de canal (importante para no perder la config)
-echo "$CHANNEL" > "$APP_DIR/.channel"
-
-# Permisos y Dependencias
-cd "$APP_DIR"
-chmod +x updater.sh
-log_msg "📦 Instalando dependencias NPM..."
-npm install --production >> $LOG 2>&1
-
-# 6. REINICIO Y VERIFICACIÓN
-log_msg "🚀 Iniciando servicio..."
-systemctl start aetherpanel
-sleep 5
-
-if systemctl is-active --quiet aetherpanel; then
-    log_msg "✅ ACTUALIZACIÓN EXITOSA: Sistema operativo en v$(node -p "require('./package.json').version") ($CHANNEL)"
+# 2. COMPARACIÓN DE VERSION
+if [ -f "$APP_DIR/package.json" ]; then
+    CURRENT_VERSION=$(node -p "require('$APP_DIR/package.json').version")
 else
-    log_msg "🚨 FALLO AL INICIAR. RESTAURANDO BACKUP..."
-    systemctl stop aetherpanel
-    if [ -d "$BACKUP_DIR" ]; then
-        rm -rf "$APP_DIR"/*
-        cp -r "$BACKUP_DIR/"* "$APP_DIR/"
-        systemctl start aetherpanel
-        log_msg "⏪ Sistema restaurado a la versión anterior."
+    CURRENT_VERSION="0.0.0"
+fi
+NEW_VERSION=$(node -p "require('$NEW_SOURCE/package.json').version")
+
+log_msg "🔎 Actual: $CURRENT_VERSION | Nueva: $NEW_VERSION"
+
+# ============================================================
+# LÓGICA DE ACTUALIZACIÓN
+# ============================================================
+
+# --- CASO A: SOFT UPDATE (Misma versión, cambios visuales) ---
+if [ "$CURRENT_VERSION" == "$NEW_VERSION" ]; then
+    log_msg "ℹ️ Versiones coinciden. Buscando cambios visuales (Soft Update)..."
+    
+    # Comparamos solo /public
+    if diff -r -q "$APP_DIR/public" "$NEW_SOURCE/public" > /dev/null; then
+        log_msg "✅ No hay cambios visuales. Todo al día."
     else
-        log_msg "❌ No hay backup disponible para restaurar."
+        log_msg "🎨 Cambios visuales detectados. Aplicando Hot-Swap..."
+        cp -rf "$NEW_SOURCE/public/"* "$APP_DIR/public/"
+        log_msg "✅ Interfaz actualizada sin reiniciar."
+    fi
+
+# --- CASO B: HARD UPDATE (Cambio de versión) ---
+else
+    log_msg "⚠️  NUEVA VERSIÓN DETECTADA. Iniciando actualización segura..."
+
+    # 1. BACKUP DE SEGURIDAD
+    log_msg "💾 Creando snapshot de seguridad..."
+    rm -rf "$BACKUP_DIR"
+    cp -r "$APP_DIR" "$BACKUP_DIR"
+
+    # 2. APLICAR CAMBIOS
+    systemctl stop aetherpanel
+    
+    # [FIX] Protect users.json from overwrite / Protege users.json de ser sobrescrito
+    if [ -f "$APP_DIR/users.json" ]; then
+        log_msg "🛡️  Preserving existing users.json (Skipping overwrite)..."
+        rm -f "$NEW_SOURCE/users.json"
+    fi
+
+    # Copiar archivos (excluyendo datos de usuario si fuera necesario, aquí sobrescribimos core)
+    cp -rf "$NEW_SOURCE/"* "$APP_DIR/"
+    
+    # Dependencias
+    cd "$APP_DIR"
+    npm install --production >> $LOG 2>&1
+    chmod +x "$APP_DIR/updater.sh" # Asegurar que el updater siga siendo ejecutable
+
+    # 3. TEST DE ARRANQUE (FAIL-SAFE)
+    log_msg "🚀 Intentando arrancar nueva versión..."
+    systemctl start aetherpanel
+    
+    # Esperamos 10 segundos para ver si crashea
+    sleep 10
+    
+    if systemctl is-active --quiet aetherpanel; then
+        log_msg "✅ ACTUALIZACIÓN EXITOSA: El sistema es estable en V$NEW_VERSION."
+        # Opcional: Borrar backup
+        # rm -rf "$BACKUP_DIR"
+    else
+        log_msg "🚨 FALLO CRÍTICO: El servicio no arrancó."
+        log_msg "⏪ EJECUTANDO ROLLBACK AUTOMÁTICO..."
+        
+        systemctl stop aetherpanel
+        # Restaurar backup
+        rm -rf "$APP_DIR"/* # Limpiar instalación fallida
+        cp -r "$BACKUP_DIR/"* "$APP_DIR/" # Restaurar la copia
+        
+        systemctl start aetherpanel
+        log_msg "✅ ROLLBACK COMPLETADO: Se ha restaurado la versión $CURRENT_VERSION."
     fi
 fi
 
-# Limpieza
-rm -rf "$TEMP_DIR" /tmp/aether_update.zip
+# Limpieza temporal
+rm -rf "$TEMP_DIR" /tmp/nebula_update.zip

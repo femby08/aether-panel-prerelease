@@ -1,122 +1,770 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark" data-design="glass">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aether Panel</title>
-    <link rel="icon" type="image/svg+xml" href="logo.svg">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="checkbox.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>
 </head>
-<body>
-    <div class="background-layer"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
 
-    <div id="detail-modal" class="modal-overlay">
-        <div class="modal-card detail-card-size">
-            <div class="modal-header"><h3 id="detail-title">Detalles</h3><button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
-            <div id="detail-body" class="modal-body"></div>
+<body>
+    <div class="bg-particles"></div>
+
+    <!-- Login / Setup Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="glass login-box">
+            <div class="login-header">
+                <div class="brand-logo brand-logo-login">
+                    <img src="/logo.svg" alt="Aether" style="width:30px;">
+                </div>
+                <h2 id="login-title" class="login-title">AETHER PANEL</h2>
+                <p id="login-subtitle" class="login-subtitle">Acceso Administrativo</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="login-form">
+                <input type="text" id="login-username" class="cfg-in" placeholder="Usuario" required>
+                <input type="password" id="login-password" class="cfg-in" placeholder="Contraseña" required>
+
+                <button type="submit" id="login-btn-submit" class="btn btn-primary login-btn-submit">
+                    ENTRAR <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div id="login-error" class="login-error">
+            </div>
         </div>
     </div>
 
-    <div id="appearance-modal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header"><h3><i class="fa-solid fa-palette"></i> Personalización</h3><button class="btn-icon-sm" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="modal-body settings-layout">
-                <div class="settings-card">
-                    <div class="card-subtitle">APARIENCIA</div>
-                    <div class="setting-row"><span>Tema</span><div class="segment-box"><button class="seg-btn" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i></button><button class="seg-btn active" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i></button><button class="seg-btn" onclick="setTheme('auto')">Auto</button></div></div>
-                    <div class="setting-row"><span>Diseño</span><div class="segment-box"><button class="seg-btn active" onclick="setDesign('glass')">Glass</button><button class="seg-btn" onclick="setDesign('material')">Flat</button></div></div>
-                    
+    <div id="version-modal" class="modal-overlay" style="display:none">
+        <div class="modal glass" style="max-height: 80vh;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cloud-arrow-down"></i> Instalar</h3><button class="btn btn-ghost"
+                    onclick="document.getElementById('version-modal').style.display='none'"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="version-list" class="modal-content-grid">
+            </div>
+        </div>
+    </div>
+
+    <div id="appearance-modal" class="modal-overlay" style="display:none">
+        <div class="modal glass" style="max-width: 480px; padding: 0; overflow: hidden;">
+            <div class="modal-header modal-header-custom">
+                <h3 style="font-weight: 800; font-size: 1.1rem; display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-paintbrush"></i> Personalización
+                </h3>
+                <button class="btn btn-ghost" onclick="document.getElementById('appearance-modal').style.display='none'"
+                    style="width:32px; height:32px; padding:0;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-content-custom">
+                <div class="settings-group-card">
+                    <h4 class="settings-group-title">APARIENCIA</h4>
                     <div class="setting-row">
-                        <span>Acento</span>
-                        <div class="accent-pills">
-                            <div class="color-pill active" style="background:#8b5cf6" onclick="setAccentColor('#8b5cf6', this)"></div>
-                            <div class="color-pill" style="background:#06b6d4" onclick="setAccentColor('#06b6d4', this)"></div>
-                            <div class="color-pill" style="background:#10b981" onclick="setAccentColor('#10b981', this)"></div>
-                            <div class="color-pill" style="background:#f59e0b" onclick="setAccentColor('#f59e0b', this)"></div>
-                            <div class="color-pill" style="background:#ef4444" onclick="setAccentColor('#ef4444', this)"></div>
-                            <div class="color-pill" style="background:linear-gradient(135deg,#fff,#555)"><input type="color" id="accent-picker-native" onchange="setAccentColor(this.value, this.parentElement)"></div>
+                        <span class="setting-label">Tema</span>
+                        <div class="segment-control">
+                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-item"><i
+                                    class="fa-solid fa-sun"></i></button>
+                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-item active"><i
+                                    class="fa-solid fa-moon"></i></button>
+                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-item text">Auto</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Diseño</span>
+                        <div class="segment-control">
+                            <button onclick="setDesign('glass')" id="modal-btn-glass"
+                                class="seg-item text active">Glass</button>
+                            <button onclick="setDesign('material')" id="modal-btn-material"
+                                class="seg-item text">Flat</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Acento</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="color-circle-wrapper">
+                                <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
+                            </div>
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')"
+                                class="seg-btn-reset">Reset</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Idioma</span>
+                        <div class="segment-control">
+                            <button onclick="setLanguage('es')" data-lang-btn="es"
+                                class="seg-item text active">ES</button>
+                            <button onclick="setLanguage('en')" data-lang-btn="en" class="seg-item text">EN</button>
+                            <button onclick="setLanguage('pt')" data-lang-btn="pt" class="seg-item text">PT</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="settings-card">
-                    <div class="card-subtitle" style="color:var(--warning)">MANTENIMIENTO</div>
-                    <div class="maint-grid">
-                        <div class="maint-card" onclick="checkUpdate()"><div class="maint-icon green"><i class="fa-solid fa-cloud-arrow-down"></i></div><div class="maint-text"><span>Actualizar</span><small>Buscar versión</small></div></div>
-                        <div class="maint-card" onclick="forceUIUpdate()"><div class="maint-icon orange"><i class="fa-solid fa-rotate"></i></div><div class="maint-text"><span>Recargar UI</span><small>Reparar fallos</small></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ram-modal" class="modal-overlay" style="display:none">
+        <div class="modal glass modal-small">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-memory"></i> Asignar RAM</h3><button class="btn btn-ghost"
+                    onclick="document.getElementById('ram-modal').style.display='none'"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="ram-modal-content">
+                <div class="ram-display-row">
+                    <span class="ram-label">Límite de Memoria</span>
+                    <span id="ram-display-val" class="ram-value">4 GB</span>
+                </div>
+                <input type="range" id="ram-slider" class="ram-slider" min="1" max="16" step="0.5"
+                    oninput="document.getElementById('ram-display-val').innerText = this.value + ' GB'">
+                <button class="btn btn-primary ram-confirm-btn" onclick="confirmInstall()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="app-layout" style="display:none">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo"><img src="/logo.svg" alt="A" style="width:20px;"></div>
+                <span class="brand-name">AETHER</span>
+                <span class="version-badge" id="sidebar-version-text">V1.7.0</span>
+            </div>
+
+            <nav>
+                <div class="nav-label" data-i18n="nav.section.core">Core</div>
+                <button onclick="setTab('stats', this)" class="nav-btn active"><i
+                        class="fa-solid fa-chart-pie"></i><span data-i18n="nav.monitor">Monitor</span></button>
+                <button onclick="setTab('console', this)" class="nav-btn"><i class="fa-solid fa-terminal"></i><span
+                        data-i18n="nav.console">Consola</span></button>
+                <button onclick="setTab('versions', this)" class="nav-btn"><i class="fa-solid fa-layer-group"></i><span
+                        data-i18n="nav.cores">Núcleos</span></button>
+
+                <div class="nav-label" data-i18n="nav.section.system">System</div>
+                <button onclick="setTab('whitelist', this)" class="nav-btn"><i class="fa-solid fa-users"></i><span
+                        data-i18n="nav.whitelist">Whitelist</span></button>
+                <button onclick="setTab('labs', this)" class="nav-btn"><i class="fa-solid fa-flask"></i><span
+                        data-i18n="nav.labs">Labs</span></button>
+                <button onclick="setTab('config', this)" class="nav-btn"><i class="fa-solid fa-sliders"></i><span
+                        data-i18n="nav.settings">Ajustes</span></button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary sidebar-btn"
+                    onclick="document.getElementById('appearance-modal').style.display='flex'">
+                    <i class="fa-solid fa-paintbrush"></i> <span data-i18n="button.customize">Personalizar</span>
+                </button>
+
+                <!-- Account and Logout Combined Row -->
+                <div class="account-logout-row">
+                    <div class="account-section">
+                        <button class="account-trigger" onclick="toggleAccountMenu()">
+                            <div class="account-info">
+                                <i class="fa-solid fa-user-circle"></i>
+                                <span id="sidebar-username">admin</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down account-chevron"></i>
+                        </button>
+                        <div id="account-dropdown" class="account-dropdown" style="display:none">
+                            <button class="account-dropdown-item" onclick="openAccountSettings()">
+                                <i class="fa-solid fa-gear"></i>
+                                <span data-i18n="account.settings">Configuración de Cuenta</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-ghost sidebar-btn-small logout-btn" onclick="logout()"
+                        data-tooltip-i18n="button.logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+
+                <div class="status-widget OFFLINE" id="status-widget">
+                    <div class="status-indicator"></div><span id="status-text" data-i18n="status.offline">OFFLINE</span>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <div class="server-info">
+                    <div class="server-title">
+                        <h1>Panel de Control</h1>
+                        <div class="server-badges">
+                            <span class="server-ip-box" onclick="copyIP()"><i class="fa-solid fa-globe"></i> <span
+                                    id="server-ip-display">...</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions" id="header-actions">
+                    <button onclick="api('power/start')" class="btn-control start" data-tooltip="Iniciar"><i
+                            class="fa-solid fa-play"></i></button>
+                    <button onclick="api('power/restart')" class="btn-control restart" data-tooltip="Reiniciar"><i
+                            class="fa-solid fa-rotate"></i></button>
+                    <button onclick="api('power/stop')" class="btn-control stop" data-tooltip="Detener"><i
+                            class="fa-solid fa-stop"></i></button>
+                    <button onclick="api('power/kill')" class="btn-control kill" data-tooltip="Forzar Apagado"><i
+                            class="fa-solid fa-skull"></i></button>
+                </div>
+            </header>
+
+            <div id="tab-stats" class="tab-content active">
+                <div class="card glass" style="min-height: auto;">
+                    <h2 class="card-title"><i class="fa-solid fa-bolt"></i> <span data-i18n="power.control">Control de
+                            Energía</span></h2>
+                    <div class="power-card-grid">
+                        <button onclick="api('power/start')" class="power-btn-large start"><i
+                                class="fa-solid fa-play"></i> <span data-i18n="power.start">INICIAR</span></button>
+                        <button onclick="api('power/restart')" class="power-btn-large restart"><i
+                                class="fa-solid fa-rotate"></i> <span
+                                data-i18n="power.restart">REINICIAR</span></button>
+                        <button onclick="api('power/stop')" class="power-btn-large stop"><i
+                                class="fa-solid fa-stop"></i> <span data-i18n="power.stop">DETENER</span></button>
+                        <button onclick="api('power/kill')" class="power-btn-large kill"><i
+                                class="fa-solid fa-skull"></i> <span data-i18n="power.kill">KILL</span></button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="card glass">
+                        <div class="card-title"><i class="fa-solid fa-microchip"></i> CPU</div>
+                        <div class="stat-big" id="cpu-val">0%</div>
+                        <div class="chart-mini"><canvas id="cpuChart"></canvas></div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-title"><i class="fa-solid fa-memory"></i> RAM</div>
+                        <div class="stat-big" id="ram-val">0 GB</div>
+                        <div class="chart-mini"><canvas id="ramChart"></canvas></div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-title"><i class="fa-solid fa-hard-drive"></i> Disco</div>
+                        <div class="stat-big" id="disk-val">0%</div>
+                        <div class="disk-bar"
+                            style="height:6px;background:rgba(255,255,255,0.1);border-radius:10px;margin-top:20px;overflow:hidden">
+                            <div id="disk-fill" style="height:100%;background:var(--p);width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-console" class="tab-content">
+                <div class="console-box">
+                    <div class="console-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div style="margin-left:auto; font-size:0.8rem; color:var(--muted)">admin@aether</div>
+                    </div>
+                    <div id="terminal"></div>
+                    <div class="console-input-area"><span class="prompt-char">❯</span><input type="text"
+                            id="console-input" placeholder="Comando..."
+                            onkeydown="if(event.key==='Enter') sendConsoleCommand()"></div>
+                </div>
+            </div>
+
+            <div id="tab-files" class="tab-content">
+                <div class="card glass full">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title" style="margin:0"><i class="fa-solid fa-folder-open"></i> Archivos</div>
+                        <div style="display:flex;gap:10px"><button onclick="loadFileBrowser(currentPath)"
+                                class="btn btn-secondary"><i class="fa-solid fa-rotate"></i></button><button
+                                onclick="uploadFile()" class="btn btn-primary">Subir</button></div>
+                    </div>
+                    <div id="file-list" class="file-list"></div>
+                </div>
+            </div>
+
+            <div id="tab-versions" class="tab-content">
+                <h2 style="margin-bottom:20px; font-weight:800"><span data-i18n="cores.title">Selector de Núcleo</span>
+                </h2>
+                <div class="versions-container">
+                    <div class="mod-card-modern vanilla" onclick="loadVersions('vanilla')">
+                        <div class="mod-cover"><i class="fa-solid fa-cube"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title" data-i18n="cores.vanilla">Vanilla</div>
+                            <p class="mod-desc" data-i18n="cores.vanilla.desc">Oficial de Mojang.</p><button
+                                class="btn-install" data-i18n="cores.select">Seleccionar</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern paper" onclick="loadVersions('paper')">
+                        <div class="mod-cover"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title" data-i18n="cores.paper">Paper</div>
+                            <p class="mod-desc" data-i18n="cores.paper.desc">Alto rendimiento.</p><button
+                                class="btn-install" data-i18n="cores.select">Seleccionar</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern fabric" onclick="loadVersions('fabric')">
+                        <div class="mod-cover"><i class="fa-solid fa-scroll"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title" data-i18n="cores.fabric">Fabric</div>
+                            <p class="mod-desc" data-i18n="cores.fabric.desc">Modular y ligero.</p><button
+                                class="btn-install" data-i18n="cores.select">Seleccionar</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern forge" onclick="loadVersions('forge')">
+                        <div class="mod-cover"><i class="fa-solid fa-hammer"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title" data-i18n="cores.forge">Forge</div>
+                            <p class="mod-desc" data-i18n="cores.forge.desc">Mods clásicos.</p><button
+                                class="btn-install" data-i18n="cores.select">Seleccionar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-labs" class="tab-content">
+                <h2 style="margin-bottom:10px; font-weight:800">Aether Labs</h2>
+                <div class="labs-grid">
+                    <!-- Active Features -->
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta">BETA</span>
+                        <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Gestor de Archivos</div>
+                            <p class="mod-desc">Explorador avanzado.</p><button class="btn-install"
+                                onclick="setTab('files')">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span>
+                        <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Backups</div>
+                            <p class="mod-desc">Copias de seguridad.</p><button class="btn-install"
+                                onclick="setTab('backups')">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-teal"><span class="lab-tag beta">BETA</span>
+                        <div class="mod-cover"><i class="fa-solid fa-clock"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Programador</div>
+                            <p class="mod-desc">Tareas automáticas.</p><button class="btn-install"
+                                onclick="setTab('scheduler')">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta">BETA</span>
+                        <div class="mod-cover"><i class="fa-solid fa-file-lines"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Visor de Logs</div>
+                            <p class="mod-desc">Análisis de registros.</p><button class="btn-install"
+                                onclick="setTab('logs')">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span>
+                        <div class="mod-cover"><i class="fa-solid fa-users"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Whitelist</div>
+                            <p class="mod-desc">Gestiona jugadores.</p><button class="btn-install"
+                                onclick="setTab('whitelist')">Abrir</button>
+                        </div>
+                    </div>
+
+                    <!-- Work In Progress -->
+                    <div class="mod-card-modern lab-purple"><span class="lab-tag wip">WIP</span>
+                        <div class="mod-cover"><i class="fa-solid fa-puzzle-piece"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Gestor de Plugins</div>
+                            <p class="mod-desc">Instala y gestiona plugins.</p><button class="btn-install"
+                                onclick="Toastify({text: 'Próximamente', style: {background: '#8b5cf6'}}).showToast()">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-green"><span class="lab-tag wip">WIP</span>
+                        <div class="mod-cover"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Monitor de Rendimiento</div>
+                            <p class="mod-desc">Gráficos en tiempo real.</p><button class="btn-install"
+                                onclick="Toastify({text: 'Próximamente', style: {background: '#10b981'}}).showToast()">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-red"><span class="lab-tag wip">WIP</span>
+                        <div class="mod-cover"><i class="fa-solid fa-terminal"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Consola RCON</div>
+                            <p class="mod-desc">Acceso remoto.</p><button class="btn-install"
+                                onclick="Toastify({text: 'Próximamente', style: {background: '#ef4444'}}).showToast()">Abrir</button>
+                        </div>
+                    </div>
+                    <div class="mod-card-modern lab-indigo"><span class="lab-tag wip">WIP</span>
+                        <div class="mod-cover"><i class="fa-solid fa-globe"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title">Gestor de Mundos</div>
+                            <p class="mod-desc">Administra mundos.</p><button class="btn-install"
+                                onclick="Toastify({text: 'Próximamente', style: {background: '#6366f1'}}).showToast()">Abrir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-config" class="tab-content">
+                <div class="card glass" style="min-height: auto; overflow: visible;">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-sliders"></i> Ajustes</div>
+                        <button onclick="saveCfg()" class="btn btn-primary"
+                            style="padding:10px 30px; font-size:1rem;">Guardar Cambios</button>
+                    </div>
+                    <div id="cfg-list" class="cfg-grid"></div>
+                </div>
+                <div style="height: 50px;"></div>
+            </div>
+
+            <div id="tab-backups" class="tab-content">
+                <div class="card glass full">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-box-archive"></i> <span
+                                data-i18n="backups.title">Copias de Seguridad</span></div><button
+                            onclick="createBackup()" class="btn btn-primary" data-i18n="backups.create">Crear
+                            Backup</button>
+                    </div>
+                    <div id="backup-list" class="file-list"></div>
+                </div>
+            </div>
+
+            <div id="tab-whitelist" class="tab-content">
+                <div class="card glass" style="min-height: auto; margin-bottom: 20px;">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-users"></i> <span
+                                data-i18n="whitelist.title">Whitelist</span></div>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" id="whitelist-enabled" onchange="toggleWhitelist()"
+                                    style="width:18px; height:18px; cursor:pointer;">
+                                <span style="font-weight:600; font-size:0.9rem;"
+                                    data-i18n="whitelist.enabled">Activada</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px; margin-bottom:20px;">
+                        <input type="text" id="whitelist-player" class="cfg-in" data-i18n-placeholder="whitelist.player"
+                            placeholder="Nombre del jugador" style="flex:1;">
+                        <button onclick="addWhitelistPlayer()" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
+                            <span data-i18n="whitelist.add">Agregar</span></button>
+                    </div>
+                </div>
+                <div class="card glass full">
+                    <div class="card-title" style="margin-bottom:20px;"><i class="fa-solid fa-list"></i> <span
+                            data-i18n="whitelist.players">Jugadores Permitidos</span></div>
+                    <div id="whitelist-list" class="file-list"></div>
+                </div>
+            </div>
+
+            <!-- Scheduler Tab -->
+            <div id="tab-scheduler" class="tab-content">
+                <div class="card glass full">
+                    <div class="card-title"><i class="fa-solid fa-clock"></i> <span
+                            data-i18n="perm.scheduler">Programador</span></div>
+                    <div id="cron-list" class="file-list">
+                        <div style="padding:20px; text-align:center; color:var(--muted)">No hay tareas programadas (WIP)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="tab-logs" class="tab-content">
+                <div class="card glass full" style="height:calc(100vh - 140px)">
+                    <div class="card-title"><i class="fa-solid fa-file-lines"></i> <span data-i18n="perm.logs">Visor de
+                            Logs</span></div>
+                    <div id="logs-container"
+                        style="flex:1; background:var(--bg); border:1px solid var(--glass-border); border-radius:12px; padding:15px; font-family:'JetBrains Mono'; font-size:0.9rem; overflow-y:auto; color:var(--txt)">
+                        <span style="color:var(--muted)">Cargando logs... (WIP)</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Account Settings Modal -->
+    <div id="account-modal" class="modal-overlay" style="display:none">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear"></i> <span data-i18n="account.settings">Configuración de
+                        Cuenta</span></h3>
+                <button class="btn btn-ghost" onclick="closeAccountModal()" style="width:32px; height:32px; padding:0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:30px; display:flex; flex-direction:column; gap:24px">
+                <!-- Current Username Display -->
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="account.username">Nombre de Usuario</span>
+                    <div style="display:flex; align-items:center; gap:12px">
+                        <code
+                            style="padding:8px 16px; background:rgba(139,92,246,0.1); border-radius:8px; font-family:'JetBrains Mono'; color:var(--p)">
+                            <span id="account-current-username">admin</span>
+                        </code>
+                    </div>
+                </div>
+
+                <!-- Change Username Section -->
+                <div style="padding-top:12px; border-top:1px solid var(--glass-border)">
+                    <label class="cfg-label" data-i18n="account.change.username">Cambiar Nombre de Usuario</label>
+                    <input type="text" id="new-username" class="cfg-in" placeholder="Nuevo nombre de usuario"
+                        style="margin-top:8px">
+                    <button class="btn btn-secondary" onclick="changeUsername()" style="margin-top:12px; width:100%">
+                        <i class="fa-solid fa-pen"></i> <span data-i18n="button.save">Guardar Cambios</span>
+                    </button>
+                </div>
+
+                <!-- Change Password Section -->
+                <div style="padding-top:12px; border-top:1px solid var(--glass-border)">
+                    <label class="cfg-label" data-i18n="account.change.password">Cambiar Contraseña</label>
+                    <input type="password" id="new-password" class="cfg-in" data-i18n-placeholder="account.new.password"
+                        placeholder="Nueva contraseña" style="margin-top:8px">
+                    <input type="password" id="confirm-password" class="cfg-in"
+                        data-i18n-placeholder="account.confirm.password" placeholder="Confirmar contraseña"
+                        style="margin-top:8px">
+                    <button class="btn btn-primary" onclick="changePassword()" style="margin-top:12px; width:100%">
+                        <i class="fa-solid fa-key"></i> <span data-i18n="account.change.password">Cambiar
+                            Contraseña</span>
+                    </button>
+                </div>
+
+                <!-- User Management Section (Admin Only) -->
+                <div id="user-management-section" style="padding-top:12px; border-top:1px solid var(--glass-border)">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+                        <label class="cfg-label" data-i18n="account.users">Gestión de Usuarios</label>
+                        <button class="btn btn-primary" onclick="toggleCreateUserForm()" style="padding:8px 16px;">
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="account.createuser">Crear Usuario</span>
+                        </button>
+                    </div>
+
+                    <!-- Create User Form (Hidden by default) -->
+                    <div id="create-user-form"
+                        style="display:none; background:rgba(139,92,246,0.05); padding:20px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(139,92,246,0.2)">
+                        <h4 style="margin-bottom:16px; font-weight:700"><i class="fa-solid fa-user-plus"></i> <span
+                                data-i18n="account.createuser">Crear Usuario</span></h4>
+
+                        <input type="text" id="new-user-username" class="cfg-in" placeholder="Username"
+                            style="margin-bottom:12px">
+                        <input type="password" id="new-user-password" class="cfg-in" placeholder="Password"
+                            style="margin-bottom:12px">
+
+                        <div style="margin-bottom:16px">
+                            <label style="font-weight:600; margin-bottom:8px; display:block; font-size:0.9rem"
+                                data-i18n="account.role">Rol</label>
+                            <select id="new-user-role" class="cfg-in" onchange="togglePermissionsForm()"
+                                style="margin-bottom:12px">
+                                <option value="admin" data-i18n="account.role.admin">Administrador</option>
+                                <option value="user" selected data-i18n="account.role.user">Usuario</option>
+                            </select>
+                        </div>
+
+                        <!-- Permissions (Only for non-admin) -->
+                        <div id="permissions-form" style="margin-bottom:16px">
+                            <label style="font-weight:600; margin-bottom:12px; display:block; font-size:0.9rem"
+                                data-i18n="account.permissions">Permisos</label>
+                            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px">
+                                <!-- Server Control -->
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="start" style="width:16px; height:16px">
+                                    <span data-i18n="perm.start">Iniciar Servidor</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="stop" style="width:16px; height:16px">
+                                    <span data-i18n="perm.stop">Detener Servidor</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="restart" style="width:16px; height:16px">
+                                    <span data-i18n="perm.restart">Reiniciar Servidor</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="kill" style="width:16px; height:16px">
+                                    <span data-i18n="perm.kill">Forzar Apagado</span>
+                                </label>
+
+                                <!-- Access Permissions -->
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="console" style="width:16px; height:16px">
+                                    <span data-i18n="perm.console">Consola</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="files" style="width:16px; height:16px">
+                                    <span data-i18n="perm.files">Gestor de Archivos</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="config" style="width:16px; height:16px">
+                                    <span data-i18n="perm.config">Configuración</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="backups" style="width:16px; height:16px">
+                                    <span data-i18n="perm.backups">Backups</span>
+                                </label>
+
+                                <!-- Advanced Features -->
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="scheduler"
+                                        style="width:16px; height:16px">
+                                    <span data-i18n="perm.scheduler">Programador</span>
+                                </label>
+                                <label
+                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                                    <input type="checkbox" name="perm" value="logs" style="width:16px; height:16px">
+                                    <span data-i18n="perm.logs">Visor de Logs</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:12px">
+                            <button class="btn btn-primary" onclick="createUser()" style="flex:1">
+                                <i class="fa-solid fa-check"></i> <span data-i18n="button.create">Crear</span>
+                            </button>
+                            <button class="btn btn-ghost" onclick="toggleCreateUserForm()" style="flex:1">
+                                <i class="fa-solid fa-xmark"></i> <span data-i18n="button.cancel">Cancelar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- User List -->
+                    <div id="user-list" style="display:flex; flex-direction:column; gap:8px">
+                        <!-- Users will be populated here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="app-layout">
-        <aside class="sidebar glass-panel">
-            <div class="brand-area">
-                <img src="logo.svg" style="width:42px; height:42px; border-radius:12px; box-shadow:0 0 15px var(--primary-glow);" alt="Logo">
-                <div class="logo-text"><span class="title">Aether</span><span class="subtitle" id="version-display">...</span></div>
+    <!-- Command Palette -->
+    <div id="command-palette" class="command-palette-overlay" style="display:none">
+        <div class="command-palette glass">
+            <div class="command-palette-header">
+                <i class="fa-solid fa-terminal"></i>
+                <input type="text" id="command-input" class="command-input" placeholder="Escribe un comando..."
+                    autocomplete="off">
+                <kbd class="kbd-hint">Esc</kbd>
             </div>
-            <nav class="nav-menu">
-                <div class="nav-label">CONTROL</div>
-                <button onclick="setTab('stats')" class="nav-item active" id="nav-stats"><i class="fa-solid fa-chart-pie"></i><span>Monitor</span></button>
-                <button onclick="setTab('console')" class="nav-item" id="nav-console"><i class="fa-solid fa-terminal"></i><span>Consola</span></button>
-                <button onclick="setTab('versions')" class="nav-item" id="nav-versions"><i class="fa-solid fa-layer-group"></i><span>Versiones</span></button>
-                <div class="nav-label">SISTEMA</div>
-                <button onclick="setTab('labs')" class="nav-item" id="nav-labs"><i class="fa-solid fa-flask"></i><span>Labs</span></button>
-                <button onclick="setTab('config')" class="nav-item" id="nav-config"><i class="fa-solid fa-sliders"></i><span>Ajustes</span></button>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%; justify-content:center; margin-bottom:15px" onclick="document.getElementById('appearance-modal').classList.add('active')"><i class="fa-solid fa-palette"></i> Personalizar</button>
-                <div class="user-card"><div id="status-dot" class="status-dot offline"></div><div class="user-info"><div id="status-text" class="status-text-main">OFFLINE</div><div class="status-label">Estado</div></div></div>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <div><h1 style="font-weight:800; font-size:1.8rem; margin-bottom:5px">Panel de Control</h1><div class="server-badge"><i class="fa-solid fa-wifi"></i> <span id="ip-display">Localhost</span></div></div>
-                <div class="header-actions">
-                    <button onclick="api('power/start')" class="action-btn start"><i class="fa-solid fa-play"></i></button>
-                    <button onclick="api('power/restart')" class="action-btn restart"><i class="fa-solid fa-rotate"></i></button>
-                    <button onclick="api('power/stop')" class="action-btn stop"><i class="fa-solid fa-stop"></i></button>
-                    <button onclick="api('power/kill')" class="action-btn" style="background:#374151"><i class="fa-solid fa-skull"></i></button>
-                </div>
-            </header>
-
-            <div id="tab-stats" class="tab-view active">
-                <div class="stats-grid">
-                    <div class="card glass-panel interactive" onclick="openDetail('cpu')">
-                        <div class="card-title">CPU <i class="fa-solid fa-microchip"></i></div><div><span class="big-number" id="cpu-val">0%</span></div>
-                        <div class="chart-container"><canvas id="cpu-chart"></canvas></div><div class="click-hint">Ver Detalles</div>
-                    </div>
-                    <div class="card glass-panel interactive" onclick="openDetail('ram')">
-                        <div class="card-title">RAM <i class="fa-solid fa-memory"></i></div><div><span class="big-number" id="ram-val">0 GB</span></div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;" id="ram-free">Calculando...</div>
-                        <div class="chart-container"><canvas id="ram-chart"></canvas></div><div class="click-hint">Ver Detalles</div>
-                    </div>
-                    <div class="card glass-panel interactive" onclick="openDetail('disk')">
-                        <div class="card-title">DISCO <i class="fa-solid fa-hard-drive"></i></div><div><span class="big-number" id="disk-val">0 MB</span></div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;" id="disk-free">Calculando...</div>
-                        <div class="progress-bar-bg"><div id="disk-bar" class="progress-bar-fill warning" style="width:0%"></div></div><div class="click-hint">Ver Detalles</div>
-                    </div>
+            <div id="command-results" class="command-results"></div>
+            <div class="command-palette-footer">
+                <div class="command-hint">
+                    <kbd>↑↓</kbd> Navegar <kbd>Enter</kbd> Ejecutar <kbd>Esc</kbd> Cerrar
                 </div>
             </div>
-            
-            <div id="tab-console" class="tab-view"><div class="console-full glass-panel"><div id="terminal" class="console-output"></div></div></div>
-            <div id="tab-config" class="tab-view"><div class="glass-panel" style="padding:24px;"><button class="btn btn-primary" onclick="saveCfg()">Guardar</button><div id="cfg-list" class="settings-layout"></div></div></div>
-            <div id="tab-versions" class="tab-view"><h2>Versiones</h2><div class="stats-grid"><div class="glass-panel ver-card vanilla"><h3>Vanilla</h3></div></div></div>
-            <div id="tab-labs" class="tab-view"><h2>Labs</h2></div>
-        </main>
+        </div>
     </div>
+
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal-overlay" style="display:none">
+        <div class="modal-content glass" style="max-width:600px">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-pen"></i> Edit User</h3>
+                <button class="btn btn-ghost" onclick="closeEditUserModal()" style="width:32px; height:32px; padding:0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:30px; display:flex; flex-direction:column; gap:20px">
+                <div>
+                    <label style="font-weight:600; margin-bottom:8px; display:block">Username</label>
+                    <input type="text" id="edit-user-username" class="cfg-in" disabled
+                        style="background:rgba(255,255,255,0.05); cursor:not-allowed">
+                </div>
+
+                <div>
+                    <label style="font-weight:600; margin-bottom:8px; display:block"
+                        data-i18n="account.role">Role</label>
+                    <select id="edit-user-role" class="cfg-in" onchange="toggleEditPermissionsForm()">
+                        <option value="admin" data-i18n="account.role.admin">Administrator</option>
+                        <option value="user" data-i18n="account.role.user">User</option>
+                    </select>
+                </div>
+
+                <div id="edit-permissions-form">
+                    <label style="font-weight:600; margin-bottom:12px; display:block"
+                        data-i18n="account.permissions">Permissions</label>
+                    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px">
+                        <!-- Server Control -->
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="start" style="width:16px; height:16px">
+                            <span data-i18n="perm.start">Start Server</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="stop" style="width:16px; height:16px">
+                            <span data-i18n="perm.stop">Stop Server</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="restart" style="width:16px; height:16px">
+                            <span data-i18n="perm.restart">Restart Server</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="kill" style="width:16px; height:16px">
+                            <span data-i18n="perm.kill">Force Shutdown</span>
+                        </label>
+
+                        <!-- Access Permissions -->
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="console" style="width:16px; height:16px">
+                            <span data-i18n="perm.console">Console</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="files" style="width:16px; height:16px">
+                            <span data-i18n="perm.files">File Manager</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="config" style="width:16px; height:16px">
+                            <span data-i18n="perm.config">Configuration</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="backups" style="width:16px; height:16px">
+                            <span data-i18n="perm.backups">Backups</span>
+                        </label>
+
+                        <!-- Advanced Features -->
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="scheduler" style="width:16px; height:16px">
+                            <span data-i18n="perm.scheduler">Scheduler</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="logs" style="width:16px; height:16px">
+                            <span data-i18n="perm.logs">Log Viewer</span>
+                        </label>
+
+                        <!-- System -->
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="whitelist" style="width:16px; height:16px">
+                            <span>Whitelist</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="versions" style="width:16px; height:16px">
+                            <span>Versions/Cores</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; margin-top:8px">
+                    <button class="btn btn-primary" onclick="saveUserEdit()" style="flex:1">
+                        <i class="fa-solid fa-check"></i> <span data-i18n="button.save">Save Changes</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="closeEditUserModal()" style="flex:1">
+                        <i class="fa-solid fa-xmark"></i> <span data-i18n="button.cancel">Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
+
 </html>
