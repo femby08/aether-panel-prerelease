@@ -5,67 +5,70 @@
   Aether Panel
 </h1>
 
-**El panel de control ligero, moderno y potente para servidores de Minecraft.**  
-Gestión inteligente, monitoreo en tiempo real y diseño Glassmorphism.
+**The lightweight, modern, and powerful control panel for Minecraft servers.**  
+Smart management, real-time monitoring, and beautiful Glassmorphism design.
 
-[![Version](https://img.shields.io/badge/version-1.6.0-8b5cf6?style=for-the-badge&logo=git)](https://github.com/reychampi/aether-panel)
+[![Version](https://img.shields.io/badge/version-1.7.0-8b5cf6?style=for-the-badge&logo=git)](https://github.com/reychampi/aether-panel)
 [![Status](https://img.shields.io/badge/status-stable-10b981?style=for-the-badge)](https://github.com/reychampi/aether-panel)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D16-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
-![Windows](https://img.shields.io/badge/Windows-Nativo%20(no%20testeado)-FFD600?style=for-the-badge&logo=windows)
+![Windows](https://img.shields.io/badge/Windows-Native%20(Untested)-FFD600?style=for-the-badge&logo=windows)
 
-[Instalación](#-instalación-rápida) • [Sistemas Compatibles](#-sistemas-operativos-soportados) • [Características](#-características)
+[Installation](#-quick-installation) • [Supported Systems](#-supported-operating-systems) • [Features](#-features)
 
 </div>
 
 ---
 
-## ✨ Descripción
+## ✨ Description
 
-**Aether Panel** es una solución todo-en-uno para administrar servidores de Minecraft.  
-Ofrece un diseño moderno tipo **Glassmorphism**, instalación automática y herramientas avanzadas para gestionar tu servidor sin complicaciones.
+**Aether Panel** is an all-in-one solution for managing Minecraft servers.  
+It offers a modern **Glassmorphism** design, automatic installation, and advanced tools to manage your server without complications. Now with Multi-User support and Internationalization!
 
 ![Dashboard Preview](https://raw.githubusercontent.com/reychampi/aether-panel/main/public/panel.png)
 
 ---
 
-## 🐧 Sistemas Operativos Soportados
+## 🐧 Supported Operating Systems
 
-Aether Panel es **universal** y funciona en la mayoría de sistemas modernos.
+Aether Panel is **universal** and works on most modern systems.
 
-| Familia | Distribuciones / SO | Método | Estado |
+| Family | Distributions / OS | Method | Status |
 |--------|----------------------|--------|--------|
-| **Debian** | Ubuntu 20.04+, Debian 10+, Mint | `apt` | ✅ Nativo |
-| **RHEL** | Fedora 36+, CentOS 8+, Rocky | `dnf` | ✅ Nativo |
-| **Arch** | Arch Linux, Manjaro | `pacman` | ✅ Nativo |
-| **Windows** | Windows 10, 11, Server 2019+ | `.bat` | 🟡 Nativo (no testeado) |
+| **Debian** | Ubuntu 20.04+, Debian 10+, Mint | `apt` | ✅ Native |
+| **RHEL** | Fedora 36+, CentOS 8+, Rocky | `dnf` | ✅ Native |
+| **Arch** | Arch Linux, Manjaro | `pacman` | ✅ Native |
+| **Windows** | Windows 10, 11, Server 2019+ | `.bat` | 🟡 Native (Untested) |
 
 ---
 
-## 🚀 Novedades V1.6.x
+## 🚀 What's New in V1.7.0
 
-### 🎮 Experiencia de Usuario
-- **Consola Interactiva** con envío de comandos en vivo.  
-- **Sistema de Ayuda** con tooltips `(?)` explicativos.  
-- **Atajos de Teclado** (`Alt + 1–8`, `ESC`).  
-- **IP Copiable** desde la cabecera.  
-- **Interfaz más rápida**, animaciones suaves y modo claro/oscuro mejorado.
+### 👥 Multi-User System
+- **Detailed User Management**: Create users with custom Roles (Admin/User).
+- **Granular Permissions**: Control access to Start/Stop, Console, Files, Logs, and more using individual checkboxes.
+- **Secure Access**: Restricted tabs and buttons are automatically hidden based on permissions.
 
-### 🛠️ Mejoras Técnicas
-- `start_windows.bat`: instalación automática de Node.js y Temurin (no testeado).  
-- Instalador Linux universal con detección de distro.  
-- Actualizador OTA de la UI sin reiniciar.  
-- Instalador de núcleos optimizado (Vanilla, Paper, Forge, Fabric).  
-- Descarga de versiones más estable.
+### 🌍 Internationalization (i18n)
+- **Multi-Language Support**: Fully translated into **English**, **Spanish**, and **Portuguese**.
+- **Auto-Detection**: Defaults to English, easily switchable in settings.
+
+### 🧪 Aether Labs (BETA)
+- **Web Scheduler**: Schedule tasks like restarts or backups (UI Prototype).
+- **Log Viewer**: View server history directly in the panel.
+- **Improved Labs Interface**: Clearly marked Beta vs WIP features.
+
+### 🎨 UI & Performance
+- **Compact & Responsive**: Optimized Power Control layout.
+- **Performance Boost**: Reduced blur effects for smoother rendering on all devices.
+- **Beautiful Checkboxes**: Custom animated UI elements.
 
 ---
 
-## 📦 Instalación Rápida
+## 📦 Quick Installation
 
----
+### 🐧 Linux (VPS / Dedicated)
 
-### 🐧 Linux (VPS / Dedicado)
-
-Ejecuta como **root**:
+Run as **root**:
 
 <pre>
 curl -sL https://raw.githubusercontent.com/reychampi/aether-panel/refs/heads/main/installserver.sh | bash
@@ -73,43 +76,43 @@ curl -sL https://raw.githubusercontent.com/reychampi/aether-panel/refs/heads/mai
 
 ---
 
-### 🪟 Windows (PC / Server) — 🟡 No testeado
+### 🪟 Windows (PC / Server) — 🟡 Untested
 
-1. Descarga el repositorio (`Code → Download ZIP`).  
-2. Descomprime la carpeta.  
-3. Ejecuta:
+1. Download the repository (`Code → Download ZIP`).  
+2. Unzip the folder.  
+3. Run:
 
 <pre>
 start_windows.bat
 </pre>
 
-El script instalará automáticamente:
+The script will automatically install:
 
 - Node.js  
 - Java (Temurin)  
 
-El panel se abrirá automáticamente en tu navegador.
+The panel will open automatically in your browser.
 
 ---
 
-## ⚡ Características
+## ⚡ Features
 
-- 🖥️ Monitor en tiempo real (CPU, RAM, almacenamiento).  
-- 💻 Consola web interactiva con colores.  
-- 📂 Gestor de archivos con editor de código.  
-- 📥 Instalador de núcleos (Vanilla, Paper, Fabric, Forge).  
-- 📦 Backups `.tar.gz` con un clic.  
-- 🧩 Tienda de Mods integrada.  
-- ⚙️ Editor visual de `server.properties`.  
-- 🔄 Smart Updater OTA sin reinstalar.
+- 🖥️ **Real-time Monitoring**: CPU, RAM, Disk usage stats.
+- 💻 **Interactive Console**: Web-based terminal with color support.
+- 👥 **Multi-User Access**: Secure permission system.
+- 📂 **File Manager**: Edit server files directly in the browser.
+- 📥 **Core Installer**: One-click install for Vanilla, Paper, Fabric, Forge.
+- 📦 **Backups**: Create `.tar.gz` backups instantly.
+- ⚙️ **Config Editor**: Visual editor for `server.properties`.
+- 🔄 **Smart Updater**: OTA updates without reinstallation.
 
 ---
 
-## 🛠️ Solución de Problemas Frecuentes
+## 🛠️ Troubleshooting
 
-### 🔹 El panel no carga en el navegador
+### 🔹 The panel doesn't load in the browser
 
-Asegúrate de abrir el puerto **3000**.
+Ensure port **3000** is open.
 
 **Linux (UFW):**
 <pre>
@@ -118,15 +121,15 @@ sudo ufw allow 3000/tcp
 
 **Windows:**
 
-Permite el acceso a Node.js en el Firewall cuando Windows pregunte.
+Allow Node.js access in the Firewall when prompted.
 
 ---
 
-### 🔹 Error: `command not found` o `$'\r'` (Linux)
+### 🔹 Error: `command not found` or `$'\r'` (Linux)
 
-Ocurre si los `.sh` están en formato **CRLF**.
+Occurs if `.sh` files are in **CRLF** format (Windows line endings).
 
-Solución:
+Solution:
 
 <pre>
 sed -i 's/\r$//' *.sh
@@ -135,6 +138,6 @@ sed -i 's/\r$//' *.sh
 ---
 
 <div align="center">
-Desarrollado por <strong>ReyChampi</strong>  
-¿Encontraste un error? Abre un Issue.
+Developed by <strong>Femby08</strong>  
+Found a bug? Open an Issue.
 </div>
