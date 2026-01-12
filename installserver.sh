@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # ============================================================
-# AETHER PANEL - INTERACTIVE INSTALLER (V1.7.0)
+# AETHER PANEL - INTERACTIVE INSTALLER (V1.7.1 - Fixed)
 # Repository: https://github.com/reychampi/aether-panel
+# Fixes: Windows line ending (CRLF) support, Input Sanitization
 # ============================================================
 
 # Colors
@@ -10,6 +11,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 APP_DIR="/opt/aetherpanel"
@@ -17,7 +19,15 @@ REPO_STABLE="https://raw.githubusercontent.com/femby08/aether-panel/main"
 REPO_EXP="https://raw.githubusercontent.com/femby08/aether-panel-prerelease/main"
 SERVICE_USER="root"
 
-# Helper Functions
+# ============================================================
+# UTILITY FUNCTIONS
+# ============================================================
+
+# Function to sanitize input (removes Windows \r characters)
+clean_input() {
+    echo "$1" | tr -d '\r'
+}
+
 print_banner() {
     clear
     echo -e "${CYAN}"
@@ -27,13 +37,13 @@ print_banner() {
     echo " / ___ \| |___  | |  |  _  | |___|  _ <  "
     echo "/_/   \_\_____| |_|  |_| |_|_____|_| \_\ "
     echo -e "${NC}"
-    echo -e "${CYAN}:: Aether Panel Manager V1.7.0 ::${NC}"
+    echo -e "${BLUE}:: Aether Panel Manager V1.7.1 (Patched) ::${NC}"
     echo "------------------------------------------------"
 }
 
 check_root() {
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}❌ Please run as root (sudo bash installserver.sh)${NC}"
+        echo -e "${RED}❌ Error: Please run as root (sudo bash installserver.sh)${NC}"
         exit 1
     fi
 }
@@ -43,13 +53,22 @@ detect_os() {
         . /etc/os-release
         OS=$ID
     else
-        echo -e "${RED}❌ OS not detected.${NC}"
-        exit 1
+        echo -e "${RED}❌ OS not detected. Continuing anyway...${NC}"
+        OS="unknown"
     fi
 }
 
+pause() {
+    echo ""
+    read -p "Press [Enter] to continue..." dummy
+}
+
+# ============================================================
+# CORE FUNCTIONS
+# ============================================================
+
 install_dependencies() {
-    echo -e "${YELLOW}📦 Installing system dependencies (Node.js, Java, Python)...${NC}"
+    echo -e "${YELLOW}📦 Installing system dependencies...${NC}"
     
     case $OS in
         ubuntu|debian|linuxmint)
@@ -71,18 +90,21 @@ install_dependencies() {
              pacman -Sy --noconfirm curl wget unzip git rsync jre-openjdk nodejs python
             ;;
         *)
-            echo -e "${RED}⚠️  Manual installation required: nodejs, java, python3, git, unzip.${NC}"
+            echo -e "${RED}⚠️  Unknown OS ($OS). Manual installation required for: nodejs, java, python3, git, unzip.${NC}"
+            sleep 2
             ;;
     esac
 }
 
 install_panel() {
+    print_banner
     echo -e "${GREEN}🚀 Starting Installation...${NC}"
     
     echo -e "\n${CYAN}Select Version:${NC}"
     echo "1) Stable (Recommended)"
     echo "2) Experimental (New features, potentially unstable)"
-    read -p "Your choice [1-2]: " v_choice
+    read -p "Your choice [1-2]: " raw_v_choice
+    v_choice=$(clean_input "$raw_v_choice")
     
     if [ "$v_choice" == "2" ]; then
         SELECTED_REPO="$REPO_EXP"
@@ -98,13 +120,17 @@ install_panel() {
     mkdir -p "$APP_DIR/public"
     
     echo -e "${CYAN}⬇️  Downloading core files...${NC}"
-    # Download updater script from selected repo
     curl -sL "$SELECTED_REPO/updater.sh" -o "$APP_DIR/updater.sh"
+    
+    if [ ! -f "$APP_DIR/updater.sh" ]; then
+         echo -e "${RED}❌ Failed to download updater.sh. Check your internet connection.${NC}"
+         pause
+         return
+    fi
+    
     chmod +x "$APP_DIR/updater.sh"
     
-    # Run Updater to get files
-    # Note: The downloaded updater.sh might need to know which repo to pull from if it's generic.
-    # Assuming updater.sh in the repo is configured for that repo.
+    # Run Updater
     bash "$APP_DIR/updater.sh"
     
     # Fix Permissions
@@ -113,6 +139,13 @@ install_panel() {
     # Setup Service
     echo -e "${CYAN}⚙️  Configuring Systemd Service...${NC}"
     NODE_PATH=$(which node)
+    
+    if [ -z "$NODE_PATH" ]; then
+        echo -e "${RED}❌ Node.js binary not found. Service creation failed.${NC}"
+        pause
+        return
+    fi
+
     cat > /etc/systemd/system/aetherpanel.service <<EOF
 [Unit]
 Description=Aether Panel Service
@@ -134,8 +167,9 @@ EOF
     systemctl enable aetherpanel
     systemctl restart aetherpanel
     
+    IP_ADDR=$(curl -s ifconfig.me || echo "YOUR_SERVER_IP")
     echo -e "${GREEN}✅ Installation Complete!${NC}"
-    echo -e "🌍 Access your panel at: http://$(curl -s ifconfig.me):3000"
+    echo -e "🌍 Access your panel at: http://$IP_ADDR:3000"
     pause
 }
 
@@ -145,7 +179,8 @@ update_panel() {
     echo -e "\n${CYAN}Select Version to Update to:${NC}"
     echo "1) Stable"
     echo "2) Experimental"
-    read -p "Your choice [1-2]: " v_choice
+    read -p "Your choice [1-2]: " raw_v_choice
+    v_choice=$(clean_input "$raw_v_choice")
     
     if [ "$v_choice" == "2" ]; then
         SELECTED_REPO="$REPO_EXP"
@@ -169,13 +204,20 @@ update_panel() {
 
 uninstall_panel() {
     echo -e "${RED}⚠️  WARNING: This will delete the panel and all data.${NC}"
-    read -p "Are you sure? (y/n): " confirm
-    if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    read -p "Are you sure? (y/n): " raw_confirm
+    confirm=$(clean_input "$raw_confirm")
+    
+    # Enhanced Yes/No logic
+    if [[ "$confirm" =~ ^[yY]([eE][sS])?$ ]]; then
+        echo -e "${YELLOW}Stopping services...${NC}"
         systemctl stop aetherpanel
         systemctl disable aetherpanel
-        rm /etc/systemd/system/aetherpanel.service
+        rm -f /etc/systemd/system/aetherpanel.service
         systemctl daemon-reload
+        
+        echo -e "${YELLOW}Removing files...${NC}"
         rm -rf "$APP_DIR"
+        
         echo -e "${GREEN}🗑️  Uninstalled successfully.${NC}"
     else
         echo "Cancelled."
@@ -183,11 +225,10 @@ uninstall_panel() {
     pause
 }
 
-pause() {
-    read -p "Press [Enter] to continue..."
-}
+# ============================================================
+# MAIN LOGIC
+# ============================================================
 
-# Main Logic
 check_root
 detect_os
 
@@ -198,13 +239,16 @@ while true; do
     echo "3) Uninstall Panel"
     echo "4) Exit"
     echo ""
-    read -p "Select an option [1-4]: " choice
+    read -p "Select an option [1-4]: " raw_choice
+    
+    # Sanitize the input to remove any hidden Windows characters
+    choice=$(clean_input "$raw_choice")
     
     case $choice in
         1) install_panel ;;
         2) update_panel ;;
         3) uninstall_panel ;;
-        4) exit 0 ;;
-        *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
+        4) echo -e "${CYAN}Goodbye!${NC}"; exit 0 ;;
+        *) echo -e "${RED}Invalid option: '$choice'${NC}"; sleep 1 ;;
     esac
 done
