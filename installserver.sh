@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # ============================================================
-# AETHER PANEL - INTERACTIVE INSTALLER (V1.7.1 - Fixed)
+# AETHER PANEL - INTERACTIVE INSTALLER (V1.7.2 - Fixed)
 # Repository: https://github.com/reychampi/aether-panel
 # Fixes: Windows line ending (CRLF) support, Input Sanitization
+#        Added Strict Bash Check & Aggressive Whitespace Removal
 # ============================================================
 
 # Colors
@@ -23,9 +24,16 @@ SERVICE_USER="root"
 # UTILITY FUNCTIONS
 # ============================================================
 
-# Function to sanitize input (removes Windows \r characters)
+# Check if running as bash (read -p is a bashism)
+if [ -z "$BASH_VERSION" ]; then
+    echo -e "${RED}❌ Error: This script must be run with Bash.${NC}"
+    echo "Usage: sudo bash installserver.sh"
+    exit 1
+fi
+
+# Function to sanitize input (removes ALL whitespace/hidden chars)
 clean_input() {
-    echo "$1" | tr -d '\r'
+    echo "$1" | tr -d '[:space:]'
 }
 
 print_banner() {
@@ -37,7 +45,7 @@ print_banner() {
     echo " / ___ \| |___  | |  |  _  | |___|  _ <  "
     echo "/_/   \_\_____| |_|  |_| |_|_____|_| \_\ "
     echo -e "${NC}"
-    echo -e "${BLUE}:: Aether Panel Manager V1.7.1 (Patched) ::${NC}"
+    echo -e "${BLUE}:: Aether Panel Manager V1.7.2 (Patched) ::${NC}"
     echo "------------------------------------------------"
 }
 
