@@ -2315,21 +2315,85 @@ input:checked+.slider:before {
 
 /* ===== RESPONSIVE COMMAND PALETTE ===== */
 @media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* --- BARRA DE NAVEGACIÓN INFERIOR --- */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        min-height: 80px;
+        /* Más altura para que no quede pegado */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 12px 0;
+        /* Más padding vertical */
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        background: var(--bg);
+        backdrop-filter: none;
+        z-index: 99999;
+        box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ... (rest of sidebar styles same as before) ... */
+
+    /* ===== RESPONSIVE COMMAND PALETTE ===== */
     .command-palette {
-        width: 95%;
-        max-height: 60vh;
+        width: 100%;
+        max-width: none;
+        height: 80vh;
+        /* Más alto en móviles */
+        max-height: 80vh;
+        border-radius: 20px 20px 0 0;
+        /* Rounded top corners like a sheet */
+        position: fixed;
+        bottom: 0;
+        margin: 0;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-bottom: none;
     }
 
     .command-palette-overlay {
-        padding-top: 10vh;
+        padding-top: 0;
+        align-items: flex-end;
+        /* Align to bottom */
+        background: rgba(0, 0, 0, 0.8);
+        /* Darker background */
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
     }
 
     .command-input {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .command-item {
-        padding: 10px 12px;
+        padding: 14px 16px;
+        /* Más fácil de tocar */
+    }
+
+    .kbd-hint {
+        display: none;
+        /* Hide Esc hint on mobile */
+    }
+
+    .command-palette-footer {
+        display: none;
+        /* Hide footer hints on mobile */
     }
 }
 
