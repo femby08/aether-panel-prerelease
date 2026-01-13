@@ -1782,7 +1782,7 @@ input:checked+.slider:before {
     color: var(--muted);
 }
 
-/* === RESPONSIVE MEJORADO === */
+/* === RESPONSIVE MEJORADO (MOBILE FIX) === */
 @media (max-width: 768px) {
     :root {
         --radius: 16px;
@@ -1790,15 +1790,21 @@ input:checked+.slider:before {
 
     body {
         font-size: 14px;
+        /* Evita el rebote elástico feo en iOS */
+        overscroll-behavior-y: none;
     }
 
     .app-layout {
         flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
     }
 
+    /* --- BARRA DE NAVEGACIÓN INFERIOR --- */
     .sidebar {
         width: 100%;
-        height: 70px;
+        height: auto;
+        min-height: 65px;
         position: fixed;
         bottom: 0;
         left: 0;
@@ -1807,316 +1813,268 @@ input:checked+.slider:before {
         border-right: none;
         border-top: 1px solid var(--glass-border);
         padding: 8px 12px;
+        /* Importante: Deja espacio para la barra de inicio de los iPhone */
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
         justify-content: space-around;
         background: var(--sb);
         backdrop-filter: blur(40px) saturate(180%);
-        z-index: 200;
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+        z-index: 9000;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
     }
 
     [data-design="material"] .sidebar {
         backdrop-filter: none;
-        border-radius: 0;
     }
 
     nav {
         flex-direction: row;
-        gap: 4px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        justify-content: space-evenly;
+        gap: 0;
+        overflow: visible;
+        justify-content: space-between;
         width: 100%;
         margin-top: 0;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    nav::-webkit-scrollbar {
-        display: none;
     }
 
     .nav-btn {
-        width: 56px;
-        min-width: 56px;
-        height: 56px;
+        width: auto;
+        flex: 1;
+        height: 48px;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border-radius: 16px;
-        padding: 8px;
-        margin: 0;
-        gap: 4px;
+        border-radius: 12px;
+        padding: 0;
+        margin: 0 2px;
         background: transparent;
         border: none;
-    }
-
-    .nav-btn:hover {
-        transform: none;
-        background: transparent;
+        color: var(--muted);
     }
 
     .nav-btn.active {
-        transform: scale(1.05);
-        background: var(--p);
-        color: white;
+        transform: translateY(-5px);
+        color: var(--p);
+        background: transparent;
+        box-shadow: none;
         border: none;
-        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+    }
+
+    /* Indicador visual de pestaña activa (punto debajo) */
+    .nav-btn.active::after {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 4px;
+        background: var(--p);
+        border-radius: 50%;
+        margin-top: 4px;
+        box-shadow: 0 0 8px var(--p);
     }
 
     .nav-btn.active i {
-        color: white;
-        text-shadow: none;
+        color: var(--p);
+        font-size: 1.4rem;
+        text-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
     }
 
     .nav-btn span {
         display: none;
+        /* Oculta el texto para ahorrar espacio */
     }
 
     .nav-btn i {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         margin: 0;
     }
 
+    /* Ocultar elementos que sobran en móvil */
     .brand,
     .sidebar-footer,
     .nav-label {
         display: none;
     }
 
+    /* --- CONTENIDO PRINCIPAL --- */
     main {
-        padding: 16px 16px 90px 16px;
+        /* Padding inferior grande para que el contenido no quede tapado por el menú */
+        padding: 20px 16px 100px 16px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        height: 100%;
+        width: 100%;
     }
 
+    /* --- CABECERA --- */
     header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 24px;
-        position: sticky;
-        top: 0;
-        background: var(--bg);
-        padding: 16px 0;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        position: relative;
         z-index: 50;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .server-title {
+        text-align: center;
+        width: 100%;
     }
 
     .server-title h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         margin-bottom: 8px;
     }
 
     .server-ip-box {
+        margin: 0 auto;
         padding: 6px 14px;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
+        background: rgba(0, 0, 0, 0.4);
     }
 
+    /* ESTO ES CLAVE: Oculta los botones pequeños de arriba para no duplicar */
     .actions {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr);
-        opacity: 1 !important;
-        pointer-events: all !important;
+        display: none !important;
     }
 
-    .btn-control {
-        width: 100%;
-        height: 52px;
-        border-radius: 14px;
-        font-size: 1.1rem;
+    /* --- TARJETAS DE ENERGÍA --- */
+    #tab-stats .card:first-child {
+        padding: 20px;
     }
 
     .power-card-grid {
         grid-template-columns: repeat(2, 1fr);
+        /* Cuadrícula 2x2 */
         gap: 12px;
+        margin-top: 15px;
     }
 
     .power-btn-large {
-        padding: 20px;
-        min-height: 100px;
-        font-size: 0.85rem;
+        padding: 15px;
+        min-height: 85px;
+        font-size: 0.8rem;
     }
 
     .power-btn-large i {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
+        margin-bottom: 4px;
     }
 
+    /* --- GRÁFICOS (CPU/RAM) --- */
     .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        /* Pone CPU y RAM uno al lado del otro */
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    /* El disco ocupa todo el ancho abajo */
+    .stats-grid .card:nth-child(3) {
+        grid-column: span 2;
+        padding: 20px;
+        min-height: auto;
     }
 
     .card {
-        padding: 20px;
-        min-height: 160px;
+        padding: 16px;
+        min-height: 140px;
     }
 
     .stat-big {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .chart-mini {
-        height: 100px;
+        height: 80px;
     }
 
+    /* --- CONSOLA --- */
     .console-box {
-        height: calc(100vh - 200px);
-        min-height: 400px;
-        border-radius: 16px;
+        height: calc(100vh - 180px);
+        min-height: 350px;
+        border-radius: 12px;
+        margin-bottom: 20px;
     }
 
     .console-header {
-        padding: 8px 14px;
+        padding: 8px 12px;
     }
 
     .console-input-area {
-        padding: 10px 14px;
-        gap: 10px;
+        padding: 10px 12px;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.6);
     }
 
     #console-input {
-        font-size: 0.85rem;
+        font-size: 16px;
+        /* Evita zoom al escribir en iPhone */
     }
 
+    /* --- LISTAS Y TARJETAS --- */
     .versions-container,
-    .labs-grid {
+    .labs-grid,
+    .cfg-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
     }
 
+    /* Tarjetas horizontales más compactas */
     .mod-card-modern,
     .version-card {
-        min-height: 200px;
+        min-height: 100px;
+        flex-direction: row;
+        align-items: center;
     }
 
     .mod-cover {
-        height: 100px;
+        width: 80px;
+        height: 100%;
+        min-height: 100px;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .mod-cover i {
-        font-size: 2.8rem;
+        font-size: 1.8rem;
     }
 
     .mod-body {
-        padding: 18px;
-    }
-
-    .mod-title {
-        font-size: 1.1rem;
+        padding: 12px 16px;
     }
 
     .mod-desc {
-        font-size: 0.85rem;
+        display: none;
+        /* Oculta descripciones largas */
+    }
+
+    .btn-install {
+        margin-top: 8px;
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    /* --- MODALES --- */
+    .modal {
+        width: 92%;
+        max-height: 85vh;
+        margin: 0;
+    }
+
+    .login-box {
+        width: 85%;
+        padding: 30px 20px;
     }
 
     .whitelist-input-container {
         flex-direction: column;
-        padding: 16px;
-        gap: 12px;
-    }
-
-    .whitelist-grid {
-        grid-template-columns: 1fr;
-        max-height: 500px;
-    }
-
-    .wl-card {
-        padding: 14px;
-    }
-
-    .cfg-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .modal {
-        width: 95%;
-        max-width: none;
-        max-height: 85vh;
-        border-radius: 20px;
-        margin: 0 10px;
-    }
-
-    .modal-header {
-        padding: 16px 20px;
-        flex-wrap: wrap;
-    }
-
-    .modal-header h3 {
-        font-size: 1.1rem;
-    }
-
-    .modal-small {
-        max-width: 90%;
-    }
-
-    .settings-group-card {
-        padding: 16px;
-        gap: 12px;
-    }
-
-    .setting-row {
-        flex-direction: column;
-        align-items: flex-start;
-        height: auto;
-        gap: 10px;
-    }
-
-    .segment-control {
-        width: 100%;
-        justify-content: stretch;
-    }
-
-    .seg-item {
-        flex: 1;
-    }
-
-    .maint-grid {
-        grid-template-columns: 1fr;
-    }
-
-    [data-tooltip]::before {
-        display: none;
-    }
-
-    .file-list {
-        font-size: 0.85rem;
+        padding: 15px;
     }
 
     .btn {
-        padding: 10px 20px;
-        font-size: 0.85rem;
-        border-radius: 12px;
+        padding: 12px;
     }
 
-    .btn-primary,
-    .btn-secondary,
-    .btn-ghost {
-        min-height: 44px;
-    }
-
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    h2 {
-        font-size: 1.3rem;
-    }
-
-    h3 {
-        font-size: 1.1rem;
-    }
-
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .status-widget {
-        display: none;
+    ::-webkit-scrollbar {
+        width: 4px;
     }
 }
 
