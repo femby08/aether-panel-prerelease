@@ -1787,19 +1787,24 @@ input:checked+.slider:before {
 }
 
 /* === RESPONSIVE MEJORADO (MOBILE FIX) === */
+/* === RESPONSIVE MEJORADO (MOBILE FIX) === */
 @media (max-width: 768px) {
     :root {
         --radius: 16px;
     }
 
     body {
-        font-size: 14px;
+        font-size: 16px;
+        /* Aumentado de 14px a 16px para mejor legibilidad */
         overscroll-behavior-y: none;
     }
 
     .app-layout {
         flex-direction: column;
         height: 100vh;
+        /* Fallback */
+        height: 100dvh;
+        /* Dynamic viewport height para móviles modernos */
         overflow: hidden;
     }
 
@@ -1807,11 +1812,16 @@ input:checked+.slider:before {
         display: flex !important;
     }
 
+    .desktop-only {
+        display: none !important;
+    }
+
     /* --- BARRA DE NAVEGACIÓN INFERIOR --- */
     .sidebar {
         width: 100%;
         height: auto;
-        min-height: 70px;
+        min-height: 85px;
+        /* Más alto para toque fácil */
         position: fixed;
         bottom: 0;
         left: 0;
@@ -1819,17 +1829,18 @@ input:checked+.slider:before {
         flex-direction: row;
         border-right: none;
         border-top: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 8px 0;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        padding: 10px 0;
+        padding-bottom: calc(15px + env(safe-area-inset-bottom));
+        /* Más espacio seguro */
         background: var(--bg);
         backdrop-filter: none;
         z-index: 99999;
-        box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.6);
     }
 
     @supports (backdrop-filter: blur(20px)) {
         .sidebar {
-            background: rgba(5, 5, 7, 0.85);
+            background: rgba(5, 5, 7, 0.9);
             backdrop-filter: blur(20px) saturate(180%);
         }
     }
@@ -1841,12 +1852,13 @@ input:checked+.slider:before {
 
     nav {
         flex-direction: row;
-        gap: 8px;
+        gap: 12px;
+        /* Más espacio entre iconos */
         width: 100%;
         margin-top: 0;
         overflow-x: auto;
         justify-content: flex-start;
-        padding: 0 12px;
+        padding: 0 16px;
         scrollbar-width: none;
     }
 
@@ -1856,15 +1868,15 @@ input:checked+.slider:before {
 
     .nav-btn {
         width: auto;
-        min-width: 60px;
-        /* Ancho mínimo para touch */
+        min-width: 65px;
+        /* Más ancho */
         flex: 0 0 auto;
-        /* No encoger ni estirar */
-        height: 50px;
+        height: 55px;
+        /* Más alto */
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 0;
         margin: 0;
         background: transparent;
@@ -1876,7 +1888,7 @@ input:checked+.slider:before {
     .nav-btn.active {
         transform: translateY(-2px);
         color: var(--p);
-        background: rgba(139, 92, 246, 0.1);
+        background: rgba(139, 92, 246, 0.15);
         box-shadow: none;
         border: none;
     }
@@ -1885,31 +1897,24 @@ input:checked+.slider:before {
     .nav-btn.active::after {
         content: '';
         display: block;
-        width: 4px;
-        height: 4px;
+        width: 5px;
+        /* Más grande */
+        height: 5px;
         background: var(--p);
         border-radius: 50%;
         position: absolute;
-        bottom: 4px;
+        bottom: 6px;
         margin-top: 0;
-        box-shadow: 0 0 8px var(--p);
-    }
-
-    .nav-btn.active i {
-        color: var(--p);
-        font-size: 1.4rem;
-        text-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
-    }
-
-    .nav-btn span {
-        display: none;
-        /* Oculta el texto para ahorrar espacio */
+        box-shadow: 0 0 10px var(--p);
     }
 
     .nav-btn i {
-        font-size: 1.2rem;
-        margin: 0;
+        font-size: 1.5rem;
+        /* Iconos más grandes */
+        margin-bottom: 4px;
     }
+
+    /* ... (rest unchanged) ... */
 
     /* Ocultar elementos que sobran en móvil */
     .brand,
