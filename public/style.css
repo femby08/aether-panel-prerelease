@@ -2174,7 +2174,8 @@ input:checked+.slider:before {
             min-height: 70px;
             /* Reduced min-height */
             padding: 8px 10px;
-            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            /* Increase bottom padding to account for S22 Ultra/iPhone home bars */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
             background: var(--modal-bg);
             border-right: none;
             border-top: 1px solid var(--glass-border);
@@ -2188,6 +2189,8 @@ input:checked+.slider:before {
             justify-content: center;
             /* Center the nav container */
             transform: none !important;
+            min-height: auto;
+            /* Allow growth */
         }
     }
 
