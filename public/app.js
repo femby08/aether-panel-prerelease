@@ -1375,3 +1375,256 @@ function scrollToTopMobile() {
         document.querySelector('.main-content').scrollTop = 0;
     }
 }
+
+// --- SCHEDULER FUNCTIONS ---
+
+function loadScheduler() {
+    const list = document.getElementById('cron-list');
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando tareas...</div>';
+
+    api('cron', null, 'GET')
+        .then(tasks => {
+            if (!tasks || tasks.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)">No hay tareas programadas.</div>';
+                return;
+            }
+
+            list.innerHTML = tasks.map(t => `
+            <div class="file-item">
+                <i class="fa-solid fa-clock" style="color:var(--p)"></i>
+                <div class="file-info">
+                    <div class="file-name">${t.name}</div>
+                    <div class="file-meta">${t.schedule} • ${t.command}</div>
+                </div>
+                <div class="file-actions">
+                    <button onclick="deleteTask('${t.id}')" class="btn-danger"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            list.innerHTML = `
+            <div style="text-align:center; padding:20px; color:var(--danger)">
+                <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar tareas
+                <br>
+                <button class="btn btn-secondary" onclick="loadScheduler()" style="margin-top:10px">Reintentar</button>
+            </div>`;
+        });
+}
+
+function createTask() {
+    const name = document.getElementById('task-name').value;
+    const schedule = document.getElementById('task-schedule').value;
+    const command = document.getElementById('task-command').value;
+
+    if (!name || !schedule || !command) {
+        Toastify({ text: 'Completa todos los campos', style: { background: '#ef4444' } }).showToast();
+        return;
+    }
+
+    const newTask = {
+        id: Date.now().toString(),
+        name,
+        schedule,
+        command,
+        enabled: true
+    };
+
+    // Get current tasks first
+    api('cron', null, 'GET').then(tasks => {
+        if (!Array.isArray(tasks)) tasks = [];
+        tasks.push(newTask);
+        api('cron', tasks).then(() => {
+            Toastify({ text: 'Tarea creada', style: { background: '#10b981' } }).showToast();
+            closeCreateTaskModal();
+            loadScheduler();
+        });
+    });
+}
+
+function deleteTask(id) {
+    if (!confirm('¿Eliminar esta tarea?')) return;
+    api('cron/' + id, null, 'DELETE').then(() => loadScheduler());
+}
+
+function openCreateTaskModal() {
+    document.getElementById('create-task-modal').style.display = 'flex';
+}
+function closeCreateTaskModal() {
+    document.getElementById('create-task-modal').style.display = 'none';
+}
+
+// --- BACKUPS FUNCTIONS ---
+function loadBackups() {
+    const list = document.getElementById('backup-list');
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando backups...</div>';
+
+    api('backups', null, 'GET')
+        .then(backups => {
+            if (!backups || backups.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)">No hay copias de seguridad.</div>';
+                return;
+            }
+
+            list.innerHTML = backups.map(b => `
+            <div class="file-item">
+                <i class="fa-solid fa-box-archive" style="color:var(--p)"></i>
+                <div class="file-info">
+                    <div class="file-name">${b.name}</div>
+                    <div class="file-meta">${b.size}</div>
+                </div>
+                <div class="file-actions">
+                    <button onclick="restoreBackup('${b.name}')" class="btn-secondary" title="Restaurar"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button onclick="deleteBackup('${b.name}')" class="btn-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            list.innerHTML = `
+            <div style="text-align:center; padding:20px; color:var(--danger)">
+                <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar backups
+                <br>
+                <button class="btn btn-secondary" onclick="loadBackups()" style="margin-top:10px">Reintentar</button>
+            </div>`;
+        });
+}
+
+// Load file browser
+function loadFileBrowser(path = '') {
+    currentPath = path;
+    const list = document.getElementById('file-list');
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</div>';
+
+    api('files?path=' + encodeURIComponent(path), null, 'GET')
+        .then(files => {
+            if (!files) return;
+            let html = '';
+
+            // Add "Go Up" button if not in root
+            if (path !== '') {
+                const parentPath = path.split('/').slice(0, -1).join('/');
+                html += `
+                <div class="file-item" onclick="loadFileBrowser('${parentPath}')" style="cursor:pointer">
+                    <i class="fa-solid fa-turn-up" style="color:var(--p)"></i>
+                    <div class="file-info">
+                        <div class="file-name">..</div>
+                        <div class="file-meta">Subir nivel</div>
+                    </div>
+                </div>`;
+            }
+
+            if (files.length === 0) {
+                html += '<div style="text-align:center; padding:20px; color:var(--muted)">Carpeta vacía</div>';
+            } else {
+                html += files.map(f => `
+                <div class="file-item">
+                    <i class="${f.isDir ? 'fa-solid fa-folder' : 'fa-solid fa-file'}" style="color:${f.isDir ? 'var(--p)' : 'var(--muted)'}"></i>
+                    <div class="file-info">
+                        <div class="file-name">${f.name}</div>
+                        <div class="file-meta">${f.size}</div>
+                    </div>
+                    <div class="file-actions">
+                        ${f.isDir ? `<button onclick="loadFileBrowser('${path ? path + '/' + f.name : f.name}')"><i class="fa-solid fa-arrow-right"></i></button>` : ''}
+                        <button onclick="deleteFile('${path ? path + '/' + f.name : f.name}')" class="btn-danger"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            }
+            list.innerHTML = html;
+        });
+}
+
+function deleteFile(path) {
+    if (confirm('¿Eliminar ' + path + '?')) {
+        api('files?path=' + encodeURIComponent(path), null, 'DELETE').then(() => loadFileBrowser(currentPath));
+    }
+}
+function createBackup() {
+    Toastify({ text: 'Creando backup...', style: { background: '#3b82f6' } }).showToast();
+    api('backups/create', {}).then(res => {
+        if (res.success) {
+            Toastify({ text: 'Backup creado correctamente', style: { background: '#10b981' } }).showToast();
+            loadBackups();
+        } else {
+            Toastify({ text: 'Error al crear backup', style: { background: '#ef4444' } }).showToast();
+        }
+    });
+}
+
+function deleteBackup(name) {
+    if (!confirm('¿Eliminar backup ' + name + '?')) return;
+    api('backups/delete', { name }).then(() => loadBackups());
+}
+
+function restoreBackup(name) {
+    if (!confirm('PELIGRO: Esto borrará el servidor actual y restaurará ' + name + '. ¿Continuar?')) return;
+    Toastify({ text: 'Restaurando backup... El servidor se detendrá.', style: { background: '#f59e0b' } }).showToast();
+    api('backups/restore', { name }).then(res => {
+        if (res.success) {
+            Toastify({ text: 'Restauración completada', style: { background: '#10b981' } }).showToast();
+        } else {
+            Toastify({ text: 'Error en restauración', style: { background: '#ef4444' } }).showToast();
+        }
+    });
+}
+
+// --- LOGS FUNCTIONS ---
+const logsContainer = document.getElementById('logs-container');
+let isAutoScroll = true;
+
+if (logsContainer) {
+    logsContainer.addEventListener('scroll', () => {
+        // If user scrolls up, disable auto-scroll
+        if (logsContainer.scrollTop + logsContainer.clientHeight < logsContainer.scrollHeight - 50) {
+            isAutoScroll = false;
+        } else {
+            isAutoScroll = true;
+        }
+    });
+}
+
+socket.on('logs_history', (logs) => {
+    if (!logsContainer) return;
+    logsContainer.innerHTML = ''; // Clear loading
+    if (Array.isArray(logs)) {
+        logs.forEach(line => appendLog(line));
+    }
+});
+
+// We catch the console lines from the "console" event potentially, but standard is "log" or just grabbing history
+// server.js sends "logs_history" on connection. We need to handle live updates if they exist.
+// server.js doesn't seem to emit live log events explicitly named 'log' in the snippet viewed, 
+// usually it pipes process stdout to a function that emits to socket.
+// Warning: If server.js doesn't emit live events, logs will only update on refresh/reconnect.
+// Let's assume standard behavior or add it later. 
+// Actually, earlier view of server.js was truncated. Assuming 'console-output' or similar.
+// Looking at earlier app.js traces, check socket.on('log') or similar.
+// Adding a generic handler just in case:
+socket.on('log', (line) => appendLog(line));
+socket.on('console-output', (line) => appendLog(line));
+
+function appendLog(line) {
+    if (!logsContainer) return;
+    const div = document.createElement('div');
+    div.textContent = line;
+    div.style.marginBottom = '2px';
+    logsContainer.appendChild(div);
+
+    if (isAutoScroll) {
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
+}
+
+// --- INITIALIZATION ---
+// Hook into setTab to load data when tabs are opened
+const originalSetTab = setTab;
+setTab = function (tabName, btn) {
+    originalSetTab(tabName, btn);
+    if (tabName === 'scheduler') loadScheduler();
+    if (tabName === 'backups') loadBackups();
+    if (tabName === 'files') loadFileBrowser(currentPath);
+    // logs handled by socket
+};

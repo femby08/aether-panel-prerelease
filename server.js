@@ -14,8 +14,12 @@ const cron = require('node-cron');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const path = require('path');
+// Ensure server.js does not crash on unhandled promise rejections (common with axios)
+process.on('unhandledRejection', (reason, p) => {
+    console.error('Unhandled Rejection at:', p, 'reason:', reason);
+});
 
-// --- INICIALIZACIÓN ---
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
@@ -39,13 +43,13 @@ function getJwtSecret() {
             const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
             return s.jwt_secret || 'default-secret-change-this';
         }
-    } catch (e) { }
+    } catch (e) { console.error('Error reading JWT secret:', e); }
     return 'default-secret-change-this';
 }
 
 // --- MIDDLEWARE ---
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increased limit for file uploads/saves
 
 // Helpers de Auth Simplificada
 function getAllUsers() {
@@ -469,13 +473,71 @@ app.post('/api/files/upload', authenticateToken, upload.single('file'), (req, re
     res.json({ success: true });
 });
 
+app.post('/api/files/read', authenticateToken, (req, res) => {
+    const filePath = path.join(SERVER_DIR, (req.body.path || '').replace(/\.\./g, ''));
+    if (!fs.existsSync(filePath)) return res.json({ success: false, error: 'File not found' });
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        res.json({ success: true, content });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.post('/api/files/write', authenticateToken, (req, res) => {
+    const filePath = path.join(SERVER_DIR, (req.body.path || '').replace(/\.\./g, ''));
+    try {
+        fs.writeFileSync(filePath, req.body.content || '');
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
 // Backups & Cron
 app.get('/api/cron', authenticateToken, (req, res) => {
     if (fs.existsSync(CRON_FILE)) res.json(JSON.parse(fs.readFileSync(CRON_FILE, 'utf8'))); else res.json([]);
 });
 app.post('/api/cron', authenticateToken, (req, res) => {
-    fs.writeFileSync(CRON_FILE, JSON.stringify(req.body, null, 2)); loadCronTasks(); res.json({ success: true });
+    fs.writeFileSync(CRON_FILE, JSON.stringify(req.body, null, 2));
+    loadCronTasks();
+    res.json({ success: true });
 });
+
+app.delete('/api/cron/:id', authenticateToken, (req, res) => {
+    try {
+        if (!fs.existsSync(CRON_FILE)) return res.json({ success: false });
+        let tasks = JSON.parse(fs.readFileSync(CRON_FILE, 'utf8'));
+        tasks = tasks.filter(t => t.id !== req.params.id);
+        fs.writeFileSync(CRON_FILE, JSON.stringify(tasks, null, 2));
+        loadCronTasks();
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+let cronTasks = [];
+function loadCronTasks() {
+    // Stop existing tasks
+    cronTasks.forEach(t => t.stop());
+    cronTasks = [];
+
+    if (!fs.existsSync(CRON_FILE)) return;
+    try {
+        const tasks = JSON.parse(fs.readFileSync(CRON_FILE, 'utf8'));
+        tasks.forEach(task => {
+            if (task.enabled && task.schedule && task.command) {
+                try {
+                    const job = cron.schedule(task.schedule, () => {
+                        console.log(`Executing cron task: ${task.name}`);
+                        mcServer.sendCommand(task.command);
+                    });
+                    cronTasks.push(job);
+                } catch (err) {
+                    console.error(`Invalid schedule for task ${task.name}: ${task.schedule}`);
+                }
+            }
+        });
+        console.log(`Loaded ${cronTasks.length} cron tasks.`);
+    } catch (e) { console.error('Error loading cron tasks:', e); }
+}
+// Load tasks on startup
+loadCronTasks();
 
 app.get('/api/backups', authenticateToken, (req, res) => {
     if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR);
@@ -600,6 +662,9 @@ app.post('/api/settings', authenticateToken, (req, res) => {
 
         // Merge existing settings with new ones
         const updatedSettings = { ...currentSettings, ...newSettings };
+
+        // Save JWT secret if provided
+        if (newSettings.jwt_secret) updatedSettings.jwt_secret = newSettings.jwt_secret;
 
         fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updatedSettings, null, 2));
 

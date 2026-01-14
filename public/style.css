@@ -17,26 +17,55 @@
     --glass-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.01) 100%);
     --glass-border: rgba(255, 255, 255, 0.15);
     --glass-hover: rgba(255, 255, 255, 0.1);
-
     /* Botones */
     --glass-btn: rgba(255, 255, 255, 0.08);
     --glass-btn-hover: rgba(255, 255, 255, 0.2);
     --glass-btn-text: #ffffff;
 
-    --txt: #ffffff;
-    --muted: #9ca3af;
-    --radius: 24px;
-
-    /* Colores Específicos Componentes */
-    --console-bg: rgba(0, 0, 0, 0.6);
-    --console-border: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(0, 0, 0, 0.3);
-    --input-border: rgba(255, 255, 255, 0.15);
-
-    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 15px 50px 0 rgba(0, 0, 0, 0.5);
-    --modal-shadow: 0 25px 80px rgba(0, 0, 0, 0.8);
+    --p: #8b5cf6;
+    /* Primary Purple */
+    --p-hover: #7c3aed;
+    --bg: #09090b;
+    /* Zinc 950 */
+    --card-bg: rgba(24, 24, 27, 0.6);
+    /* Glass Dark */
+    --txt: #f4f4f5;
+    --muted: #a1a1aa;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --glass-blur: 16px;
+    --danger: #ef4444;
+    --success: #10b981;
+    --radius: 20px;
+    --font-main: 'Outfit', sans-serif;
+    --glass-gradient: linear-gradient(145deg, rgba(24, 24, 27, 0.8), rgba(9, 9, 11, 0.9));
     --modal-bg: rgba(15, 15, 20, 0.85);
+    --sb: rgba(10, 10, 15, 0.6);
+    /* Kept from original, not in provided snippet */
+    --p-light: #a78bfa;
+    /* Kept from original, not in provided snippet */
+    --p-dark: #7c3aed;
+    /* Kept from original, not in provided snippet */
+    --warning: #f59e0b;
+    /* Kept from original, not in provided snippet */
+    --glass-saturate: 200%;
+    /* Kept from original, not in provided snippet */
+    --glass-hover: rgba(255, 255, 255, 0.1);
+    /* Kept from original, not in provided snippet */
+    --console-bg: rgba(0, 0, 0, 0.6);
+    /* Kept from original, not in provided snippet */
+    --console-border: rgba(255, 255, 255, 0.1);
+    /* Kept from original, not in provided snippet */
+    --input-bg: rgba(0, 0, 0, 0.3);
+    /* Kept from original, not in provided snippet */
+    --input-border: rgba(255, 255, 255, 0.15);
+    /* Kept from original, not in provided snippet */
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    /* Kept from original, not in provided snippet */
+    --shadow-hover: 0 15px 50px 0 rgba(0, 0, 0, 0.5);
+    /* Kept from original, not in provided snippet */
+    --modal-shadow: 0 25px 80px rgba(0, 0, 0, 0.8);
+    /* Kept from original, not in provided snippet */
 }
 
 /* --- TEMA CLARO --- */
@@ -224,7 +253,7 @@ body::after {
 
     pointer-events: none;
 
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=');
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWJlbGVuY2UgYmFzZUZyZXF1ZW5jeT0iLjc1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIiB0eXBlPSJmcmFjdGFsTm9pc2UiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwaDEweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=');
 
 }
 
@@ -1911,6 +1940,129 @@ input:checked+.slider:before {
 [data-theme="light"] .maint-action-btn {
     background: white;
     border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* === PREMIUM FILE & LIST ITEMS === */
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.file-item:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Subtle gradient accent for folders/files */
+.file-item i {
+    font-size: 1.4rem;
+    margin-right: 16px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.file-item:hover i {
+    background: linear-gradient(135deg, var(--p), #4338ca);
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.file-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--txt);
+    letter-spacing: -0.01em;
+}
+
+.file-meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.file-item:hover .file-actions {
+    opacity: 1;
+}
+
+.file-actions button {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--txt);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-actions button:hover {
+    background: var(--p);
+    color: white;
+    transform: scale(1.1);
+}
+
+.file-actions .btn-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* === ENHANCED MODAL HEADER === */
+.modal-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px !important;
+    margin-bottom: 20px !important;
+}
+
+.modal-header .card-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(to right, #fff, #aaa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
 }
 
 .maint-icon {

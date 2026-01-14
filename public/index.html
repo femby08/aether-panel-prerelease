@@ -282,7 +282,11 @@
             <div id="tab-files" class="tab-content">
                 <div class="card glass full">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title" style="margin:0"><i class="fa-solid fa-folder-open"></i> Archivos</div>
+                        <div class="card-title" style="margin:0; display:flex; align-items:center; gap:10px;">
+                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <i class="fa-solid fa-folder-open"></i> Archivos
+                        </div>
                         <div style="display:flex;gap:10px"><button onclick="loadFileBrowser(currentPath)"
                                 class="btn btn-secondary"><i class="fa-solid fa-rotate"></i></button><button
                                 onclick="uploadFile()" class="btn btn-primary">Subir</button></div>
@@ -426,9 +430,12 @@
             <div id="tab-backups" class="tab-content">
                 <div class="card glass full">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title"><i class="fa-solid fa-box-archive"></i> <span
-                                data-i18n="backups.title">Copias de Seguridad</span></div><button
-                            onclick="createBackup()" class="btn btn-primary" data-i18n="backups.create">Crear
+                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
+                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <span><i class="fa-solid fa-box-archive"></i> <span data-i18n="backups.title">Copias de
+                                    Seguridad</span></span>
+                        </div><button onclick="createBackup()" class="btn btn-primary" data-i18n="backups.create">Crear
                             Backup</button>
                     </div>
                     <div id="backup-list" class="file-list"></div>
@@ -438,8 +445,12 @@
             <div id="tab-whitelist" class="tab-content">
                 <div class="card glass" style="min-height: auto; margin-bottom: 20px;">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title"><i class="fa-solid fa-users"></i> <span
-                                data-i18n="whitelist.title">Whitelist</span></div>
+                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
+                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <span><i class="fa-solid fa-users"></i> <span
+                                    data-i18n="whitelist.title">Whitelist</span></span>
+                        </div>
                         <div style="display:flex; gap:12px; align-items:center;">
                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                                 <input type="checkbox" id="whitelist-enabled" onchange="toggleWhitelist()"
@@ -466,10 +477,19 @@
             <!-- Scheduler Tab -->
             <div id="tab-scheduler" class="tab-content">
                 <div class="card glass full">
-                    <div class="card-title"><i class="fa-solid fa-clock"></i> <span
-                            data-i18n="perm.scheduler">Programador</span></div>
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
+                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <span><i class="fa-solid fa-clock"></i> <span
+                                    data-i18n="perm.scheduler">Programador</span></span>
+                        </div>
+                        <button onclick="openCreateTaskModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
+                            Agregar Tarea</button>
+                    </div>
                     <div id="cron-list" class="file-list">
-                        <div style="padding:20px; text-align:center; color:var(--muted)">No hay tareas programadas (WIP)
+                        <div style="padding:20px; text-align:center; color:var(--muted)">
+                            <i class="fa-solid fa-clock"></i> Cargando tareas...
                         </div>
                     </div>
                 </div>
@@ -478,8 +498,12 @@
             <!-- Logs Tab -->
             <div id="tab-logs" class="tab-content">
                 <div class="card glass full" style="height:calc(100vh - 140px)">
-                    <div class="card-title"><i class="fa-solid fa-file-lines"></i> <span data-i18n="perm.logs">Visor de
-                            Logs</span></div>
+                    <div class="card-title" style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                        <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                        <span><i class="fa-solid fa-file-lines"></i> <span data-i18n="perm.logs">Visor de
+                                Logs</span></span>
+                    </div>
                     <div id="logs-container"
                         style="flex:1; background:var(--bg); border:1px solid var(--glass-border); border-radius:12px; padding:15px; font-family:'JetBrains Mono'; font-size:0.9rem; overflow-y:auto; color:var(--txt)">
                         <span style="color:var(--muted)">Cargando logs... (WIP)</span>
@@ -767,6 +791,34 @@
                     <button class="btn btn-ghost" onclick="closeEditUserModal()" style="flex:1">
                         <i class="fa-solid fa-xmark"></i> <span data-i18n="button.cancel">Cancel</span>
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div id="create-task-modal" class="modal-overlay" style="display:none">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock"></i> Nueva Tarea</h3>
+                <button class="btn btn-ghost" onclick="closeCreateTaskModal()"
+                    style="width:32px; height:32px; padding:0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:20px; display:flex; flex-direction:column; gap:15px">
+                <input type="text" id="task-name" class="cfg-in" placeholder="Nombre de la tarea (ej. Reinicio Diario)">
+                <input type="text" id="task-schedule" class="cfg-in" placeholder="Cron Schedule (ej. 0 0 * * *)">
+                <input type="text" id="task-command" class="cfg-in" placeholder="Comando (ej. stop)">
+                <div style="display:flex; gap:10px; margin-top:10px">
+                    <button class="btn btn-primary" onclick="createTask()" style="flex:1">Crear</button>
+                    <button class="btn btn-ghost" onclick="closeCreateTaskModal()" style="flex:1">Cancelar</button>
+                </div>
+                <div style="font-size:0.8rem; color:var(--muted)">
+                    Formatos comunes:<br>
+                    0 0 * * * = Cada día a medianoche<br>
+                    0 */4 * * * = Cada 4 horas<br>
+                    */30 * * * * = Cada 30 minutos
                 </div>
             </div>
         </div>
