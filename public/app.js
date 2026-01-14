@@ -1367,3 +1367,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ Account Management loaded');
+
+// --- MOBILE BOTTOM NAV JS ADAPTATIONS ---
+// Ensure we scroll to top when changing tabs on mobile
+function scrollToTopMobile() {
+    if (window.innerWidth < 768) {
+        document.querySelector('.main-content').scrollTop = 0;
+    }
+}

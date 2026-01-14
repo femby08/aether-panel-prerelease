@@ -13,6 +13,7 @@ const { promisify } = require('util');
 const cron = require('node-cron');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 // --- INICIALIZACIÓN ---
 const app = express();
@@ -510,6 +511,108 @@ app.post('/api/backups/explore', authenticateToken, (req, res) => {
         });
         res.json({ success: true, tree, flat: lines });
     });
+});
+
+// --- NEBULA / VERSIONS MANAGEMENT ---
+
+app.post('/api/nebula/versions', authenticateToken, async (req, res) => {
+    const { type } = req.body;
+    try {
+        let versions = [];
+        if (type === 'vanilla') {
+            const response = await axios.get('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
+            versions = response.data.versions.filter(v => v.type === 'release').map(v => ({ id: v.id, url: v.url }));
+        } else if (type === 'paper') {
+            const response = await axios.get('https://api.papermc.io/v2/projects/paper');
+            versions = response.data.versions.reverse().map(v => ({ id: v }));
+        } else if (type === 'fabric') {
+            const response = await axios.get('https://meta.fabricmc.net/v2/versions/game');
+            versions = response.data.filter(v => v.stable).map(v => ({ id: v.version }));
+        } else if (type === 'forge') {
+            const response = await axios.get('https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json');
+            const promos = response.data.promos;
+            const gameVersions = new Set();
+            Object.keys(promos).forEach(k => {
+                const part = k.split('-')[0];
+                if (part && !isNaN(parseInt(part[0]))) gameVersions.add(part);
+            });
+            // Ordenar versiones (simple string sort por ahora, idealmente semver)
+            versions = Array.from(gameVersions).sort((a, b) => b.localeCompare(a, undefined, { numeric: true })).map(v => ({ id: v }));
+        }
+        res.json(versions);
+    } catch (error) {
+        console.error('Error fetching versions:', error.message);
+        res.status(500).json({ error: 'Failed to fetch versions' });
+    }
+});
+
+app.post('/api/nebula/resolve-vanilla', authenticateToken, async (req, res) => {
+    const { url } = req.body;
+    try {
+        const response = await axios.get(url);
+        const serverUrl = response.data.downloads?.server?.url;
+        if (serverUrl) res.json({ url: serverUrl });
+        else res.status(404).json({ error: 'Server download not found' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to resolve vanilla version' });
+    }
+});
+
+app.post('/api/nebula/resolve-forge', authenticateToken, async (req, res) => {
+    const { version } = req.body;
+    try {
+        const response = await axios.get('https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json');
+        const promos = response.data.promos;
+        const forgeVer = promos[`${version}-recommended`] || promos[`${version}-latest`];
+
+        if (!forgeVer) return res.status(404).json({ error: 'No compatible Forge version found' });
+
+        const longVersion = `${version}-${forgeVer}`;
+        const url = `https://maven.minecraftforge.net/net/minecraftforge/forge/${longVersion}/forge-${longVersion}-installer.jar`;
+        res.json({ url });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to resolve forge version' });
+    }
+});
+
+app.post('/api/install', authenticateToken, async (req, res) => {
+    const { url, filename } = req.body;
+    try {
+        await mcServer.installJar(url, filename);
+        res.json({ success: true });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// --- SETTINGS MANAGEMENT ---
+
+app.post('/api/settings', authenticateToken, (req, res) => {
+    try {
+        const newSettings = req.body;
+        let currentSettings = {};
+
+        if (fs.existsSync(SETTINGS_FILE)) {
+            try {
+                currentSettings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+            } catch (e) { }
+        }
+
+        // Merge existing settings with new ones
+        const updatedSettings = { ...currentSettings, ...newSettings };
+
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updatedSettings, null, 2));
+
+        // Update MCManager RAM if present
+        if (newSettings.ram) {
+            mcServer.ram = newSettings.ram;
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        res.json({ success: false, error: 'Error saving settings' });
+    }
 });
 
 // Utility

@@ -1,10 +1,20 @@
 [
   {
     "username": "admin",
-    "salt": "f303887ed147dcdd6a55b11e0d9db156",
-    "hash": "a8f45cece58eaa0d49c25766f7f6c7a5d622ed1819f53453a13b61809083579e27c8b1f9e78653b9cae3e26c18542e50e0de7417cf3f9bb681d39dfe20d3b1cb",
+    "salt": "d3414d21a541e39085081038f6bdbb10",
+    "hash": "3bcac20e37a2204c44fd13af2a559ab2666432e9bd1b47fdd2b7e4292bfda689cb22d63eb96a5ac57c79ea8b61d9fc22c6f63804534042e6000ca58317e14e38",
     "created": 1768004190625,
     "role": "admin",
     "permissions": []
+  },
+  {
+    "username": "user",
+    "salt": "00ba97f350bd0a978272aa737730e094",
+    "hash": "47ae549e49727314e44525217235d5c0b093d3bc05604ac006aa9e7109fe03b4bbe9192d187a97669a3defc1987fb53a96894fee73aaedec8828e21d8016f9ef",
+    "role": "user",
+    "permissions": [
+      "start"
+    ],
+    "created": 1768380865951
   }
 ]

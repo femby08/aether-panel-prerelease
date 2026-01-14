@@ -66,6 +66,11 @@
     --shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
 }
 
+.modal-overlay {
+    z-index: 2000 !important;
+    /* Force modals above sidebar (1000) */
+}
+
 /* --- MODO MATERIAL (SOLIDO) --- */
 [data-design="material"] {
     --glass-blur: 0px;
@@ -732,8 +737,168 @@ header {
     margin-top: 20px;
 }
 
-/* Tarjetas */
-.mod-card-modern,
+/* --- MOBILE RESPONSIVENESS --- */
+/* --- MOBILE RESPONSIVENESS (BOTTOM NAV) --- */
+/* Increased breakpoint to cover tablets and large phones where sidebar might be too small */
+@media (max-width: 1024px) {
+
+    /* FIX THE VOID: Use 100% instead of 100vw to respect scrollbars */
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+
+    .app-layout {
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* MAIN CONTENT */
+    main {
+        padding: 20px 15px 160px 15px;
+        /* Increased bottom padding to 160px */
+        width: 100%;
+        /* Remove max-width restriction or set to 100% */
+        max-width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        height: 100%;
+        display: block;
+        /* Ensure straightforward layout behavior */
+    }
+
+    /* HEADER */
+    header {
+        margin-bottom: 25px;
+        gap: 15px;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .server-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-controls {
+        display: none;
+        /* Hide top controls on mobile to save space, rely on Actions menu */
+    }
+
+    /* SIDEBAR -> BOTTOM NAV */
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        padding: 5px 10px;
+        background: var(--modal-bg);
+        /* Opaque background */
+        border-right: none;
+        border-top: 1px solid var(--glass-border);
+        z-index: 1000;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        display: flex;
+        /* Always visible as bottom bar */
+        transform: none !important;
+        /* Override potential JS toggles */
+    }
+
+    .sidebar nav {
+        display: flex !important;
+        /* Force show */
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 5px 0;
+        width: 100%;
+    }
+
+    /* Hide non-nav elements in sidebar */
+    .brand,
+    .sidebar-footer,
+    .nav-label,
+    .version-badge {
+        display: none !important;
+    }
+
+    /* STYLING BOTTOM NAV BUTTONS */
+    .nav-btn {
+        flex-direction: column;
+        padding: 8px 5px;
+        gap: 4px;
+        border-radius: 12px;
+        justify-content: center;
+        background: transparent !important;
+        /* No bg unless active */
+        border: none !important;
+        min-width: 60px;
+        /* Hit target */
+        color: var(--muted);
+    }
+
+    .nav-btn i {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+
+    .nav-btn span {
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: block;
+        /* Show text */
+    }
+
+    .nav-btn.active {
+        color: var(--p) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .nav-btn.active i {
+        transform: translateY(-2px);
+    }
+
+    /* GRIDS FIX */
+    .stats-grid,
+    .versions-container,
+    .labs-grid,
+    .power-card-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* MODALS */
+    .modal {
+        width: 90%;
+        bottom: 80px;
+        /* Above nav bar */
+        max-height: 80vh;
+    }
+
+    /* Hide desktop only elements */
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* Show mobile elements */
+    .mobile-only {
+        display: flex !important;
+    }
+}
+
 .version-card {
     background: var(--glass-gradient);
     backdrop-filter: blur(var(--glass-blur));
@@ -1943,171 +2108,216 @@ input:checked+.slider:before {
         z-index: 50;
     }
 
-    .server-title {
-        text-align: center;
+    /* --- MOBILE RESPONSIVENESS (BOTTOM NAV) --- */
+    /* Increased breakpoint to cover tablets and large phones where sidebar might be too small */
+    @media (max-width: 1024px) {
+
+        /* FIX THE VOID: Use 100% instead of 100vw to respect scrollbars */
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-layout {
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 20px 15px 160px 15px;
+            /* Increased bottom padding to 160px */
+            width: 100%;
+            /* Remove max-width restriction or set to 100% */
+            max-width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* HEADER */
+        header {
+            margin-bottom: 25px;
+            gap: 15px;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .server-title h1 {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .server-ip-box {
+            margin: 0 auto;
+        }
+
+        .header-controls {
+            display: none !important;
+            /* Hide top controls */
+        }
+
+        /* SIDEBAR -> BOTTOM NAV */
+        .sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            min-height: 70px;
+            /* Reduced min-height */
+            padding: 8px 10px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            background: var(--modal-bg);
+            border-right: none;
+            border-top: 1px solid var(--glass-border);
+            z-index: 1000;
+            /* Lower z-index so modals can go over it */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+            display: flex !important;
+            flex-direction: row;
+            justify-content: center;
+            /* Center the nav container */
+            transform: none !important;
+        }
+    }
+
+    .sidebar nav {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: center;
+        /* Center items on tablets */
+        align-items: center;
         width: 100%;
-    }
-
-    .server-title h1 {
-        font-size: 1.6rem;
-        margin-bottom: 8px;
-    }
-
-    .server-ip-box {
+        max-width: 600px;
+        /* Limit width on tablets so items don't spread too far */
         margin: 0 auto;
-        padding: 6px 14px;
-        font-size: 0.8rem;
-        background: rgba(0, 0, 0, 0.4);
+        padding: 0;
+        gap: 8px;
+        /* Consistent gap */
+        overflow: visible;
     }
 
-    /* ESTO ES CLAVE: Oculta los botones pequeños de arriba para no duplicar */
-    .actions {
+    /* Hide non-nav elements */
+    .brand,
+    .sidebar-footer,
+    .nav-label,
+    .version-badge,
+    .account-section {
         display: none !important;
     }
 
-    /* --- TARJETAS DE ENERGÍA --- */
-    #tab-stats .card:first-child {
-        padding: 20px;
-    }
-
-    .power-card-grid {
-        grid-template-columns: repeat(2, 1fr);
-        /* Cuadrícula 2x2 */
-        gap: 12px;
-        margin-top: 15px;
-    }
-
-    .power-btn-large {
-        padding: 15px;
-        min-height: 85px;
-        font-size: 0.8rem;
-    }
-
-    .power-btn-large i {
-        font-size: 1.4rem;
-        margin-bottom: 4px;
-    }
-
-    /* --- GRÁFICOS (CPU/RAM) --- */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        /* Pone CPU y RAM uno al lado del otro */
-        gap: 12px;
-        margin-top: 15px;
-    }
-
-    /* El disco ocupa todo el ancho abajo */
-    .stats-grid .card:nth-child(3) {
-        grid-column: span 2;
-        padding: 20px;
-        min-height: auto;
-    }
-
-    .card {
-        padding: 16px;
-        min-height: 140px;
-    }
-
-    .stat-big {
-        font-size: 1.8rem;
-    }
-
-    .chart-mini {
-        height: 80px;
-    }
-
-    /* --- CONSOLA --- */
-    .console-box {
-        height: calc(100vh - 180px);
-        min-height: 350px;
+    /* STYLING BOTTOM NAV BUTTONS */
+    .nav-btn {
+        flex-direction: column;
+        padding: 6px 4px;
+        gap: 4px;
         border-radius: 12px;
-        margin-bottom: 20px;
+        justify-content: center;
+        background: transparent !important;
+        border: none !important;
+        min-width: 60px;
+        /* Slightly wider minimum */
+        height: auto;
+        color: var(--muted);
+        flex: 1;
+        /* Distribute width */
+        max-width: 80px;
+        /* Prevent huge buttons on tablets */
     }
 
-    .console-header {
-        padding: 8px 12px;
-    }
-
-    .console-input-area {
-        padding: 10px 12px;
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.6);
-    }
-
-    #console-input {
-        font-size: 16px;
-        /* Evita zoom al escribir en iPhone */
-    }
-
-    /* --- LISTAS Y TARJETAS --- */
-    .versions-container,
-    .labs-grid,
-    .cfg-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    /* Tarjetas horizontales más compactas */
-    .mod-card-modern,
-    .version-card {
-        min-height: 100px;
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .mod-cover {
-        width: 80px;
-        height: 100%;
-        min-height: 100px;
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .mod-cover i {
-        font-size: 1.8rem;
-    }
-
-    .mod-body {
-        padding: 12px 16px;
-    }
-
-    .mod-desc {
-        display: none;
-        /* Oculta descripciones largas */
-    }
-
-    .btn-install {
-        margin-top: 8px;
-        padding: 8px;
-        font-size: 0.8rem;
-    }
-
-    /* --- MODALES --- */
-    .modal {
-        width: 92%;
-        max-height: 85vh;
+    .nav-btn i {
+        font-size: 1.4rem;
         margin: 0;
     }
 
-    .login-box {
-        width: 85%;
-        padding: 30px 20px;
+    .nav-btn span {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: block;
+        text-align: center;
+        margin-top: 2px;
     }
 
-    .whitelist-input-container {
-        flex-direction: column;
-        padding: 15px;
+    .nav-btn.active {
+        color: var(--p) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
     }
 
-    .btn {
-        padding: 12px;
+    .nav-btn.active i {
+        color: var(--p);
+        transform: translateY(-2px);
     }
 
-    ::-webkit-scrollbar {
-        width: 4px;
+    /* Hide the dot indicator for simplicity and space */
+    .nav-btn.active::after {
+        display: none;
+    }
+
+    /* GRIDS FIX */
+    .stats-grid,
+    .versions-container,
+    .labs-grid,
+    .power-card-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* Force 2x2 for power buttons */
+    .power-card-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-auto-rows: minmax(80px, auto);
+        gap: 12px !important;
+    }
+
+    /* Adjust power button size for mobile */
+    .power-btn-large {
+        padding: 10px !important;
+        min-height: 80px !important;
+    }
+
+    /* MODALS */
+    .modal {
+        width: 95%;
+        bottom: 90px;
+        max-height: 80vh;
+        margin: 0 auto;
+        left: 50%;
+        transform: translateX(-50%);
+        position: fixed;
+    }
+
+    /* Hide desktop only elements */
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* Show mobile elements */
+    .mobile-only {
+        display: flex !important;
+    }
+
+    /* Command palette adjustment */
+    .command-palette {
+        bottom: 0;
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-width: 100%;
     }
 }
-
 
 
 /* ===== COMMAND PALETTE ===== */
