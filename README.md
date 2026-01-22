@@ -8,7 +8,7 @@
 **The lightweight, modern, and powerful control panel for Minecraft servers.**  
 Smart management, real-time monitoring, and beautiful Glassmorphism design.
 
-[![Version](https://img.shields.io/badge/version-1.7.0--beta-orange?style=for-the-badge&logo=git)](https://github.com/femby08/aether-panel-prerelease)
+[![Version](https://img.shields.io/badge/version-1.7.2--beta-orange?style=for-the-badge&logo=git)](https://github.com/femby08/aether-panel-prerelease)
 [![Status](https://img.shields.io/badge/status-experimental-orange?style=for-the-badge)](https://github.com/femby08/aether-panel-prerelease)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D16-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
 ![Windows](https://img.shields.io/badge/Windows-Native%20(Untested)-FFD600?style=for-the-badge&logo=windows)
