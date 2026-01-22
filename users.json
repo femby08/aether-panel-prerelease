@@ -1,8 +1,8 @@
 [
   {
     "username": "admin",
-    "salt": "d3414d21a541e39085081038f6bdbb10",
-    "hash": "3bcac20e37a2204c44fd13af2a559ab2666432e9bd1b47fdd2b7e4292bfda689cb22d63eb96a5ac57c79ea8b61d9fc22c6f63804534042e6000ca58317e14e38",
+    "salt": "24bff4168ceb5781065b2bf797285ba2",
+    "hash": "d2b16fd3478df0d7bf6fd3c47d7426a6a33c76213e0fa44a86fcab754df7582003eb6037a374a5b1981f726dab44350527399da0cc2096a3ca037c099239e496",
     "created": 1768004190625,
     "role": "admin",
     "permissions": []

@@ -1,0 +1,250 @@
+/* ====================================
+   PERSONALIZATION MODAL UX IMPROVEMENTS
+   ==================================== */
+
+/* Settings Group Card - Better Visual Grouping */
+.settings-group-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+[data-theme='light'] .settings-group-card {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Settings Group Title */
+.settings-group-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* Setting Row - Improved Layout */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    margin-bottom: 16px;
+}
+
+.setting-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Setting Label */
+.setting-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--txt);
+    flex-shrink: 0;
+}
+
+/* Segment Control - Enhanced Styling */
+.segment-control {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+[data-theme='light'] .segment-control {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.seg-item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-family: 'Manrope', sans-serif;
+}
+
+.seg-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--txt);
+    transform: translateY(-1px);
+}
+
+[data-theme='light'] .seg-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.seg-item.active {
+    background: var(--p);
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.seg-item i {
+    font-size: 1rem;
+}
+
+/* Checkbox Styling (High Contrast) */
+input[type='checkbox'] {
+    width: 44px;
+    height: 24px;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='light'] input[type='checkbox'] {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+input[type='checkbox']::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input[type='checkbox']:checked {
+    background: var(--p);
+    border-color: var(--p);
+}
+
+input[type='checkbox']:checked::before {
+    left: 22px;
+}
+
+/* Color Picker Wrapper */
+.color-circle-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+[data-theme='light'] .color-circle-wrapper {
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.color-circle-wrapper:hover {
+    border-color: var(--p);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.color-circle-wrapper input[type='color'] {
+    width: 120%;
+    height: 120%;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: -10%;
+    left: -10%;
+}
+
+/* Reset Button */
+.seg-btn-reset {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Manrope', sans-serif;
+}
+
+.seg-btn-reset:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger);
+}
+
+/* Action Buttons at Bottom */
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.modal-action-card {
+    flex: 1;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--txt);
+}
+
+[data-theme='light'] .modal-action-card {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.modal-action-card:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--p);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-action-card i {
+    font-size: 1.1rem;
+    color: var(--p);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .setting-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .segment-control {
+        width: 100%;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+}

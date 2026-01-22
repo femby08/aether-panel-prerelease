@@ -3,7 +3,7 @@ title Aether Panel - Actualizador
 color 0b
 cls
 
-set "REPO_ZIP=https://github.com/reychampi/aether-panel/archive/refs/heads/main.zip"
+set "REPO_ZIP=https://github.com/femby08/aether-panel/archive/refs/heads/main.zip"
 set "TEMP_DIR=%TEMP%\aether_update_%RANDOM%"
 set "APP_DIR=%~dp0"
 

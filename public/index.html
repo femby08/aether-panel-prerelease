@@ -7,7 +7,9 @@
     <title>Aether Panel</title>
     <link rel="icon" href="/logo.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="liquid-glass.css">
     <link rel="stylesheet" href="checkbox.css">
+    <link rel="stylesheet" href="premium_features.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
@@ -21,9 +23,30 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>
+    <script src="i18n.js"></script>
+    <script src="blur_customization.js"></script>
+    <script src="liquid-glass-alerts.js"></script>
+    <script src="hig-components.js"></script>
+    <script src="liquid-glass-physics.js"></script>
 </head>
 
 <body>
+    <!-- SVG Filters for Liquid Glass Refraction (Hidden) -->
+    <svg style="position:absolute;width:0;height:0;pointer-events:none" aria-hidden="true">
+        <defs>
+            <!-- Liquid Glass Displacement Filter (apply via filter: url(#liquid-glass-refract)) -->
+            <filter id="liquid-glass-refract" x="-10%" y="-10%" width="120%" height="120%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" seed="5" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <!-- Subtle Refraction for Cards -->
+            <filter id="glass-subtle" x="-5%" y="-5%" width="110%" height="110%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise" seed="10" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
     <div class="bg-particles"></div>
 
     <!-- Login / Setup Screen -->
@@ -33,16 +56,22 @@
                 <div class="brand-logo brand-logo-login">
                     <img src="/logo.svg" alt="Aether" style="width:30px;">
                 </div>
-                <h2 id="login-title" class="login-title">AETHER PANEL</h2>
-                <p id="login-subtitle" class="login-subtitle">Acceso Administrativo</p>
+                <h2 id="login-title" class="login-title">AETHER PANEL <span id="login-version"
+                        style="opacity: 0.5; font-size: 0.6em;">(Loading...)</span></h2>
+                <p id="login-subtitle" class="login-subtitle">Acceso Administrativo (ES/EN/PT)</p>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)" class="login-form">
                 <input type="text" id="login-username" class="cfg-in" placeholder="Usuario" required>
-                <input type="password" id="login-password" class="cfg-in" placeholder="Contraseña" required>
+
+                <div class="password-row">
+                    <input type="password" id="login-password" class="cfg-in" placeholder="Contraseña" required>
+                    <button type="button" id="toggle-pass-btn" class="btn-ghost show-pass-btn"
+                        onclick="togglePassword()">Show</button>
+                </div>
 
                 <button type="submit" id="login-btn-submit" class="btn btn-primary login-btn-submit">
-                    ENTRAR <i class="fa-solid fa-arrow-right"></i>
+                    LOGIN
                 </button>
             </form>
             <div id="login-error" class="login-error">
@@ -53,20 +82,21 @@
     <div id="version-modal" class="modal-overlay" style="display:none">
         <div class="modal glass" style="max-height: 80vh;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-cloud-arrow-down"></i> Instalar</h3><button class="btn btn-ghost"
-                    onclick="document.getElementById('version-modal').style.display='none'"><i
-                        class="fa-solid fa-xmark"></i></button>
+                <h3><i class="fa-solid fa-cloud-arrow-down"></i> Instalar</h3>
+                <button class="btn btn-ghost" onclick="document.getElementById('version-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div id="version-list" class="modal-content-grid">
-            </div>
+            <div id="version-list" class="modal-content-grid"></div>
         </div>
     </div>
 
     <div id="appearance-modal" class="modal-overlay" style="display:none">
-        <div class="modal glass" style="max-width: 480px; padding: 0; overflow: hidden;">
+        <div class="modal glass" style="max-width: 520px; padding: 0; overflow: hidden;">
             <div class="modal-header modal-header-custom">
                 <h3 style="font-weight: 800; font-size: 1.1rem; display:flex; align-items:center; gap:10px;">
-                    <i class="fa-solid fa-paintbrush"></i> Personalización
+                    <i class="fa-solid fa-paintbrush"></i> <span
+                        data-i18n="settings.personalization">Personalización</span>
                 </h3>
                 <button class="btn btn-ghost" onclick="document.getElementById('appearance-modal').style.display='none'"
                     style="width:32px; height:32px; padding:0;">
@@ -75,45 +105,164 @@
             </div>
             <div class="modal-content-custom">
                 <div class="settings-group-card">
-                    <h4 class="settings-group-title">APARIENCIA</h4>
+                    <h4 class="settings-group-title" data-i18n="settings.appearance">APARIENCIA</h4>
+
+                    <!-- Theme Selector -->
                     <div class="setting-row">
-                        <span class="setting-label">Tema</span>
+                        <span class="setting-label" data-i18n="settings.theme">Tema</span>
                         <div class="segment-control">
-                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-item"><i
-                                    class="fa-solid fa-sun"></i></button>
-                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-item active"><i
-                                    class="fa-solid fa-moon"></i></button>
-                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-item text">Auto</button>
+                            <button id="theme-btn-light" onclick="setTheme('light')" class="seg-item">
+                                <i class="fa-solid fa-sun"></i>
+                            </button>
+                            <button id="theme-btn-dark" onclick="setTheme('dark')" class="seg-item active">
+                                <i class="fa-solid fa-moon"></i>
+                            </button>
+                            <button id="theme-btn-amoled" onclick="setTheme('amoled')" class="seg-item text">
+                                AMOLED
+                            </button>
+                            <button id="theme-btn-auto" onclick="setTheme('auto')" class="seg-item text"
+                                data-i18n="settings.theme.auto">
+                                Auto
+                            </button>
                         </div>
                     </div>
+
+                    <!-- Design Mode -->
                     <div class="setting-row">
-                        <span class="setting-label">Diseño</span>
+                        <span class="setting-label" data-i18n="settings.design">Diseño</span>
                         <div class="segment-control">
-                            <button onclick="setDesign('glass')" id="modal-btn-glass"
-                                class="seg-item text active">Glass</button>
-                            <button onclick="setDesign('material')" id="modal-btn-material"
-                                class="seg-item text">Flat</button>
+                            <button onclick="setDesign('glass')" id="modal-btn-glass" class="seg-item text active"
+                                data-i18n="settings.design.glass">
+                                Glass
+                            </button>
+                            <button onclick="setDesign('material')" id="modal-btn-material" class="seg-item text"
+                                data-i18n="settings.design.flat">
+                                Flat
+                            </button>
                         </div>
                     </div>
+
+                    <!-- Glass Blur Intensity (macOS Tahoe Style) -->
+                    <div id="glass-blur-control" class="setting-row tahoe-slider-row">
+                        <span class="setting-label" data-i18n="settings.glass.blur">Glass Intensity</span>
+                        <div class="tahoe-slider-container">
+                            <div class="tahoe-slider-track-wrapper">
+                                <input type="range" id="blur-slider" min="0" max="50" value="25" class="tahoe-slider"
+                                    oninput="updateBlur(this.value)" onchange="saveBlur(this.value)">
+                            </div>
+                            <div class="tahoe-ticks">
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">0</span>
+                                </div>
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">10</span>
+                                </div>
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">20</span>
+                                </div>
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">30</span>
+                                </div>
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">40</span>
+                                </div>
+                                <div class="tahoe-tick"><span class="tick-pill"></span><span class="tick-num">50</span>
+                                </div>
+                            </div>
+                            <span id="blur-value" class="tahoe-value">25px</span>
+                        </div>
+                    </div>
+
+                    <!-- Accent Color -->
                     <div class="setting-row">
-                        <span class="setting-label">Acento</span>
+                        <span class="setting-label" data-i18n="settings.accent">Acento</span>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div class="color-circle-wrapper">
                                 <input type="color" id="accent-picker" onchange="setAccentColor(this.value)">
                             </div>
-                            <button id="accent-mode-auto" onclick="setAccentMode('auto')"
-                                class="seg-btn-reset">Reset</button>
+                            <button id="accent-mode-auto" onclick="setAccentMode('auto')" class="seg-btn-reset"
+                                data-i18n="settings.reset">
+                                Reset
+                            </button>
                         </div>
                     </div>
+
+                    <!-- Custom Background -->
                     <div class="setting-row">
-                        <span class="setting-label">Idioma</span>
-                        <div class="segment-control">
-                            <button onclick="setLanguage('es')" data-lang-btn="es"
-                                class="seg-item text active">ES</button>
-                            <button onclick="setLanguage('en')" data-lang-btn="en" class="seg-item text">EN</button>
-                            <button onclick="setLanguage('pt')" data-lang-btn="pt" class="seg-item text">PT</button>
+                        <span class="setting-label" data-i18n="settings.background">Fondo Personalizado</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="file" id="background-upload" accept="image/*" style="display:none"
+                                onchange="uploadBackground(event)">
+                            <button class="btn btn-secondary"
+                                onclick="document.getElementById('background-upload').click()"
+                                style="padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="fa-solid fa-upload"></i> <span data-i18n="settings.upload">Subir</span>
+                            </button>
+                            <button class="btn btn-ghost" onclick="removeBackground()"
+                                style="padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="fa-solid fa-xmark"></i> <span data-i18n="settings.remove">Quitar</span>
+                            </button>
                         </div>
                     </div>
+
+                    <!-- Solid Color Background -->
+                    <div class="setting-row" style="align-items: flex-start;">
+                        <span class="setting-label" data-i18n="settings.solid_color">Fondo Color Sólido</span>
+                        <div class="solid-color-controls">
+                            <div class="solid-color-input-row">
+                                <div class="color-circle-wrapper">
+                                    <input type="color" id="solid-color-picker"
+                                        onchange="updateSolidColorPreview(this.value)">
+                                </div>
+                                <input type="text" id="solid-color-input" class="cfg-in" placeholder="#8b5cf6"
+                                    style="flex:1; max-width:110px; font-family:'JetBrains Mono';"
+                                    oninput="updateSolidColorFromInput(this.value)">
+                                <select id="color-space-select" class="cfg-in" style="flex:1; max-width:130px;">
+                                    <option value="srgb">sRGB</option>
+                                    <option value="display-p3">Display P3</option>
+                                    <option value="rec2020">Rec. 2020</option>
+                                </select>
+                            </div>
+                            <div class="solid-color-buttons-row">
+                                <button class="btn btn-secondary" onclick="applySolidColor()"
+                                    style="padding: 9px 18px; font-size: 0.9rem;">
+                                    <i class="fa-solid fa-check"></i> <span data-i18n="settings.apply">Aplicar</span>
+                                </button>
+                                <button class="btn btn-ghost" onclick="removeSolidColor()"
+                                    style="padding: 9px 18px; font-size: 0.9rem;">
+                                    <i class="fa-solid fa-xmark"></i> <span data-i18n="settings.remove">Quitar</span>
+                                </button>
+                            </div>
+                            <label class="solid-color-checkbox">
+                                <input type="checkbox" id="adaptive-theme-toggle">
+                                <span data-i18n="settings.adaptive_theme">Generar tema adaptativo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="setting-row">
+                        <span class="setting-label" data-i18n="settings.language">Idioma</span>
+                        <div class="segment-control">
+                            <button onclick="setLanguage('es')" data-lang-btn="es" class="seg-item text active">
+                                ES
+                            </button>
+                            <button onclick="setLanguage('en')" data-lang-btn="en" class="seg-item text">
+                                EN
+                            </button>
+                            <button onclick="setLanguage('pt')" data-lang-btn="pt" class="seg-item text">
+                                PT
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Update Buttons -->
+                    <div class="update-buttons-section">
+                        <button class="update-btn" onclick="updateUI()">
+                            <i class="fa-solid fa-paintbrush"></i> <span data-i18n="settings.update.ui">Actualizar
+                                UI</span>
+                        </button>
+                        <button class="update-btn" onclick="updateSystem()">
+                            <i class="fa-solid fa-server"></i> <span data-i18n="settings.update.system">Actualizar
+                                Sistema</span>
+                        </button>
+                    </div>
+                    <div id="update-status-msg"></div>
                 </div>
             </div>
         </div>
@@ -162,9 +311,6 @@
                         data-i18n="nav.labs">Labs</span></button>
                 <button onclick="setTab('config', this)" class="nav-btn"><i class="fa-solid fa-sliders"></i><span
                         data-i18n="nav.settings">Ajustes</span></button>
-                <!-- Mobile Action Button -->
-                <button onclick="toggleCommandPalette()" class="nav-btn mobile-only"><i
-                        class="fa-solid fa-bolt"></i><span>Acciones</span></button>
             </nav>
 
             <div class="sidebar-footer">
@@ -260,6 +406,14 @@
                             style="height:6px;background:rgba(255,255,255,0.1);border-radius:10px;margin-top:20px;overflow:hidden">
                             <div id="disk-fill" style="height:100%;background:var(--p);width:0%"></div>
                         </div>
+                        <div style="margin-top: 15px; height: 60px;">
+                            <canvas id="diskChart"></canvas>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.75rem; color: var(--muted); font-family: 'JetBrains Mono', monospace;">
+                            <span>R: <span id="disk-read">0 KB/s</span></span>
+                            <span>W: <span id="disk-write">0 KB/s</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -282,14 +436,14 @@
             <div id="tab-files" class="tab-content">
                 <div class="card glass full">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title" style="margin:0; display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                        <div class="card-title" style="margin:0"><i class="fa-solid fa-folder-open"></i> Archivos</div>
+                        <div style="display:flex;gap:10px">
+                            <button onclick="navigateUp()" class="btn btn-secondary" title="Atrás"><i
                                     class="fa-solid fa-arrow-left"></i></button>
-                            <i class="fa-solid fa-folder-open"></i> Archivos
+                            <button onclick="loadFileBrowser(currentPath)" class="btn btn-secondary"><i
+                                    class="fa-solid fa-rotate"></i></button>
+                            <button onclick="uploadFile()" class="btn btn-primary">Subir</button>
                         </div>
-                        <div style="display:flex;gap:10px"><button onclick="loadFileBrowser(currentPath)"
-                                class="btn btn-secondary"><i class="fa-solid fa-rotate"></i></button><button
-                                onclick="uploadFile()" class="btn btn-primary">Subir</button></div>
                     </div>
                     <div id="file-list" class="file-list"></div>
                 </div>
@@ -338,78 +492,89 @@
                 <h2 style="margin-bottom:10px; font-weight:800">Aether Labs</h2>
                 <div class="labs-grid">
                     <!-- Active Features -->
-                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta">BETA</span>
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta"
+                            data-i18n="labs.tag.beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-folder-tree"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Gestor de Archivos</div>
-                            <p class="mod-desc">Explorador avanzado.</p><button class="btn-install"
-                                onclick="setTab('files')">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.file.manager">Gestor de Archivos</div>
+                            <p class="mod-desc" data-i18n="labs.file.manager.desc">Explorador avanzado.</p><button
+                                class="btn-install" onclick="setTab('files')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span>
+                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta"
+                            data-i18n="labs.tag.beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-box-archive"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Backups</div>
-                            <p class="mod-desc">Copias de seguridad.</p><button class="btn-install"
-                                onclick="setTab('backups')">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.backups">Backups</div>
+                            <p class="mod-desc" data-i18n="labs.backups.desc">Copias de seguridad.</p><button
+                                class="btn-install" onclick="setTab('backups')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-teal"><span class="lab-tag beta">BETA</span>
+                    <div class="mod-card-modern lab-teal"><span class="lab-tag beta"
+                            data-i18n="labs.tag.beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-clock"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Programador</div>
-                            <p class="mod-desc">Tareas automáticas.</p><button class="btn-install"
-                                onclick="setTab('scheduler')">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.scheduler">Programador</div>
+                            <p class="mod-desc" data-i18n="labs.scheduler.desc">Tareas automáticas.</p><button
+                                class="btn-install" onclick="setTab('scheduler')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta">BETA</span>
+                    <div class="mod-card-modern lab-orange"><span class="lab-tag beta"
+                            data-i18n="labs.tag.beta">BETA</span>
                         <div class="mod-cover"><i class="fa-solid fa-file-lines"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Visor de Logs</div>
-                            <p class="mod-desc">Análisis de registros.</p><button class="btn-install"
-                                onclick="setTab('logs')">Abrir</button>
-                        </div>
-                    </div>
-                    <div class="mod-card-modern lab-blue"><span class="lab-tag beta">BETA</span>
-                        <div class="mod-cover"><i class="fa-solid fa-users"></i></div>
-                        <div class="mod-body">
-                            <div class="mod-title">Whitelist</div>
-                            <p class="mod-desc">Gestiona jugadores.</p><button class="btn-install"
-                                onclick="setTab('whitelist')">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.logs">Visor de Logs</div>
+                            <p class="mod-desc" data-i18n="labs.logs.desc">Análisis de registros.</p><button
+                                class="btn-install" onclick="setTab('logs')" data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
 
-                    <!-- Work In Progress -->
-                    <div class="mod-card-modern lab-purple"><span class="lab-tag wip">WIP</span>
+                    <div class="mod-card-modern lab-purple">
                         <div class="mod-cover"><i class="fa-solid fa-puzzle-piece"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Gestor de Plugins</div>
-                            <p class="mod-desc">Instala y gestiona plugins.</p><button class="btn-install"
-                                onclick="Toastify({text: 'Próximamente', style: {background: '#8b5cf6'}}).showToast()">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.plugins">Gestor de Plugins</div>
+                            <p class="mod-desc" data-i18n="labs.plugins.desc">Instala y gestiona plugins.</p><button
+                                class="btn-install" onclick="setTab('plugins')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-green"><span class="lab-tag wip">WIP</span>
+                    <div class="mod-card-modern lab-green">
                         <div class="mod-cover"><i class="fa-solid fa-chart-line"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Monitor de Rendimiento</div>
-                            <p class="mod-desc">Gráficos en tiempo real.</p><button class="btn-install"
-                                onclick="Toastify({text: 'Próximamente', style: {background: '#10b981'}}).showToast()">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.performance">Monitor de Rendimiento</div>
+                            <p class="mod-desc" data-i18n="labs.performance.desc">Gráficos en tiempo real.</p><button
+                                class="btn-install" onclick="setTab('performance-lab')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-red"><span class="lab-tag wip">WIP</span>
+                    <div class="mod-card-modern lab-red">
                         <div class="mod-cover"><i class="fa-solid fa-terminal"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Consola RCON</div>
-                            <p class="mod-desc">Acceso remoto.</p><button class="btn-install"
-                                onclick="Toastify({text: 'Próximamente', style: {background: '#ef4444'}}).showToast()">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.rcon">Consola RCON</div>
+                            <p class="mod-desc" data-i18n="labs.rcon.desc">Acceso remoto.</p><button class="btn-install"
+                                onclick="setTab('rcon')" data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
-                    <div class="mod-card-modern lab-indigo"><span class="lab-tag wip">WIP</span>
+                    <div class="mod-card-modern lab-indigo">
                         <div class="mod-cover"><i class="fa-solid fa-globe"></i></div>
                         <div class="mod-body">
-                            <div class="mod-title">Gestor de Mundos</div>
-                            <p class="mod-desc">Administra mundos.</p><button class="btn-install"
-                                onclick="Toastify({text: 'Próximamente', style: {background: '#6366f1'}}).showToast()">Abrir</button>
+                            <div class="mod-title" data-i18n="labs.worlds">Gestor de Mundos</div>
+                            <p class="mod-desc" data-i18n="labs.worlds.desc">Administra mundos.</p><button
+                                class="btn-install" onclick="setTab('worlds')"
+                                data-i18n="labs.button.open">Abrir</button>
+                        </div>
+                    </div>
+                    <!-- Discord Webhook Card -->
+                    <div class="mod-card-modern lab-indigo" style="--accent: #5865F2;">
+                        <div class="mod-cover"><i class="fa-brands fa-discord"></i></div>
+                        <div class="mod-body">
+                            <div class="mod-title" data-i18n="integrations.discord.title">Discord Webhooks</div>
+                            <p class="mod-desc" data-i18n="integrations.discord.desc">Notificaciones.</p><button
+                                class="btn-install" onclick="setTab('discord-integration')"
+                                data-i18n="labs.button.open">Abrir</button>
                         </div>
                     </div>
                 </div>
@@ -430,32 +595,55 @@
             <div id="tab-backups" class="tab-content">
                 <div class="card glass full">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                        <div class="card-title"><i class="fa-solid fa-box-archive"></i> <span
+                                data-i18n="backups.title">Copias de Seguridad</span></div>
+                        <div style="display:flex;gap:10px">
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
                                     class="fa-solid fa-arrow-left"></i></button>
-                            <span><i class="fa-solid fa-box-archive"></i> <span data-i18n="backups.title">Copias de
-                                    Seguridad</span></span>
-                        </div><button onclick="createBackup()" class="btn btn-primary" data-i18n="backups.create">Crear
-                            Backup</button>
+                            <button onclick="openBackupModal()" class="btn btn-primary" data-i18n="backups.create">Crear
+                                Backup</button>
+                        </div>
                     </div>
                     <div id="backup-list" class="file-list"></div>
+                </div>
+            </div>
+
+            <!-- New Backup Modal -->
+            <div id="backup-modal" class="modal-overlay" style="display:none">
+                <div class="modal glass modal-small">
+                    <div class="modal-header">
+                        <h3><i class="fa-solid fa-file-circle-plus"></i> <span data-i18n="backups.create">Crear
+                                Backup</span></h3>
+                        <button class="btn btn-ghost" onclick="closeBackupModal()"><i
+                                class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div style="padding:20px; display:flex; flex-direction:column; gap:15px">
+                        <div>
+                            <label class="cfg-label" data-i18n="backups.name_optional">Nombre (Opcional)</label>
+                            <input type="text" id="backup-name-input" class="cfg-in" placeholder="Ej: antes-de-mods">
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:10px">
+                            <button class="btn btn-ghost" onclick="closeBackupModal()"
+                                data-i18n="button.cancel">Cancelar</button>
+                            <button class="btn btn-primary" onclick="confirmCreateBackup()"
+                                data-i18n="button.create">Crear</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-whitelist" class="tab-content">
                 <div class="card glass" style="min-height: auto; margin-bottom: 20px;">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
-                                    class="fa-solid fa-arrow-left"></i></button>
-                            <span><i class="fa-solid fa-users"></i> <span
-                                    data-i18n="whitelist.title">Whitelist</span></span>
-                        </div>
+                        <div class="card-title"><i class="fa-solid fa-users"></i> <span
+                                data-i18n="whitelist.title">Whitelist</span></div>
                         <div style="display:flex; gap:12px; align-items:center;">
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                                 <input type="checkbox" id="whitelist-enabled" onchange="toggleWhitelist()"
                                     style="width:18px; height:18px; cursor:pointer;">
-                                <span style="font-weight:600; font-size:0.9rem;"
+                                <span style="font-weight:600; font-size:0.9rem"
                                     data-i18n="whitelist.enabled">Activada</span>
                             </label>
                         </div>
@@ -478,19 +666,75 @@
             <div id="tab-scheduler" class="tab-content">
                 <div class="card glass full">
                     <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
-                        <div class="card-title" style="display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
+                        <div class="card-title"><i class="fa-solid fa-clock"></i> <span
+                                data-i18n="perm.scheduler">Programador</span></div>
+                        <div style="display:flex;gap:10px">
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
                                     class="fa-solid fa-arrow-left"></i></button>
-                            <span><i class="fa-solid fa-clock"></i> <span
-                                    data-i18n="perm.scheduler">Programador</span></span>
+                            <button onclick="openSchedulerModal()" class="btn btn-primary"><i
+                                    class="fa-solid fa-plus"></i>
+                                Nueva Tarea</button>
                         </div>
-                        <button onclick="openCreateTaskModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
-                            Agregar Tarea</button>
                     </div>
-                    <div id="cron-list" class="file-list">
-                        <div style="padding:20px; text-align:center; color:var(--muted)">
-                            <i class="fa-solid fa-clock"></i> Cargando tareas...
+                    <div id="cron-list" class="file-list"
+                        style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduler Modal -->
+            <div id="scheduler-modal" class="modal-overlay" style="display:none">
+                <div class="modal glass" style="max-width:500px">
+                    <div class="modal-header">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="scheduler.new_task">Nueva
+                                Tarea</span></h3>
+                        <button class="btn btn-ghost" onclick="closeSchedulerModal()"><i
+                                class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div style="padding:20px; display:flex; flex-direction:column; gap:15px">
+                        <div>
+                            <label class="cfg-label" data-i18n="scheduler.task_name">Nombre de la Tarea</label>
+                            <input type="text" id="task-name" class="cfg-in" placeholder="Ej: Reinicio Diario">
                         </div>
+
+                        <div>
+                            <label class="cfg-label" data-i18n="scheduler.task.action">Acción</label>
+                            <select id="task-action" class="cfg-in" onchange="toggleTaskActionFields()">
+                                <option value="restart" data-i18n="scheduler.act.restart">Reiniciar Server</option>
+                                <option value="stop" data-i18n="scheduler.act.stop">Detener Server</option>
+                                <option value="start" data-i18n="scheduler.act.start">Iniciar Server</option>
+                                <option value="backup" data-i18n="scheduler.act.backup">Crear Backup</option>
+                                <option value="command" data-i18n="scheduler.act.command">Ejecutar Comando</option>
+                            </select>
+                        </div>
+
+                        <div id="task-command-field" style="display:none">
+                            <label class="cfg-label" data-i18n="scheduler.task.command">Comando</label>
+                            <input type="text" id="task-command" class="cfg-in" placeholder="say Hola Mundo">
+                        </div>
+
+                        <div>
+                            <label class="cfg-label" data-i18n="scheduler.task.frequency">Frecuencia</label>
+                            <select id="task-frequency" class="cfg-in" onchange="toggleTaskCustomCron()">
+                                <option value="0 0 * * *" data-i18n="scheduler.freq.daily">Diariamente (00:00)</option>
+                                <option value="0 0 * * 1" data-i18n="scheduler.freq.weekly">Semanalmente (Lunes)
+                                </option>
+                                <option value="0 0 1 * *">Monthly (Day 1)</option>
+                                <option value="0 */6 * * *" data-i18n="scheduler.freq.every6h">Cada 6 Horas</option>
+                                <option value="custom" data-i18n="scheduler.freq.custom">Personalizado (Cron)</option>
+                            </select>
+                        </div>
+
+                        <div id="task-cron-field" style="display:none">
+                            <label class="cfg-label" data-i18n="scheduler.cron_expression">Expresión Cron</label>
+                            <input type="text" id="task-cron" class="cfg-in" placeholder="* * * * *">
+                            <small style="color:var(--muted)">Min Hora Día Mes DíaSemana</small>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="saveTask()" style="margin-top:10px"
+                            data-i18n="button.save">Guardar
+                            Tarea</button>
                     </div>
                 </div>
             </div>
@@ -498,18 +742,191 @@
             <!-- Logs Tab -->
             <div id="tab-logs" class="tab-content">
                 <div class="card glass full" style="height:calc(100vh - 140px)">
-                    <div class="card-title" style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                        <button class="btn btn-ghost" onclick="setTab('labs')" style="padding:4px 8px;"><i
-                                class="fa-solid fa-arrow-left"></i></button>
-                        <span><i class="fa-solid fa-file-lines"></i> <span data-i18n="perm.logs">Visor de
-                                Logs</span></span>
-                    </div>
+                    <div class="card-title"><i class="fa-solid fa-file-lines"></i> <span data-i18n="perm.logs">Visor de
+                            Logs</span></div>
                     <div id="logs-container"
                         style="flex:1; background:var(--bg); border:1px solid var(--glass-border); border-radius:12px; padding:15px; font-family:'JetBrains Mono'; font-size:0.9rem; overflow-y:auto; color:var(--txt)">
                         <span style="color:var(--muted)">Cargando logs... (WIP)</span>
                     </div>
                 </div>
             </div>
+
+            <!-- Plugin Manager Tab -->
+            <div id="tab-plugins" class="tab-content">
+                <div class="card glass full">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-puzzle-piece"></i> <span
+                                data-i18n="plugins.title">Gestor de Plugins</span></div>
+                        <div style="display:flex; gap:10px">
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <div class="search-box glass">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="plugin-search" placeholder="Buscar plugins..."
+                                    data-i18n-placeholder="plugins.search_bar" oninput="filterPlugins()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tags-row" style="margin-bottom:20px">
+                        <span class="tag active" onclick="filterPluginCat('all')"
+                            data-i18n="plugins.cat.all">Todos</span>
+                        <span class="tag" onclick="filterPluginCat('admin')" data-i18n="plugins.cat.admin">Admin</span>
+                        <span class="tag" onclick="filterPluginCat('mech')"
+                            data-i18n="plugins.cat.mech">Mecánicas</span>
+                        <span class="tag" onclick="filterPluginCat('world')" data-i18n="plugins.cat.world">Mundo</span>
+                    </div>
+                    <div id="plugin-list" class="plugin-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Lab Tab -->
+            <div id="tab-performance-lab" class="tab-content">
+                <div class="card glass full">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-chart-line"></i> <span
+                                data-i18n="perf.advanced_monitor">Monitor Avanzado</span></div>
+                        <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+
+                    <div class="perf-dashboard-grid">
+                        <div class="card glass perf-card">
+                            <div class="perf-title">CPU Load</div>
+                            <div class="perf-metric-big" id="perf-cpu-val">0%</div>
+                            <div class="perf-chart-container"><canvas id="perfCpuChart"></canvas></div>
+                        </div>
+                        <div class="card glass perf-card">
+                            <div class="perf-title">RAM Usage</div>
+                            <div class="perf-metric-big" id="perf-ram-val">0 GB</div>
+                            <div class="perf-chart-container"><canvas id="perfRamChart"></canvas></div>
+                        </div>
+                        <div class="card glass perf-card">
+                            <div class="perf-title">Network In</div>
+                            <div class="perf-metric-big" id="perf-net-in">0 KB/s</div>
+                            <div class="perf-chart-container"><canvas id="perfNetInChart"></canvas></div>
+                        </div>
+                        <div class="card glass perf-card">
+                            <div class="perf-title">Network Out</div>
+                            <div class="perf-metric-big" id="perf-net-out">0 KB/s</div>
+                            <div class="perf-chart-container"><canvas id="perfNetOutChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="card glass" style="margin-top:20px;">
+                        <div class="card-title"><span data-i18n="perf.active_processes">Procesos Activos</span> (Mock)
+                        </div>
+                        <table class="process-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="perf.pid">PID</th>
+                                    <th data-i18n="perf.user">Usuario</th>
+                                    <th>CPU</th>
+                                    <th>RAM</th>
+                                    <th data-i18n="perf.command">Comando</th>
+                                </tr>
+                            </thead>
+                            <tbody id="process-list">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RCON Tab -->
+            <div id="tab-rcon" class="tab-content">
+                <div class="card glass full" style="height:calc(100vh - 140px); display:flex; flex-direction:column;">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:10px">
+                        <div class="card-title"><i class="fa-solid fa-terminal"></i> <span data-i18n="labs.rcon">Consola
+                                RCON</span></div>
+                        <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+
+                    <div id="rcon-output" class="console-box"
+                        style="flex:1; margin-bottom:10px; font-family:'JetBrains Mono'; color:#fff; overflow:hidden;">
+                        <!-- Terminal content -->
+                    </div>
+                    <div class="console-input-area">
+                        <span class="prompt-char" style="color:#ef4444">RCON></span>
+                        <input type="text" id="rcon-input" placeholder="Enviar comando RCON..."
+                            data-i18n-placeholder="rcon.placeholder" onkeydown="if(event.key==='Enter') sendRcon()">
+                        <button class="btn btn-primary" onclick="sendRcon()" style="padding: 8px 16px;"
+                            data-i18n="rcon.send">Enviar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Worlds Manager Tab -->
+            <div id="tab-worlds" class="tab-content">
+                <div class="card glass full">
+                    <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                        <div class="card-title"><i class="fa-solid fa-globe"></i> <span data-i18n="labs.worlds">Gestor
+                                de Mundos</span></div>
+                        <div style="display:flex; gap:10px">
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <button onclick="createWorld()" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
+                                <span data-i18n="worlds.create">Nuevo Mundo</span></button>
+                            <button onclick="importWorld()" class="btn btn-secondary"><i class="fa-solid fa-upload"></i>
+                                <span data-i18n="worlds.import">Importar</span></button>
+                        </div>
+                    </div>
+                    <div id="worlds-grid" class="worlds-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <!-- Discord Integration Tab -->
+                <div id="tab-discord-integration" class="tab-content">
+                    <div class="card glass full">
+                        <div class="modal-header" style="border:none; padding:0; margin-bottom:20px">
+                            <div class="card-title"><i class="fa-brands fa-discord"></i> <span
+                                    data-i18n="integrations.discord.title">Discord Webhooks</span></div>
+                            <button onclick="setTab('labs')" class="btn btn-secondary" title="Atrás"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                        </div>
+
+                        <div style="max-width: 600px;">
+                            <p style="color:var(--muted); margin-bottom: 20px;" data-i18n="integrations.discord.desc">
+                                Envía notificaciones del estado del servidor a un canal de Discord.
+                            </p>
+
+                            <div class="setting-row"
+                                style="flex-direction: column; align-items: flex-start; margin-bottom: 20px;">
+                                <label class="setting-label" style="margin-bottom: 8px;"
+                                    data-i18n="integrations.webhook.url">URL del Webhook</label>
+                                <input type="text" id="discord-webhook-url" class="cfg-in"
+                                    placeholder="https://discord.com/api/webhooks/..." style="width: 100%;">
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label class="setting-label" style="margin-bottom: 10px; display:block;"
+                                    data-i18n="integrations.events">Eventos</label>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                        <input type="checkbox" id="discord-evt-start" class="apple-toggle">
+                                        <span data-i18n="integrations.event.start">Iniciar Servidor</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                        <input type="checkbox" id="discord-evt-stop" class="apple-toggle">
+                                        <span data-i18n="integrations.event.stop">Detener Servidor</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                        <input type="checkbox" id="discord-evt-join" class="apple-toggle">
+                                        <span data-i18n="integrations.event.join">Jugador Conectado</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button onclick="saveDiscordSettings()" class="btn btn-primary">
+                                <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="button.save">Guardar
+                                    Cambios</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
         </main>
     </div>
 
@@ -680,11 +1097,7 @@
                 <i class="fa-solid fa-terminal"></i>
                 <input type="text" id="command-input" class="command-input" placeholder="Escribe un comando..."
                     autocomplete="off">
-                <kbd class="kbd-hint desktop-only">Esc</kbd>
-                <button class="btn btn-ghost mobile-only" onclick="toggleCommandPalette()"
-                    style="padding: 4px 8px; margin-left:8px;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <kbd class="kbd-hint">Esc</kbd>
             </div>
             <div id="command-results" class="command-results"></div>
             <div class="command-palette-footer">
@@ -695,8 +1108,8 @@
         </div>
     </div>
 
-    <script src="i18n.js"></script>
-    <script src="app.js"></script>
+    <!-- Scripts -->
+    <script src="app.js"></script> <!-- Ensure app.js is loaded -->
     <!-- Edit User Modal -->
     <div id="edit-user-modal" class="modal-overlay" style="display:none">
         <div class="modal-content glass" style="max-width:600px">
@@ -725,60 +1138,87 @@
                 <div id="edit-permissions-form">
                     <label style="font-weight:600; margin-bottom:12px; display:block"
                         data-i18n="account.permissions">Permissions</label>
-                    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px">
-                        <!-- Server Control -->
+                    <!-- Permissions Grid -->
+                    <div class="edit-perm-grid"
+                        style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; max-height:300px; overflow-y:auto; padding-right:4px">
+                        <!-- Core -->
+                        <!-- Users -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="start" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="users" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span data-i18n="perm.users">Users Manager</span>
+                        </label>
+
+                        <!-- Server Management -->
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="start" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.start">Start Server</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="stop" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="stop" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.stop">Stop Server</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="restart" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="restart" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.restart">Restart Server</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="kill" style="width:16px; height:16px">
-                            <span data-i18n="perm.kill">Force Shutdown</span>
+                            <input type="checkbox" name="edit-perm" value="command" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span data-i18n="perm.command">Send Commands</span>
                         </label>
 
-                        <!-- Access Permissions -->
+                        <!-- File Management -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="console" style="width:16px; height:16px">
-                            <span data-i18n="perm.console">Console</span>
-                        </label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="files" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="files" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.files">File Manager</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="config" style="width:16px; height:16px">
-                            <span data-i18n="perm.config">Configuration</span>
+                            <input type="checkbox" name="edit-perm" value="edit_files" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span data-i18n="perm.edit_files">Edit Files</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="backups" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="upload_files" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span data-i18n="perm.upload_files">Upload Files</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="delete_files" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span data-i18n="perm.delete_files">Delete Files</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="backups" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.backups">Backups</span>
                         </label>
 
                         <!-- Advanced Features -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="scheduler" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="scheduler" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.scheduler">Scheduler</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="logs" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="logs" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span data-i18n="perm.logs">Log Viewer</span>
                         </label>
 
                         <!-- System -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="whitelist" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="whitelist" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span>Whitelist</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                            <input type="checkbox" name="edit-perm" value="versions" style="width:16px; height:16px">
+                            <input type="checkbox" name="edit-perm" value="versions" class="apple-toggle"
+                                style="width:16px; height:16px">
                             <span>Versions/Cores</span>
                         </label>
                     </div>
@@ -791,34 +1231,6 @@
                     <button class="btn btn-ghost" onclick="closeEditUserModal()" style="flex:1">
                         <i class="fa-solid fa-xmark"></i> <span data-i18n="button.cancel">Cancel</span>
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Task Modal -->
-    <div id="create-task-modal" class="modal-overlay" style="display:none">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-clock"></i> Nueva Tarea</h3>
-                <button class="btn btn-ghost" onclick="closeCreateTaskModal()"
-                    style="width:32px; height:32px; padding:0">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div style="padding:20px; display:flex; flex-direction:column; gap:15px">
-                <input type="text" id="task-name" class="cfg-in" placeholder="Nombre de la tarea (ej. Reinicio Diario)">
-                <input type="text" id="task-schedule" class="cfg-in" placeholder="Cron Schedule (ej. 0 0 * * *)">
-                <input type="text" id="task-command" class="cfg-in" placeholder="Comando (ej. stop)">
-                <div style="display:flex; gap:10px; margin-top:10px">
-                    <button class="btn btn-primary" onclick="createTask()" style="flex:1">Crear</button>
-                    <button class="btn btn-ghost" onclick="closeCreateTaskModal()" style="flex:1">Cancelar</button>
-                </div>
-                <div style="font-size:0.8rem; color:var(--muted)">
-                    Formatos comunes:<br>
-                    0 0 * * * = Cada día a medianoche<br>
-                    0 */4 * * * = Cada 4 horas<br>
-                    */30 * * * * = Cada 30 minutos
                 </div>
             </div>
         </div>

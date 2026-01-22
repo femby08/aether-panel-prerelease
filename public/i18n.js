@@ -54,6 +54,17 @@ const translations = {
         'settings.design.flat': 'Flat',
         'settings.reset': 'Reset',
         'settings.personalization': 'Personalización',
+        'settings.accessibility': 'Accesibilidad',
+        'settings.high_contrast': 'Alto Contraste',
+        'settings.update.system': 'Actualizar Sistema',
+        'settings.update.ui': 'Actualizar UI',
+        'settings.background': 'Fondo Personalizado',
+        'settings.upload': 'Subir',
+        'settings.remove': 'Quitar',
+        'settings.solid_color': 'Fondo Color Sólido',
+        'settings.apply': 'Aplicar',
+        'settings.adaptive_theme': 'Generar tema adaptativo',
+        'settings.glass.blur': 'Intensidad Glass',
 
         // Command Palette
         'cmd.palette.placeholder': 'Escribe un comando...',
@@ -88,6 +99,8 @@ const translations = {
         'labs.logs.desc': 'Análisis de registros.',
         'labs.rcon': 'Consola RCON',
         'labs.rcon.desc': 'Acceso remoto.',
+        'rcon.placeholder': 'Enviar comando RCON...',
+        'rcon.send': 'Enviar',
         'labs.worlds': 'Gestor de Mundos',
         'labs.worlds.desc': 'Administra mundos.',
         'labs.tag.alpha': 'ALPHA',
@@ -132,15 +145,31 @@ const translations = {
 
         // Cores/Versions
         'cores.title': 'Selector de Núcleo',
+        'cores.all': 'Todos',
+        'cores.plugins': 'Plugins',
+        'cores.mods': 'Mods',
         'cores.vanilla': 'Vanilla',
         'cores.vanilla.desc': 'Oficial de Mojang.',
+        'cores.snapshot': 'Snapshot',
+        'cores.snapshot.desc': 'Versiones experimentales.',
         'cores.paper': 'Paper',
         'cores.paper.desc': 'Alto rendimiento.',
+        'cores.spigot': 'Spigot',
+        'cores.spigot.desc': 'API Original de Plugins.',
+        'cores.purpur': 'Purpur',
+        'cores.purpur.desc': 'Rendimiento extremo.',
         'cores.fabric': 'Fabric',
         'cores.fabric.desc': 'Modular y ligero.',
         'cores.forge': 'Forge',
         'cores.forge.desc': 'Mods clásicos.',
+        'cores.neoforge': 'NeoForge',
+        'cores.neoforge.desc': 'Fork Moderno.',
         'cores.select': 'Seleccionar',
+        'cores.wip': 'WIP',
+        'cores.msg.snapshot': '¡Función Snapshot pronto!',
+        'cores.msg.spigot': 'Por ahora usa Paper. Soporte Spigot pronto.',
+        'cores.msg.purpur': '¡Soporte Purpur pronto!',
+        'cores.msg.neoforge': '¡Soporte NeoForge pronto!',
 
         // Whitelist
         'whitelist.title': 'Gestión de Whitelist',
@@ -158,6 +187,7 @@ const translations = {
         // Backups
         'backups.title': 'Copias de Seguridad',
         'backups.create': 'Crear Backup',
+        'backups.name_optional': 'Nombre (Opcional)',
 
         // Status
         'status.online': 'ONLINE',
@@ -170,6 +200,75 @@ const translations = {
         'msg.saved': 'Guardado correctamente',
         'msg.error': 'Error',
         'msg.success': 'Éxito',
+
+        // Integrations
+        'integrations.title': 'Integraciones',
+        'integrations.discord.title': 'Discord Webhooks',
+        'integrations.discord.desc': 'Envía notificaciones del estado del servidor a un canal de Discord.',
+        'integrations.webhook.url': 'URL del Webhook',
+        'integrations.events': 'Eventos',
+        'integrations.event.start': 'Iniciar Servidor',
+        'integrations.event.stop': 'Detener Servidor',
+        'integrations.event.join': 'Jugador Conectado',
+
+        // Plugin Manager
+        'plugins.title': 'Gestor de Plugins',
+        'plugins.upload': 'Subir Plugin (.jar)',
+        'plugins.list': 'Plugins Instalados',
+        'plugins.no_plugins': 'No se encontraron plugins',
+        'plugins.delete.confirm': '¿Eliminar plugin?',
+        'plugins.installed': 'Instalados',
+        'plugins.store': 'Tienda',
+        'plugins.search.placeholder': 'Buscar en Modrinth...',
+        'plugins.search_bar': 'Buscar plugins...',
+        'plugins.cat.all': 'Todos',
+        'plugins.cat.admin': 'Admin',
+        'plugins.cat.mech': 'Mecánicas',
+        'plugins.cat.world': 'Mundo',
+
+        // World Manager
+        'worlds.title': 'Gestor de Mundos',
+        'worlds.current': 'Mundo Actual',
+        'worlds.list': 'Mundos Disponibles',
+        'worlds.activate': 'Activar',
+        'worlds.create': 'Generar Nuevo',
+        'worlds.import': 'Importar',
+        'worlds.delete': 'Eliminar',
+        'worlds.active': 'ACTIVO',
+
+        // Performance
+        'perf.title': 'Monitor de Rendimiento',
+        'perf.uptime': 'Tiempo de Actividad',
+        'perf.node': 'Versión de Node',
+        'perf.os': 'Sistema Operativo',
+        'perf.cores': 'Núcleos CPU',
+        'perf.advanced_monitor': 'Monitor Avanzado',
+        'perf.active_processes': 'Procesos Activos',
+        'perf.pid': 'PID',
+        'perf.user': 'Usuario',
+        'perf.command': 'Comando',
+
+        // Scheduler
+        'scheduler.task.frequency': 'Frecuencia',
+        'scheduler.task.action': 'Acción',
+        'scheduler.task.command': 'Comando/Mensaje',
+        'scheduler.freq.daily': 'Diario (Medianoche)',
+        'scheduler.freq.weekly': 'Semanal (Domingo)',
+        'scheduler.freq.hourly': 'Cada Hora',
+        'scheduler.freq.every30m': 'Cada 30 Minutos',
+        'scheduler.freq.every6h': 'Cada 6 Horas',
+        'scheduler.freq.every12h': 'Cada 12 Horas',
+        'scheduler.freq.custom': 'Personalizado (Cron)',
+        'scheduler.act.command': 'Ejecutar Comando',
+        'scheduler.act.restart': 'Reiniciar Servidor',
+        'scheduler.act.stop': 'Detener Servidor',
+        'scheduler.act.start': 'Iniciar Servidor',
+        'scheduler.act.backup': 'Crear Backup',
+        'scheduler.act.prune': 'Borrar Backups Antiguos (>7 días)',
+        'scheduler.act.say': 'Difundir Mensaje',
+        'scheduler.new_task': 'Nueva Tarea',
+        'scheduler.task_name': 'Nombre de la Tarea',
+        'scheduler.cron_expression': 'Expresión Cron',
     },
 
     en: {
@@ -183,6 +282,7 @@ const translations = {
         'nav.files': 'Files',
         'nav.labs': 'Labs',
         'nav.settings': 'Settings',
+        'nav.users': 'Users',
 
         // Buttons
         'button.start': 'START',
@@ -226,6 +326,17 @@ const translations = {
         'settings.design.flat': 'Flat',
         'settings.reset': 'Reset',
         'settings.personalization': 'Personalization',
+        'settings.accessibility': 'Accessibility',
+        'settings.high_contrast': 'High Contrast',
+        'settings.update.system': 'Update System',
+        'settings.update.ui': 'Update UI',
+        'settings.background': 'Custom Background',
+        'settings.upload': 'Upload',
+        'settings.remove': 'Remove',
+        'settings.solid_color': 'Solid Color Background',
+        'settings.apply': 'Apply',
+        'settings.adaptive_theme': 'Generate adaptive theme',
+        'settings.glass.blur': 'Glass Intensity',
 
         // Command Palette
         'cmd.palette.placeholder': 'Type a command...',
@@ -260,6 +371,8 @@ const translations = {
         'labs.logs.desc': 'Log analysis.',
         'labs.rcon': 'RCON Console',
         'labs.rcon.desc': 'Remote access.',
+        'rcon.placeholder': 'Send RCON command...',
+        'rcon.send': 'Send',
         'labs.worlds': 'World Manager',
         'labs.worlds.desc': 'Manage worlds.',
         'labs.tag.alpha': 'ALPHA',
@@ -304,15 +417,31 @@ const translations = {
 
         // Cores/Versions
         'cores.title': 'Core Selector',
+        'cores.all': 'All',
+        'cores.plugins': 'Plugins',
+        'cores.mods': 'Mods',
         'cores.vanilla': 'Vanilla',
         'cores.vanilla.desc': 'Official from Mojang.',
+        'cores.snapshot': 'Snapshot',
+        'cores.snapshot.desc': 'Experimental versions.',
         'cores.paper': 'Paper',
         'cores.paper.desc': 'High performance.',
+        'cores.spigot': 'Spigot',
+        'cores.spigot.desc': 'Original Plugin API.',
+        'cores.purpur': 'Purpur',
+        'cores.purpur.desc': 'Extreme performance.',
         'cores.fabric': 'Fabric',
         'cores.fabric.desc': 'Modular and lightweight.',
         'cores.forge': 'Forge',
         'cores.forge.desc': 'Classic mods.',
+        'cores.neoforge': 'NeoForge',
+        'cores.neoforge.desc': 'Modern Fork.',
         'cores.select': 'Select',
+        'cores.wip': 'WIP',
+        'cores.msg.snapshot': 'Snapshot feature coming soon!',
+        'cores.msg.spigot': 'For now, please use Paper. Spigot support coming.',
+        'cores.msg.purpur': 'Purpur support coming soon!',
+        'cores.msg.neoforge': 'NeoForge support coming soon!',
 
         // Whitelist
         'whitelist.title': 'Whitelist Management',
@@ -330,6 +459,7 @@ const translations = {
         // Backups
         'backups.title': 'Backups',
         'backups.create': 'Create Backup',
+        'backups.name_optional': 'Name (Optional)',
 
         // Status
         'status.online': 'ONLINE',
@@ -342,6 +472,53 @@ const translations = {
         'msg.saved': 'Saved successfully',
         'msg.error': 'Error',
         'msg.success': 'Success',
+
+        // Integrations
+        'integrations.title': 'Integrations',
+        'integrations.discord.title': 'Discord Webhooks',
+        'integrations.discord.desc': 'Send server status notifications to a Discord channel.',
+        'integrations.webhook.url': 'Webhook URL',
+        'integrations.events': 'Events',
+        'integrations.event.start': 'Server Start',
+        'integrations.event.stop': 'Server Stop',
+        'integrations.event.join': 'Player Join',
+
+        // Plugin Manager
+        'plugins.title': 'Plugin Manager',
+        'plugins.upload': 'Upload Plugin (.jar)',
+        'plugins.list': 'Installed Plugins',
+        'plugins.no_plugins': 'No plugins found',
+        'plugins.delete.confirm': 'Delete plugin?',
+        'plugins.installed': 'Installed',
+        'plugins.store': 'Store',
+        'plugins.search.placeholder': 'Search Modrinth...',
+        'plugins.search_bar': 'Search plugins...',
+        'plugins.cat.all': 'All',
+        'plugins.cat.admin': 'Admin',
+        'plugins.cat.mech': 'Mechanics',
+        'plugins.cat.world': 'World',
+
+        // World Manager
+        'worlds.title': 'World Manager',
+        'worlds.current': 'Current World',
+        'worlds.list': 'Available Worlds',
+        'worlds.activate': 'Activate',
+        'worlds.create': 'Generate New',
+        'worlds.import': 'Import',
+        'worlds.delete': 'Delete',
+        'worlds.active': 'ACTIVE',
+
+        // Performance
+        'perf.title': 'Performance Monitor',
+        'perf.uptime': 'Uptime',
+        'perf.node': 'Node Version',
+        'perf.os': 'Operating System',
+        'perf.cores': 'CPU Cores',
+        'perf.advanced_monitor': 'Advanced Monitor',
+        'perf.active_processes': 'Active Processes',
+        'perf.pid': 'PID',
+        'perf.user': 'User',
+        'perf.command': 'Command',
     },
 
     pt: {
@@ -398,6 +575,17 @@ const translations = {
         'settings.design.flat': 'Flat',
         'settings.reset': 'Reset',
         'settings.personalization': 'Personalização',
+        'settings.accessibility': 'Acessibilidade',
+        'settings.high_contrast': 'Alto Contraste',
+        'settings.update.system': 'Atualizar Sistema',
+        'settings.update.ui': 'Atualizar UI',
+        'settings.background': 'Fundo Personalizado',
+        'settings.upload': 'Enviar',
+        'settings.remove': 'Remover',
+        'settings.solid_color': 'Fundo Cor Sólida',
+        'settings.apply': 'Aplicar',
+        'settings.adaptive_theme': 'Gerar tema adaptativo',
+        'settings.glass.blur': 'Intensidade Glass',
 
         // Command Palette
         'cmd.palette.placeholder': 'Digite um comando...',
@@ -478,13 +666,26 @@ const translations = {
         'cores.title': 'Seletor de Núcleo',
         'cores.vanilla': 'Vanilla',
         'cores.vanilla.desc': 'Oficial da Mojang.',
+        'cores.snapshot': 'Snapshot',
+        'cores.snapshot.desc': 'Versões experimentais.',
         'cores.paper': 'Paper',
         'cores.paper.desc': 'Alto desempenho.',
+        'cores.spigot': 'Spigot',
+        'cores.spigot.desc': 'API Original de Plugins.',
+        'cores.purpur': 'Purpur',
+        'cores.purpur.desc': 'Desempenho extremo.',
         'cores.fabric': 'Fabric',
         'cores.fabric.desc': 'Modular e leve.',
         'cores.forge': 'Forge',
         'cores.forge.desc': 'Mods clássicos.',
+        'cores.neoforge': 'NeoForge',
+        'cores.neoforge.desc': 'Fork moderno.',
         'cores.select': 'Selecionar',
+        'cores.wip': 'WIP',
+        'cores.msg.snapshot': 'Recurso Snapshot em breve!',
+        'cores.msg.spigot': 'Por enquanto use Paper. Suporte Spigot em breve.',
+        'cores.msg.purpur': 'Suporte Purpur em breve!',
+        'cores.msg.neoforge': 'Suporte NeoForge em breve!',
 
         // Whitelist
         'whitelist.title': 'Gestão de Whitelist',
@@ -514,11 +715,47 @@ const translations = {
         'msg.saved': 'Salvo com sucesso',
         'msg.error': 'Erro',
         'msg.success': 'Sucesso',
+
+        // Integrations
+        'integrations.title': 'Integrações',
+        'integrations.discord.title': 'Discord Webhooks',
+        'integrations.discord.desc': 'Enviar notificações de status para o Discord.',
+        'integrations.webhook.url': 'URL do Webhook',
+        'integrations.events': 'Eventos',
+        'integrations.event.start': 'Iniciar Servidor',
+        'integrations.event.stop': 'Parar Servidor',
+        'integrations.event.join': 'Entrada de Jogador',
+
+        // Plugin Manager
+        'plugins.title': 'Gerenciador de Plugins',
+        'plugins.upload': 'Enviar Plugin (.jar)',
+        'plugins.list': 'Plugins Instalados',
+        'plugins.no_plugins': 'Nenhum plugin encontrado',
+        'plugins.delete.confirm': 'Excluir plugin?',
+        'plugins.installed': 'Instalados',
+        'plugins.store': 'Loja',
+        'plugins.search.placeholder': 'Pesquisar Modrinth...',
+
+        // World Manager
+        'worlds.title': 'Gerenciador de Mundos',
+        'worlds.current': 'Mundo Atual',
+        'worlds.list': 'Mundos Disponíveis',
+        'worlds.activate': 'Ativar',
+        'worlds.create': 'Gerar Novo',
+        'worlds.delete': 'Excluir',
+        'worlds.active': 'ATIVO',
+
+        // Performance
+        'perf.title': 'Monitor de Desempenho',
+        'perf.uptime': 'Tempo de Atividade',
+        'perf.node': 'Versão Node',
+        'perf.os': 'Sistema Operacional',
+        'perf.cores': 'Núcleos de CPU',
     }
 };
 
-// Current language
-let currentLanguage = localStorage.getItem('language') || navigator.language.split('-')[0] || 'en';
+// Current language (default to English)
+let currentLanguage = localStorage.getItem('language') || 'en';
 if (!translations[currentLanguage]) currentLanguage = 'en';
 
 // Translation function

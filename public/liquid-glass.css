@@ -1,0 +1,2755 @@
+/* ============================================================
+   LIQUID GLASS DESIGN SYSTEM
+   macOS Tahoe-inspired CSS for Apple-quality UI
+   ============================================================ */
+
+/* ==================== DESIGN TOKENS ==================== */
+:root {
+    /* === GLASS MATERIAL === */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-bg-hover: rgba(255, 255, 255, 0.12);
+    --glass-bg-active: rgba(255, 255, 255, 0.15);
+    --glass-bg-elevated: rgba(255, 255, 255, 0.12);
+    --glass-bg-inset: rgba(0, 0, 0, 0.2);
+    --glass-blur: 40px;
+    --glass-blur-heavy: 60px;
+    --glass-saturation: 180%;
+
+    /* === BORDERS === */
+    --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+    --border-light: 1px solid rgba(255, 255, 255, 0.12);
+    --border-rim: 1px solid rgba(255, 255, 255, 0.15);
+
+    /* === SHADOWS === */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    --shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.25);
+    --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    /* === TYPOGRAPHY === */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+    --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-lg: 17px;
+    --text-xl: 20px;
+
+    --text-primary: rgba(255, 255, 255, 0.9);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --text-tertiary: rgba(255, 255, 255, 0.4);
+
+    /* === SPACING === */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
+    /* === BORDER RADIUS === */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* === ANIMATION === */
+    --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --spring-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --spring-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 200ms;
+    --duration-slow: 300ms;
+
+    /* === PHYSICS LAYER === */
+    --physics-scale-press: 0.97;
+    --physics-scale-hover: 1.02;
+    --physics-tilt-max: 3deg;
+    --physics-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==================== PHYSICS LAYER - GPU OPTIMIZED ==================== */
+/* Using only transform/opacity (composited, cheap) */
+
+/* === 1. SPRING ANIMATIONS (Elastic scaling) === */
+.lg-physics,
+.btn,
+.card,
+.glass,
+.nav-btn,
+.sidebar-btn {
+    transition: transform 0.25s var(--physics-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+        box-shadow 0.25s ease;
+    will-change: transform;
+    /* Hint to GPU */
+    transform: translateZ(0);
+    /* Force compositing */
+}
+
+/* Hover: Subtle lift (ONLY for elements with lg-physics class) */
+.lg-physics:hover,
+.card:hover,
+.glass:hover:not(.modal):not(.sidebar):not(.command-palette) {
+    transform: scale(1.002);
+    filter: brightness(1.02);
+}
+
+/* Cards/glass - NO large hover transform (was confusing) */
+
+/* Active: Squash effect (elastic press) */
+.lg-physics:active,
+.btn:active,
+.nav-btn:active,
+.sidebar-btn:active {
+    transform: scale(var(--physics-scale-press, 0.97)) translateY(1px);
+    transition-duration: 0.1s;
+}
+
+/* === 2. PARALLAX TILT (3D depth on hover) === */
+.lg-tilt {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.lg-tilt:hover {
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+}
+
+/* === 3. JELLY APPEAR ANIMATION === */
+@keyframes lg-jelly-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+
+    50% {
+        transform: scale(1.05) translateY(-5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.lg-jelly-in {
+    animation: lg-jelly-in 0.4s var(--physics-spring) forwards;
+}
+
+/* === 4. MAGNETIC SNAP (for toggles) === */
+.lg-toggle,
+.toggle-slider {
+    transition: transform 0.3s var(--physics-spring);
+}
+
+.lg-toggle:active .toggle-slider,
+.toggle:active .toggle-slider {
+    transform: scaleX(1.15);
+}
+
+/* === 5. DIRECTIONAL RIM LIGHTING === */
+.lg-rim-light {
+    position: relative;
+}
+
+.lg-rim-light::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.4) 0%,
+            rgba(255, 255, 255, 0.1) 30%,
+            transparent 60%,
+            rgba(0, 0, 0, 0.1) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* === 6. BUTTON SQUASH/STRETCH === */
+.btn-primary,
+.btn-secondary,
+.update-btn {
+    transition: transform 0.2s var(--physics-spring),
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.update-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.update-btn:active {
+    transform: scale(0.96) translateY(1px);
+}
+
+/* === 7. MOMENTUM SCROLL BOUNCE (iOS-style) === */
+.command-results,
+.modal-content-custom,
+.file-list {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* === 8. SPECULAR HIGHLIGHT (Static, optimized) === */
+.lg-specular::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 100%);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* ==================== BASE GLASS MATERIAL ==================== */
+.lg-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    border: var(--border-subtle);
+    border-radius: var(--radius-lg);
+}
+
+.lg-glass-elevated {
+    background: var(--glass-bg-elevated);
+    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturation));
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ==================== BUTTONS ==================== */
+.lg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--spring-bounce);
+    border: none;
+    outline: none;
+}
+
+.lg-btn-primary {
+    background: rgba(255, 255, 255, 0.18);
+    border: var(--border-light);
+    backdrop-filter: blur(20px);
+}
+
+.lg-btn-primary:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
+}
+
+.lg-btn-primary:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+.lg-btn-secondary {
+    background: transparent;
+    border: var(--border-rim);
+}
+
+.lg-btn-secondary:hover {
+    background: var(--glass-bg);
+}
+
+.lg-btn-ghost {
+    background: transparent;
+    border: none;
+}
+
+.lg-btn-ghost:hover {
+    background: var(--glass-bg);
+}
+
+/* ==================== SLIDERS ==================== */
+/* ==================== SLIDERS (Pill Design) ==================== */
+input[type="range"],
+.lg-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    /* Pill track */
+    background: #ffffff;
+    border-radius: var(--radius-full);
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    border: none;
+}
+
+/* Chrome/Safari Thumb */
+input[type="range"]::-webkit-slider-thumb,
+.lg-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 50px;
+    /* Pill width */
+    height: 28px;
+    /* Pill height (taller than track) */
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--p, #4facfe), var(--p-dark, #00f2fe));
+    border: none;
+    /* No white border */
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-top: -6px;
+    /* Center thumb: (28 - 16) / 2 = 6. Negative margin pulls it up. */
+}
+
+input[type="range"]::-webkit-slider-thumb:hover,
+.lg-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]:active::-webkit-slider-thumb,
+.lg-slider:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+}
+
+/* Firefox Thumb */
+input[type="range"]::-moz-range-thumb,
+.lg-slider::-moz-range-thumb {
+    width: 50px;
+    height: 28px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--p, #4facfe), var(--p-dark, #00f2fe));
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Ticks Simulation (simulated with background-image if needed, 
+   but simplistic approach first to match clean look) */
+.lg-slider:hover {
+    filter: brightness(1.02);
+}
+
+/* ==================== TOGGLES ==================== */
+.lg-toggle {
+    position: relative;
+    width: 51px;
+    height: 31px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: background var(--duration-normal) var(--spring-smooth);
+}
+
+.lg-toggle.active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.lg-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #fff 0%, #e8e8ed 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform var(--duration-normal) var(--spring-bounce);
+}
+
+.lg-toggle.active .lg-toggle-thumb {
+    transform: translateX(20px);
+}
+
+/* ==================== TEXT FIELDS ==================== */
+.lg-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    background: var(--glass-bg-inset);
+    border: var(--border-subtle);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: all var(--duration-fast) var(--spring-smooth);
+}
+
+.lg-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.lg-input:focus {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== SEGMENTED CONTROLS ==================== */
+.lg-segment {
+    display: inline-flex;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    padding: 2px;
+}
+
+.lg-segment-item {
+    padding: var(--space-1) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--spring-smooth);
+}
+
+.lg-segment-item:hover {
+    color: var(--text-primary);
+}
+
+.lg-segment-item.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+/* ==================== SEARCH FIELDS ==================== */
+.lg-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--glass-bg-elevated);
+    border: none;
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(20px);
+}
+
+.lg-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+}
+
+.lg-search input::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* ==================== SIDEBAR ==================== */
+.lg-sidebar {
+    width: 220px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-right: var(--border-subtle);
+    padding: var(--space-3);
+}
+
+.lg-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    margin: 2px 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--spring-smooth);
+}
+
+.lg-sidebar-item:hover {
+    background: var(--glass-bg);
+    color: var(--text-primary);
+}
+
+.lg-sidebar-item.active {
+    background: var(--glass-bg-active);
+    color: var(--text-primary);
+}
+
+/* ==================== CARDS ==================== */
+.lg-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    border: var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
+}
+
+/* ==================== MODALS ==================== */
+.lg-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.lg-modal {
+    background: rgba(40, 20, 25, 0.75);
+    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturation));
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-6);
+    max-width: 480px;
+    width: 90%;
+}
+
+/* ==================== MENUS / DROPDOWNS ==================== */
+.lg-menu {
+    background: rgba(50, 25, 30, 0.9);
+    backdrop-filter: blur(50px);
+    -webkit-backdrop-filter: blur(50px);
+    border: var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-1);
+    box-shadow: var(--shadow-lg);
+    min-width: 180px;
+}
+
+.lg-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--duration-fast);
+}
+
+.lg-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lg-menu-item.selected {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.lg-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: var(--space-1) 0;
+}
+
+/* ==================== TAB BAR ==================== */
+.lg-tabs {
+    display: flex;
+    background: var(--glass-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-1);
+}
+
+.lg-tab {
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--spring-smooth);
+}
+
+.lg-tab:hover {
+    color: var(--text-primary);
+}
+
+.lg-tab.active {
+    background: var(--glass-bg-active);
+    color: var(--text-primary);
+}
+
+/* ==================== PAGE DOTS ==================== */
+.lg-dots {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.lg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all var(--duration-normal) var(--spring-bounce);
+}
+
+.lg-dot.active {
+    width: 10px;
+    height: 10px;
+    background: white;
+}
+
+/* ==================== SCROLLBAR ==================== */
+.lg-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.lg-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.lg-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius-xs);
+}
+
+.lg-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ==================== UTILITIES ==================== */
+.lg-text-primary {
+    color: var(--text-primary);
+}
+
+.lg-text-secondary {
+    color: var(--text-secondary);
+}
+
+.lg-text-tertiary {
+    color: var(--text-tertiary);
+}
+
+.lg-blur {
+    backdrop-filter: blur(var(--glass-blur));
+}
+
+.lg-blur-heavy {
+    backdrop-filter: blur(var(--glass-blur-heavy));
+}
+
+/* ==================== STATUS: PROGRESS BAR ==================== */
+.lg-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    box-shadow: var(--shadow-inset);
+}
+
+.lg-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.9));
+    border-radius: var(--radius-full);
+    transition: width 0.3s var(--spring-smooth);
+}
+
+/* Accent color variant */
+.lg-progress-fill.accent {
+    background: linear-gradient(90deg, var(--p, #8b5cf6), var(--p-light, #a78bfa));
+}
+
+/* ==================== STATUS: SPINNER ==================== */
+.lg-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: lg-spin 0.8s linear infinite;
+}
+
+.lg-spinner.lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+}
+
+@keyframes lg-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================== STATUS: ACTIVITY RINGS ==================== */
+.lg-rings {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.lg-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 6px solid rgba(255, 255, 255, 0.15);
+}
+
+.lg-ring-progress {
+    position: absolute;
+    border-radius: 50%;
+    border: 6px solid transparent;
+    border-top-color: currentColor;
+    transform: rotate(-90deg);
+    transition: transform 0.5s var(--spring-smooth);
+}
+
+/* Ring sizes */
+.lg-ring.outer,
+.lg-ring-progress.outer {
+    width: 80px;
+    height: 80px;
+    top: 0;
+    left: 0;
+    color: #ff6b6b;
+}
+
+.lg-ring.middle,
+.lg-ring-progress.middle {
+    width: 60px;
+    height: 60px;
+    top: 10px;
+    left: 10px;
+    color: #a0e870;
+}
+
+.lg-ring.inner,
+.lg-ring-progress.inner {
+    width: 40px;
+    height: 40px;
+    top: 20px;
+    left: 20px;
+    color: #70d6e8;
+}
+
+/* ==================== STATUS: GAUGE ==================== */
+.lg-gauge {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.lg-gauge-track {
+    width: 100%;
+    height: 100%;
+    border: 8px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.lg-gauge-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 8px solid transparent;
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-right-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    box-sizing: border-box;
+    transform: rotate(-90deg);
+    transition: transform 0.5s var(--spring-smooth);
+}
+
+.lg-gauge-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-sans);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.lg-gauge-label {
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+/* ==================== STATUS: RATING STARS ==================== */
+.lg-rating {
+    display: flex;
+    gap: 4px;
+}
+
+.lg-star {
+    width: 20px;
+    height: 20px;
+    color: rgba(255, 255, 255, 0.25);
+    transition: all var(--duration-fast) var(--spring-bounce);
+    cursor: pointer;
+}
+
+.lg-star.filled {
+    color: #fbbf24;
+}
+
+.lg-star.half {
+    background: linear-gradient(90deg, #fbbf24 50%, rgba(255, 255, 255, 0.25) 50%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lg-star:hover {
+    transform: scale(1.15);
+}
+
+/* Star SVG inline style */
+.lg-star::before {
+    content: '★';
+    font-size: 20px;
+}
+
+/* ==================== STATUS: BADGE / TAG ==================== */
+.lg-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+}
+
+.lg-badge.success {
+    background: rgba(52, 199, 89, 0.25);
+    color: #34c759;
+}
+
+.lg-badge.warning {
+    background: rgba(255, 159, 10, 0.25);
+    color: #ff9f0a;
+}
+
+.lg-badge.danger {
+    background: rgba(255, 69, 58, 0.25);
+    color: #ff453a;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+
+    /* Hide duplicate header power buttons on mobile - 
+       only show the larger labeled buttons in the card */
+    #header-actions {
+        display: none !important;
+    }
+
+    /* Make header transparent (remove black background) */
+    main>header {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        padding: 16px;
+        padding-top: env(safe-area-inset-top, 16px);
+    }
+
+    /* Glass bottom navigation bar */
+    .sidebar {
+        background: rgba(30, 30, 35, 0.6) !important;
+        backdrop-filter: blur(40px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow:
+            0 -4px 30px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Add padding to main content to account for fixed bottom nav */
+    main {
+        padding-bottom: 90px !important;
+    }
+}
+
+/* ==================== UPDATE BUTTONS ==================== */
+.update-buttons-section {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.update-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 99px;
+    /* Pill shape */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: -apple-system, 'SF Pro Display', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    text-decoration: none;
+    outline: none;
+}
+
+.update-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.update-btn:active {
+    transform: translateY(0) scale(0.98);
+    opacity: 0.9;
+}
+
+.update-btn i {
+    font-size: 1.1rem;
+    color: var(--p, #8b5cf6);
+}
+
+/* ==================== APPEARANCE MODAL FIXES ==================== */
+/* GPU OPTIMIZED - Removed expensive backdrop-filter blur */
+#appearance-modal.modal-overlay {
+    /* Use solid dark background instead of blur for better GPU performance */
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: opacity 0.3s ease !important;
+}
+
+#appearance-modal .modal {
+    /* Use solid background instead of blur - saves ~50% GPU */
+    background: rgba(30, 30, 35, 0.98) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Animation entry only */
+#appearance-modal[style*="display: block"] .modal,
+#appearance-modal[style*="display: flex"] .modal {
+    animation: modalSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Hide scrollbar for personalization modal content */
+#appearance-modal .modal-content-custom {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+#appearance-modal .modal-content-custom::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari/Opera */
+}
+
+/* ==================== ACCOUNT DROPDOWN FIX ==================== */
+/* Make dropdown more opaque so text is readable */
+.account-dropdown {
+    background: rgba(30, 30, 35, 0.95) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.account-dropdown-item {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.account-dropdown-item:hover {
+    background: var(--p, rgba(139, 92, 246, 0.25)) !important;
+}
+
+/* ==================== ACCOUNT MODAL - COMPACT SIZE ==================== */
+#account-modal.modal-overlay {
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Note: display is controlled by inline style, don't override with !important */
+    align-items: center;
+    justify-content: center;
+}
+
+#account-modal .modal-content,
+#account-modal .modal-content.glass {
+    /* Match personalization modal size */
+    max-width: 520px !important;
+    width: 90% !important;
+    max-height: 85vh !important;
+    overflow: hidden !important;
+    background: rgba(30, 30, 35, 0.98) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scrollable content area */
+#account-modal .modal-content>div:last-child,
+#account-modal .modal-content.glass>div:last-child {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(85vh - 70px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+#account-modal .modal-content>div:last-child::-webkit-scrollbar,
+#account-modal .modal-content.glass>div:last-child::-webkit-scrollbar {
+    width: 6px;
+}
+
+#account-modal .modal-content>div:last-child::-webkit-scrollbar-thumb,
+#account-modal .modal-content.glass>div:last-child::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+#account-modal .modal-content-custom::-webkit-scrollbar {
+    width: 6px;
+}
+
+#account-modal .modal-content-custom::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#account-modal .modal-content-custom::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+/* ==================== ALL MODALS - GPU OPTIMIZATION ==================== */
+/* Apply GPU optimization to all modal overlays */
+.modal-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.modal-overlay .modal {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* ==================== APPLE HIG PULL-DOWN BUTTONS (SELECT) ==================== */
+/* Style native select elements to look like Apple pull-down buttons */
+select,
+.cfg-in[type="select"],
+select.cfg-in {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 12px 40px 12px 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary, rgba(255, 255, 255, 0.9));
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    min-width: 120px;
+}
+
+select:hover,
+.cfg-in[type="select"]:hover,
+select.cfg-in:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+select:focus,
+.cfg-in[type="select"]:focus,
+select.cfg-in:focus {
+    outline: none;
+    border-color: var(--p, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+/* Style the options dropdown */
+select option {
+    background: rgba(30, 30, 35, 0.98);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+}
+
+select option:hover,
+select option:checked {
+    background: var(--p, #8b5cf6);
+    color: white;
+}
+
+/* ==================== CREATE USER FORM FIX ==================== */
+/* Make form background more opaque to prevent wallpaper bleed-through */
+#create-user-form {
+    background: rgba(40, 40, 50, 0.9) !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+/* Also fix modal content backgrounds globally */
+.modal .modal-content-custom,
+.modal .modal-content {
+    background: rgba(25, 25, 30, 0.95);
+}
+
+/* ==================== APPLE HIG COMMAND PALETTE ==================== */
+/* Redesigned with dark search pill + light results container */
+
+.command-palette-overlay {
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.command-palette {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === TOGGLE BEHAVIOR: Hide results/footer by default === */
+.command-palette .command-results,
+.command-palette .command-palette-footer {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Show when expanded (toggle or typing) */
+.command-palette.expanded .command-results,
+.command-palette.expanded .command-palette-footer {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ==================== LIQUID GLASS CUSTOM SELECT ==================== */
+.lg-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.lg-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary, rgba(255, 255, 255, 0.9));
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.lg-select-trigger:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.lg-select-wrapper.open .lg-select-trigger {
+    border-color: var(--p, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.lg-select-chevron {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    transition: transform 0.2s ease;
+}
+
+.lg-select-wrapper.open .lg-select-chevron {
+    transform: rotate(180deg);
+}
+
+.lg-select-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 6px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    animation: lg-select-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes lg-select-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lg-select-option {
+    padding: 11px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-primary, rgba(255, 255, 255, 0.9));
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.15s ease;
+    margin-bottom: 2px;
+}
+
+.lg-select-option:last-child {
+    margin-bottom: 0;
+}
+
+.lg-select-option:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.lg-select-option.selected {
+    background: var(--p, #8b5cf6);
+    color: white;
+}
+
+/* Light theme */
+[data-theme="light"] .lg-select-dropdown {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .lg-select-option {
+    color: rgba(20, 20, 25, 0.9);
+}
+
+[data-theme="light"] .lg-select-option:hover {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+/* Search Header - Dark rounded pill (macOS Spotlight style) */
+.command-palette-header {
+    background: rgba(50, 50, 55, 0.9) !important;
+    border-radius: 99px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 14px 20px !important;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.command-palette-header i {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 1.1rem;
+}
+
+.command-input {
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 10px !important;
+}
+
+.command-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ==================== APPLE HIG LIQUID GLASS TOGGLE (Physics Enhanced) ==================== */
+/* Physics-based implementation per macOS Tahoe spec with Aether Theme Accent */
+
+.toggle-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Hidden checkbox */
+.toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Track container - recessed channel */
+.toggle-track {
+    position: relative;
+    width: 42px;
+    /* Reduced from 51px */
+    height: 26px;
+    /* Reduced from 31px */
+    background: rgba(120, 120, 128, 0.32);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Recessed depth */
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.25),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Active state - Theme Accent (Purple) */
+.toggle-input:checked+.toggle-track {
+    background: var(--p, #8b5cf6);
+    box-shadow:
+        0 0 12px var(--p, rgba(139, 92, 246, 0.4)),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Glass sphere knob */
+.toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    /* Reduced from 27px */
+    height: 22px;
+    /* Reduced from 27px */
+    border-radius: 50%;
+
+    /* Glass gradient body */
+    background: linear-gradient(145deg,
+            #ffffff 0%,
+            #f5f5fa 35%,
+            #e8e8ed 100%);
+
+    /* Glass depth + soft shadow */
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 1),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.03);
+
+    /* Spring physics transition */
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+}
+
+/* Specular highlight on knob (11 o'clock position) */
+.toggle-knob::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    /* Reduced from 16px */
+    height: 12px;
+    /* Reduced from 16px */
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 30% 25%,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.6) 30%,
+            transparent 60%);
+    pointer-events: none;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Secondary rim light (6 o'clock - subtle) */
+.toggle-knob::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    /* Reduced from 18px */
+    height: 6px;
+    /* Reduced from 8px */
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center,
+            rgba(255, 255, 255, 0.25) 0%,
+            transparent 60%);
+    pointer-events: none;
+}
+
+/* ON state - translate knob */
+.toggle-input:checked+.toggle-track .toggle-knob {
+    transform: translateX(16px);
+    /* Adjusted for new size */
+}
+
+/* ON state - move highlight with knob */
+.toggle-input:checked+.toggle-track .toggle-knob::before {
+    transform: translateX(0);
+}
+
+/* Hover state - subtle lift */
+.toggle-wrapper:hover .toggle-knob {
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.25),
+        0 2px 5px rgba(0, 0, 0, 0.15),
+        inset 0 1px 3px rgba(255, 255, 255, 1);
+}
+
+/* Active/Pressing state - squash effect */
+.toggle-input:active+.toggle-track .toggle-knob,
+.toggle-input:not(:checked):active+.toggle-track .toggle-knob {
+    transform: translateX(2px) scaleX(1.08) scaleY(0.96);
+}
+
+.toggle-input:checked:active+.toggle-track .toggle-knob {
+    transform: translateX(14px) scaleX(1.08) scaleY(0.96);
+    /* Adjusted */
+}
+
+/* Focus state - accessibility */
+.toggle-input:focus-visible+.toggle-track {
+    outline: 2px solid var(--p, #8b5cf6);
+    outline-offset: 3px;
+}
+
+/* Disabled state */
+.toggle-input:disabled+.toggle-track {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Colored variants support */
+.toggle-wrapper.toggle-purple .toggle-input:checked+.toggle-track {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+}
+
+.command-input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.kbd-hint {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    padding: 5px 10px !important;
+}
+
+/* Results Container - Light frosted glass */
+.command-results {
+    background: rgba(245, 245, 250, 0.95) !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 12px !important;
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    max-height: 50vh !important;
+}
+
+.command-item {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 4px !important;
+    transition: all 0.15s ease !important;
+}
+
+.command-item:hover,
+.command-item.selected {
+    background: rgba(139, 92, 246, 0.15) !important;
+    border: none !important;
+}
+
+.command-item i {
+    color: var(--p, #8b5cf6) !important;
+    width: 24px;
+    font-size: 1rem;
+}
+
+.command-item-name {
+    color: rgba(30, 30, 35, 0.9) !important;
+    font-weight: 600 !important;
+}
+
+.command-item-shortcut {
+    color: rgba(80, 80, 90, 0.7) !important;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+/* Footer - Match search pill style */
+.command-palette-footer {
+    background: rgba(50, 50, 55, 0.8) !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 10px 18px !important;
+}
+
+.command-palette-footer .kbd-hint {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* === DARK THEME (default) === */
+[data-theme="dark"] .command-results {
+    background: rgba(35, 35, 40, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .command-item-name {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="dark"] .command-item-shortcut {
+    color: rgba(255, 255, 255, 0.5) !important;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* === LIGHT THEME === */
+[data-theme="light"] .command-palette-header {
+    background: rgba(120, 120, 130, 0.9) !important;
+}
+
+[data-theme="light"] .command-results {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .command-item-name {
+    color: rgba(20, 20, 25, 0.9) !important;
+}
+
+[data-theme="light"] .command-item-shortcut {
+    color: rgba(60, 60, 70, 0.7) !important;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .command-palette-footer {
+    background: rgba(120, 120, 130, 0.8) !important;
+}
+
+/* === AMOLED THEME === */
+[data-theme="amoled"] .command-palette-header {
+    background: rgba(15, 15, 18, 0.98) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="amoled"] .command-results {
+    background: rgba(10, 10, 12, 0.98) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="amoled"] .command-item-name {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="amoled"] .command-item-shortcut {
+    color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="amoled"] .command-palette-footer {
+    background: rgba(15, 15, 18, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ==================== NOTIFICATIONS (Toastify Override) ==================== */
+.toastify {
+    background: rgba(40, 40, 45, 0.85) !important;
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px !important;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 12px 20px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    animation: lg-toast-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toastify.on {
+    opacity: 1;
+}
+
+/* Success notification */
+.toastify[style*="background: #10b981"],
+.toastify[style*="background:#10b981"],
+.toastify[style*="background: rgb(16, 185, 129)"] {
+    background: rgba(16, 185, 129, 0.2) !important;
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+/* Error notification */
+.toastify[style*="background: #ef4444"],
+.toastify[style*="background:#ef4444"],
+.toastify[style*="background: rgb(239, 68, 68)"] {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+/* Warning notification */
+.toastify[style*="background: #f59e0b"],
+.toastify[style*="background:#f59e0b"],
+.toastify[style*="background: rgb(245, 158, 11)"] {
+    background: rgba(245, 158, 11, 0.2) !important;
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+/* Info/Accent notification */
+.toastify[style*="background: #8b5cf6"],
+.toastify[style*="background:#8b5cf6"],
+.toastify[style*="background: rgb(139, 92, 246)"] {
+    background: rgba(139, 92, 246, 0.2) !important;
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+}
+
+@keyframes lg-toast-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Close button styling */
+.toast-close {
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+/* ==================== ALERTS (Modal Dialogs) ==================== */
+.lg-alert-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: lg-fade-in 0.2s ease-out;
+}
+
+/* Base Alert Style */
+.lg-alert {
+    padding: 30px;
+    /* Reduced top padding handled by icon margin */
+    width: 420px;
+    text-align: center;
+    animation: lg-alert-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* === GLASS DESIGN (Rounded & Blurred) === */
+[data-design="glass"] .lg-alert {
+    background: rgba(30, 30, 35, 0.95);
+    /* Darker background */
+    backdrop-filter: blur(50px) saturate(180%);
+    -webkit-backdrop-filter: blur(50px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 40px;
+    /* Highly rounded pill-like */
+    box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Glass Buttons */
+[data-design="glass"] .lg-alert-btn {
+    border-radius: 20px;
+}
+
+[data-design="glass"] .lg-alert-btn.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+}
+
+[data-design="glass"] .lg-alert-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+[data-design="glass"] .lg-alert-btn.primary {
+    background: linear-gradient(135deg, var(--p), var(--p-dark));
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    /* Pill */
+}
+
+[data-design="glass"] .lg-alert-btn.primary:hover {
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    transform: translateY(-1px);
+}
+
+/* Custom Red/Green Buttons */
+.lg-btn-red {
+    background: var(--danger, #ff453a) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+    border-radius: 999px !important;
+}
+
+.lg-btn-red:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+.lg-btn-green {
+    background: var(--success, #30d158) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(48, 209, 88, 0.3);
+    border-radius: 999px !important;
+}
+
+.lg-btn-green:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+/* Icon & Typography (Shared) */
+.lg-alert-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 5px;
+    /* Reduced bottom margin */
+    margin-top: -10px;
+    /* Pull icon up */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--p);
+    filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.3));
+}
+
+[data-design="glass"] .login-box {
+    border-radius: 40px !important;
+    background: linear-gradient(180deg, rgba(50, 50, 60, 0.4) 0%, rgba(30, 30, 35, 0.6) 100%) !important;
+    backdrop-filter: blur(60px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+    box-shadow:
+        0 40px 100px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 50px 40px !important;
+}
+
+[data-design="glass"] .login-title {
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
+    font-size: 1.4rem !important;
+    background: linear-gradient(to bottom, #fff, #bbb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+[data-design="glass"] .login-subtitle {
+    opacity: 0.6;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+}
+
+[data-design="glass"] .login-box .cfg-in {
+    border-radius: 50px !important;
+    /* Pill Shape */
+    background: rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    /* No borders */
+    padding: 16px 24px !important;
+    color: white !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    text-align: left;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+[data-design="glass"] .login-box .cfg-in:focus {
+    background: rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-design="glass"] .password-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px !important;
+    align-items: stretch;
+}
+
+/* Specific fix for password input in row */
+[data-design="glass"] .password-row .cfg-in {
+    margin-bottom: 0 !important;
+    width: 100%;
+    /* Take full width of its flex container */
+    flex: 1;
+    /* Grow to fill space */
+}
+
+/* Password Toggle Btn - Small Pill */
+[data-design="glass"] .show-pass-btn {
+    border-radius: 50px !important;
+    padding: 0 30px !important;
+    /* Increased horizontal padding */
+    width: auto !important;
+    /* Don't stretch */
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    border: none !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-design="glass"] .show-pass-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+[data-design="glass"] .login-box .btn-primary {
+    border-radius: 50px !important;
+    /* Pill Shape */
+    padding: 16px 50px !important;
+    width: auto !important;
+    margin: 25px auto 0 auto !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    background: linear-gradient(135deg, var(--p), var(--p-dark)) !important;
+    border: none !important;
+}
+
+[data-design="glass"] .login-box .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    filter: brightness(1.1);
+}
+
+[data-design="glass"] .brand-logo-login {
+    border-radius: 24px !important;
+    background: linear-gradient(135deg, var(--p), var(--p-dark)) !important;
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4) !important;
+    width: 68px;
+    height: 68px;
+    margin-bottom: 20px;
+}
+
+[data-design="glass"] .brand-logo-login img {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+
+/* === MATERIAL DESIGN (Flat & Solid) === */
+[data-design="material"] .lg-alert {
+    background: #1e1e23;
+    /* Solid background */
+    border: 1px solid #2a2a30;
+    border-radius: 20px;
+    /* Standard rounded */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Material Buttons */
+[data-design="material"] .lg-alert-btn {
+    border-radius: 12px;
+}
+
+[data-design="material"] .lg-alert-btn.secondary {
+    background: #2a2a30;
+}
+
+[data-design="material"] .lg-alert-btn.primary {
+    background: var(--p, #8b5cf6);
+    color: white;
+}
+
+/* Icon & Typography (Shared) */
+.lg-alert-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--p);
+    /* Use accent color for icon */
+    filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.3));
+}
+
+.lg-alert-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.lg-alert-description {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 24px;
+    max-width: 95%;
+}
+
+.lg-alert-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.lg-alert-btn {
+    flex: 1;
+    padding: 14px 0;
+    /* Taller buttons */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    text-align: center;
+}
+
+.lg-alert-btn.primary:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+}
+
+.lg-alert-btn:active {
+    transform: scale(0.96);
+}
+
+/* Destructive action */
+.lg-alert-btn.danger {
+    background: rgba(255, 69, 58, 0.2);
+    color: #ff453a;
+}
+
+[data-design="material"] .lg-alert-btn.danger {
+    background: #3a1515;
+    color: #ff6b6b;
+    border: 1px solid #5c1e1e;
+}
+
+@keyframes lg-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes lg-alert-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============================================================
+   APPLE HIG COMPONENTS LIBRARY
+   Additional components following Apple Human Interface Guidelines
+   ============================================================ */
+
+/* ==================== DISCLOSURE CONTROLS ==================== */
+/* Expandable/Collapsible sections */
+.lg-disclosure {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.lg-disclosure-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--glass-bg);
+    border: var(--border-subtle);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s var(--spring);
+    user-select: none;
+}
+
+.lg-disclosure-header:hover {
+    background: var(--glass-bg-hover);
+}
+
+.lg-disclosure-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lg-disclosure-chevron {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: transform 0.3s var(--spring);
+}
+
+.lg-disclosure.open .lg-disclosure-chevron {
+    transform: rotate(90deg);
+}
+
+.lg-disclosure-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s var(--spring);
+    background: var(--glass-bg-inset);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.lg-disclosure.open .lg-disclosure-content {
+    max-height: 500px;
+    /* Adjust as needed */
+    padding: 16px;
+}
+
+/* ==================== CONTEXT MENUS ==================== */
+.lg-context-menu {
+    position: fixed;
+    min-width: 180px;
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: var(--shadow-xl);
+    z-index: 10000;
+    animation: lg-context-in 0.15s var(--spring);
+}
+
+@keyframes lg-context-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.lg-context-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.lg-context-item:hover {
+    background: var(--p, #8b5cf6);
+    color: white;
+}
+
+.lg-context-item i {
+    width: 18px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.lg-context-item:hover i {
+    opacity: 1;
+}
+
+.lg-context-item.danger {
+    color: #ff6b6b;
+}
+
+.lg-context-item.danger:hover {
+    background: rgba(255, 69, 58, 0.2);
+    color: #ff6b6b;
+}
+
+.lg-context-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 6px 8px;
+}
+
+.lg-context-submenu {
+    position: relative;
+}
+
+.lg-context-submenu::after {
+    content: '›';
+    margin-left: auto;
+    font-size: 1.1em;
+    opacity: 0.5;
+}
+
+/* ==================== ACTION SHEETS ==================== */
+/* Bottom sliding sheet for mobile actions */
+.lg-action-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    animation: lg-fade-in 0.2s ease;
+}
+
+.lg-action-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(35, 35, 40, 0.98);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0));
+    z-index: 9999;
+    animation: lg-sheet-up 0.35s var(--spring);
+}
+
+@keyframes lg-sheet-up {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.lg-action-sheet-title {
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lg-action-sheet-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lg-action-sheet-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.lg-action-sheet-item.danger {
+    color: #ff6b6b;
+}
+
+.lg-action-sheet-cancel {
+    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    font-weight: 600;
+}
+
+/* ==================== POP-UP / PULL-DOWN BUTTONS ==================== */
+.lg-popup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--glass-bg);
+    border: var(--border-light);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--spring);
+}
+
+.lg-popup-btn:hover {
+    background: var(--glass-bg-hover);
+}
+
+.lg-popup-btn .chevron {
+    margin-left: auto;
+    opacity: 0.5;
+    transition: transform 0.2s ease;
+}
+
+.lg-popup-btn.open .chevron {
+    transform: rotate(180deg);
+}
+
+.lg-popup-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 100%;
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    animation: lg-popup-in 0.2s var(--spring);
+}
+
+@keyframes lg-popup-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lg-popup-option {
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.lg-popup-option:hover {
+    background: var(--p, #8b5cf6);
+    color: white;
+}
+
+.lg-popup-option.selected {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.lg-popup-option.selected::before {
+    content: '✓';
+    margin-right: 8px;
+    color: var(--p);
+}
+
+/* ==================== LISTS & TABLES ==================== */
+.lg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--glass-bg);
+    border: var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.lg-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lg-list-item:last-child {
+    border-bottom: none;
+}
+
+.lg-list-item:hover {
+    background: var(--glass-bg-hover);
+}
+
+.lg-list-item.selected {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.lg-list-item-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg-elevated);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--p);
+}
+
+.lg-list-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.lg-list-item-title {
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.lg-list-item-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.lg-list-item-chevron {
+    color: var(--text-tertiary);
+    font-size: 0.9em;
+}
+
+/* ==================== POPOVERS ==================== */
+.lg-popover {
+    position: absolute;
+    min-width: 200px;
+    max-width: 320px;
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    animation: lg-popover-in 0.25s var(--spring);
+}
+
+@keyframes lg-popover-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.lg-popover-arrow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: rgba(40, 40, 45, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transform: rotate(45deg);
+    border-bottom: none;
+    border-right: none;
+}
+
+.lg-popover-arrow.top {
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-135deg);
+}
+
+.lg-popover-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.lg-popover-text {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ==================== TOKEN FIELDS / CHIPS ==================== */
+.lg-token-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--glass-bg-inset);
+    border: var(--border-subtle);
+    border-radius: 12px;
+    min-height: 44px;
+    transition: border-color 0.2s ease;
+}
+
+.lg-token-field:focus-within {
+    border-color: var(--p, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.lg-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--p, #8b5cf6);
+    border-radius: 99px;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: white;
+}
+
+.lg-token-remove {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.lg-token-remove:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.lg-token-input {
+    flex: 1;
+    min-width: 100px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+}
+
+.lg-token-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* ==================== PATH CONTROLS / BREADCRUMBS ==================== */
+.lg-path-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    background: var(--glass-bg);
+    border: var(--border-subtle);
+    border-radius: 10px;
+}
+
+.lg-path-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.lg-path-item:hover {
+    background: var(--glass-bg-hover);
+    color: var(--text-primary);
+}
+
+.lg-path-item.current {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.lg-path-separator {
+    color: var(--text-tertiary);
+    font-size: 0.9em;
+}
+
+/* ==================== STEPPERS ==================== */
+.lg-stepper {
+    display: inline-flex;
+    align-items: center;
+    background: var(--glass-bg);
+    border: var(--border-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.lg-stepper-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--p, #8b5cf6);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.lg-stepper-btn:hover {
+    background: var(--glass-bg-hover);
+}
+
+.lg-stepper-btn:active {
+    background: var(--glass-bg-active);
+}
+
+.lg-stepper-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.lg-stepper-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lg-stepper-value {
+    min-width: 50px;
+    text-align: center;
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+/* ==================== EDIT MENUS ==================== */
+.lg-edit-menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px;
+    background: rgba(40, 40, 45, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.lg-edit-menu-btn {
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.lg-edit-menu-btn:hover {
+    background: var(--glass-bg-hover);
+}
+
+.lg-edit-menu-btn:active {
+    background: var(--glass-bg-active);
+}
+
+
+/* ==================== POWER CONTROL BUTTONS (Apple-Like) ==================== */
+.power-btn-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border-radius: 12px;
+    border: none;
+    color: white;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.power-btn-large i {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+}
+
+/* Hover Physics (Apple-like) */
+.power-btn-large:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+    box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.power-btn-large:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* Variants */
+.power-btn-large.start {
+    background: linear-gradient(135deg, #34c759, #28a745);
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.power-btn-large.restart {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.power-btn-large.stop {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.power-btn-large.kill {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #ef4444;
+    /* Red icon/text for kill */
+}
+
+.power-btn-large.kill i {
+    color: #ef4444;
+}

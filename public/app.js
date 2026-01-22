@@ -138,6 +138,18 @@ async function handleLogin(event) {
         errorDiv.style.display = 'block';
     }
 }
+// Toggle Password Visibility
+function togglePassword() {
+    const p = document.getElementById('login-password');
+    const b = document.getElementById('toggle-pass-btn');
+    if (p.type === 'password') {
+        p.type = 'text';
+        b.innerText = 'Hide';
+    } else {
+        p.type = 'password';
+        b.innerText = 'Show';
+    }
+}
 
 function logout() {
     localStorage.removeItem('authToken');
@@ -214,12 +226,21 @@ async function checkAuth() {
 }
 
 function showLoginScreen() {
+    // Hide all overlays/modals that might be open
+    document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('main-app').style.display = 'none';
 
-    document.getElementById('login-title').innerText = "AETHER PANEL";
+    document.getElementById('login-title').innerHTML = 'AETHER PANEL <span id="login-version" style="opacity: 0.5; font-size: 0.6em;"></span>';
+    // Re-fetch version to ensure it appears if this is called after load
+    fetch('/api/version').then(r => r.json()).then(d => {
+        const el = document.getElementById('login-version');
+        if (el) el.innerText = d.version;
+    }).catch(() => { });
+
     document.getElementById('login-subtitle').innerText = "Acceso Administrativo";
-    document.getElementById('login-btn-submit').innerHTML = 'ENTRAR <i class="fa-solid fa-arrow-right"></i>';
+    document.getElementById('login-btn-submit').innerText = 'LOGIN';
     document.getElementById('login-btn-submit').dataset.mode = 'login';
 }
 
@@ -286,11 +307,102 @@ function loadInitialData() {
     updateThemeUI(savedTheme);
     setDesign(savedDesign);
 
+    // Apply saved sidebar state
+    const sidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+    if (sidebarCollapsed) {
+        document.querySelector('.sidebar').classList.add('collapsed');
+    }
+
     if (document.getElementById('terminal')) initializeTerminal();
     if (document.getElementById('cpuChart')) initializeCharts();
 }
 
+// Sidebar Toggle Logic
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+    }
+}
+
+// Keyboard Shortcut for Sidebar
+document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key.toLowerCase() === 'x') {
+        e.preventDefault();
+        toggleSidebar();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Migrate old Nether/End themes to Dark
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'nether' || savedTheme === 'end') {
+        localStorage.setItem('theme', 'dark');
+    }
+
+    // Apply saved theme
+    const theme = localStorage.getItem('theme') || 'dark';
+    const design = localStorage.getItem('design_mode') || 'glass';
+    updateThemeUI(theme);
+    setDesign(design);
+    applyThemeToLogin(theme);
+
+    // Apply saved accent color
+    const accentColor = localStorage.getItem('accent_color');
+    if (accentColor) {
+        setAccentColor(accentColor);
+    }
+
+    // Apply custom background if exists
+    const customBg = localStorage.getItem('custom_background');
+    if (customBg) {
+        applyBackground(customBg);
+    }
+
+    // Apply solid color background if exists
+    const solidColor = localStorage.getItem('solid_color');
+    if (solidColor && !customBg) {
+        const colorSpace = localStorage.getItem('solid_color_space') || 'srgb';
+        const adaptiveTheme = localStorage.getItem('adaptive_theme') === 'true';
+
+        // Set UI values
+        const colorInput = document.getElementById('solid-color-input');
+        const colorPicker = document.getElementById('solid-color-picker');
+        const colorSpaceSelect = document.getElementById('color-space-select');
+        const adaptiveToggle = document.getElementById('adaptive-theme-toggle');
+
+        if (colorInput) colorInput.value = solidColor;
+        if (colorPicker) colorPicker.value = solidColor;
+        if (colorSpaceSelect) colorSpaceSelect.value = colorSpace;
+        if (adaptiveToggle) adaptiveToggle.checked = adaptiveTheme;
+
+        // Apply the solid color
+        const rgb = hexToRgb(solidColor);
+        if (rgb) {
+            let colorValue;
+            if (colorSpace === 'display-p3') {
+                const r = rgb.r / 255;
+                const g = rgb.g / 255;
+                const b = rgb.b / 255;
+                colorValue = `color(display-p3 ${r.toFixed(4)} ${g.toFixed(4)} ${b.toFixed(4)})`;
+            } else if (colorSpace === 'rec2020') {
+                const r = rgb.r / 255;
+                const g = rgb.g / 255;
+                const b = rgb.b / 255;
+                colorValue = `color(rec2020 ${r.toFixed(4)} ${g.toFixed(4)} ${b.toFixed(4)})`;
+            } else {
+                colorValue = solidColor;
+            }
+
+            document.body.style.backgroundColor = colorValue;
+
+            if (adaptiveTheme) {
+                generateAdaptiveTheme(rgb);
+            }
+        }
+    }
+
     checkAuth();
 });
 
@@ -356,9 +468,16 @@ function setTab(t, btn) {
     if (t === 'files') loadFileBrowser('');
     if (t === 'config') loadCfg();
     if (t === 'backups') loadBackups();
-    if (t === 'scheduler') loadCron();
+    if (t === 'scheduler') loadCronTasks();
     if (t === 'whitelist') loadWhitelist();
     if (t === 'logs') loadLogs();
+
+    // Labs Tabs
+    if (t === 'plugins') loadPlugins();
+    if (t === 'performance-lab') initPerfCharts();
+    if (t === 'rcon') loadRcon();
+    if (t === 'worlds') loadWorlds();
+    if (t === 'discord-integration') loadDiscordSettings();
 }
 
 let term = null;
@@ -393,7 +512,7 @@ function sendConsoleCommand() {
     }
 }
 
-let cpuChart, ramChart;
+let cpuChart, ramChart, diskChart;
 
 function initializeCharts() {
     if (!document.getElementById('cpuChart')) return;
@@ -401,49 +520,509 @@ function initializeCharts() {
 
     cpuChart = new Chart(document.getElementById('cpuChart').getContext('2d'), { type: 'line', data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(0), borderColor: '#8b5cf6', backgroundColor: '#8b5cf615', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, scales: { x: { display: false }, y: { min: 0, max: 100, grid: { display: false }, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
     ramChart = new Chart(document.getElementById('ramChart').getContext('2d'), { type: 'line', data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(0), borderColor: '#3b82f6', backgroundColor: '#3b82f615', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, scales: { x: { display: false }, y: { min: 0, grid: { display: false }, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
+    diskChart = new Chart(document.getElementById('diskChart').getContext('2d'), { type: 'line', data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(0), borderColor: '#10b981', backgroundColor: '#10b98115', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, scales: { x: { display: false }, y: { min: 0, grid: { display: false }, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
 
     setInterval(() => {
         if (!authToken) return;
         fetch('/api/stats', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
-            if (cpuChart && ramChart) {
-                cpuChart.data.datasets[0].data.shift(); cpuChart.data.datasets[0].data.push(d.cpu); cpuChart.update();
-                document.getElementById('cpu-val').innerText = d.cpu.toFixed(1) + '%';
-                ramChart.options.scales.y.max = parseFloat((d.ram_total / 1073741824).toFixed(1)); ramChart.data.datasets[0].data.shift(); ramChart.data.datasets[0].data.push(parseFloat((d.ram_used / 1073741824).toFixed(1))); ramChart.update();
-                document.getElementById('ram-val').innerText = `${(d.ram_used / 1073741824).toFixed(1)} / ${(d.ram_total / 1073741824).toFixed(1)} GB`;
-                document.getElementById('disk-val').innerText = (d.disk_used / 1048576).toFixed(0) + ' MB';
+            if (cpuChart && ramChart && diskChart) {
+                const cpuVal = parseFloat(d.cpu);
+                cpuChart.data.datasets[0].data.shift();
+                cpuChart.data.datasets[0].data.push(cpuVal);
+                cpuChart.update();
+                document.getElementById('cpu-val').innerText = cpuVal.toFixed(1) + '%';
+
+                const ramTotalGB = parseFloat((d.ram_total / 1073741824).toFixed(1));
+                const ramUsedGB = parseFloat((d.ram_used / 1073741824).toFixed(1));
+
+                ramChart.options.scales.y.max = ramTotalGB;
+                ramChart.data.datasets[0].data.shift();
+                ramChart.data.datasets[0].data.push(ramUsedGB);
+                ramChart.update();
+                document.getElementById('ram-val').innerText = `${ramUsedGB} / ${ramTotalGB} GB`;
+
+                // Disk Usage Formatting (MB/GB)
+                const diskUsedMB = d.disk_used / 1048576;
+                let diskDisplay;
+                if (diskUsedMB > 1024) {
+                    diskDisplay = (diskUsedMB / 1024).toFixed(2) + ' GB';
+                } else {
+                    diskDisplay = diskUsedMB.toFixed(0) + ' MB';
+                }
+                document.getElementById('disk-val').innerText = diskDisplay;
                 document.getElementById('disk-fill').style.width = Math.min((d.disk_used / d.disk_total) * 100, 100) + '%';
+
+                // Disk Activity Chart (Read + Write)
+                const readKB = parseFloat(d.disk_io ? d.disk_io.read : 0);
+                const writeKB = parseFloat(d.disk_io ? d.disk_io.write : 0);
+                const totalActivity = readKB + writeKB;
+
+                diskChart.data.datasets[0].data.shift();
+                diskChart.data.datasets[0].data.push(totalActivity);
+                diskChart.update();
+
+                document.getElementById('disk-read').innerText = readKB + ' KB/s';
+                document.getElementById('disk-write').innerText = writeKB + ' KB/s';
             }
         }).catch(() => { });
     }, 1000);
 }
 
-function setTheme(mode) { localStorage.setItem('theme', mode); updateThemeUI(mode); }
-function updateThemeUI(mode) {
-    let apply = mode; if (mode === 'auto') apply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', apply);
-    document.querySelectorAll('.seg-item').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById(`theme-btn-${mode}`); if (btn) btn.classList.add('active');
-    if (term) term.options.theme = (apply === 'light') ? { foreground: '#334155', background: '#ffffff', cursor: '#334155' } : { foreground: '#ffffff', background: 'transparent', cursor: '#ffffff' };
+function setTheme(mode) {
+    localStorage.setItem('theme', mode);
+    updateThemeUI(mode);
+    applyThemeToLogin(mode);
 }
-function setDesign(mode) { document.documentElement.setAttribute('data-design', mode); localStorage.setItem('design_mode', mode); document.getElementById('modal-btn-glass')?.classList.toggle('active', mode === 'glass'); document.getElementById('modal-btn-material')?.classList.toggle('active', mode === 'material'); }
-function setAccentColor(color) { document.documentElement.style.setProperty('--p', color); document.documentElement.style.setProperty('--p-light', color + '80'); }
-function setAccentMode(mode) { if (mode === 'auto') setAccentColor('#8b5cf6'); }
+
+function updateThemeUI(mode) {
+    let apply = mode;
+    if (mode === 'auto') {
+        apply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    document.documentElement.setAttribute('data-theme', apply);
+
+    // Update theme buttons
+    document.querySelectorAll('[id^="theme-btn-"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById(`theme-btn-${mode}`);
+    if (btn) btn.classList.add('active');
+
+    // Update terminal theme
+    if (term) {
+        if (apply === 'light') {
+            term.options.theme = { foreground: '#334155', background: '#ffffff', cursor: '#334155' };
+        } else if (apply === 'amoled') {
+            term.options.theme = { foreground: '#ffffff', background: '#000000', cursor: '#ffffff' };
+        } else {
+            term.options.theme = { foreground: '#ffffff', background: 'transparent', cursor: '#ffffff' };
+        }
+    }
+}
+
+function applyThemeToLogin(mode) {
+    // Apply theme immediately to login screen as well
+    let apply = mode;
+    if (mode === 'auto') {
+        apply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', apply);
+}
+
+function setDesign(mode) {
+    document.documentElement.setAttribute('data-design', mode);
+    localStorage.setItem('design_mode', mode);
+    document.getElementById('modal-btn-glass')?.classList.toggle('active', mode === 'glass');
+    document.getElementById('modal-btn-material')?.classList.toggle('active', mode === 'material');
+
+    // Toggle glass blur control visibility
+    const glassBlurControl = document.getElementById('glass-blur-control');
+    if (glassBlurControl) {
+        glassBlurControl.style.display = mode === 'glass' ? 'flex' : 'none';
+    }
+}
+
+function setAccentColor(color) {
+    document.documentElement.style.setProperty('--p', color);
+    document.documentElement.style.setProperty('--p-light', color + '80');
+    document.documentElement.style.setProperty('--p-dark', color);
+    localStorage.setItem('accent_color', color);
+}
+
+function setAccentMode(mode) {
+    if (mode === 'auto') {
+        setAccentColor('#8b5cf6');
+        localStorage.removeItem('accent_color');
+    }
+}
+
+// Custom Background Functions
+function uploadBackground(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const imageData = e.target.result;
+        localStorage.setItem('custom_background', imageData);
+        applyBackground(imageData);
+        Toastify({
+            text: "Fondo personalizado aplicado",
+            style: { background: "#10b981" }
+        }).showToast();
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeBackground() {
+    localStorage.removeItem('custom_background');
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundAttachment = '';
+    Toastify({
+        text: "Fondo personalizado eliminado",
+        style: { background: "#10b981" }
+    }).showToast();
+}
+
+function applyBackground(imageData) {
+    if (imageData) {
+        document.body.style.backgroundImage = `url(${imageData})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+    }
+}
+
+// Update System Functions
+function updateUI() {
+    document.getElementById('appearance-modal').style.display = 'none';
+    const statusMsg = document.getElementById('update-status-msg');
+
+    // Feedback visual inmediato
+    Toastify({
+        text: "Buscando actualizaciones de UI...",
+        duration: 2000,
+        gravity: "bottom",
+        position: "right",
+        style: { background: "rgba(30,30,35,0.8)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.1)" }
+    }).showToast();
+
+    if (statusMsg) statusMsg.innerText = 'Buscando actualizaciones...';
+
+
+
+    // Check for UI updates - Handle API not existing
+    fetch('/api/update/ui', { headers: getAuthHeaders() })
+        .then(r => {
+            if (r.status === 404) {
+                throw new Error('API endpoint not available');
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (statusMsg) {
+                if (data.available) {
+                    statusMsg.innerText = `Actualización disponible: ${data.version}`;
+                    showUpdateAlert('ui', data.version, installUIUpdate);
+                } else {
+                    statusMsg.innerText = 'La UI está actualizada';
+                    Toastify({
+                        text: "La UI está actualizada",
+                        style: { background: "#10b981" }
+                    }).showToast();
+                }
+            }
+        })
+        .catch(err => {
+            if (statusMsg) statusMsg.innerText = 'Sistema de actualización no disponible';
+            Toastify({
+                text: "Sistema de actualización no disponible actualmente",
+                style: { background: "#f59e0b" }
+            }).showToast();
+            console.log('Update API not available:', err);
+        });
+}
+
+function installUIUpdate() {
+    Toastify({
+        text: "Instalando actualización de UI...",
+        style: { background: "var(--p)" }
+    }).showToast();
+
+    fetch('/api/update/ui/install', {
+        method: 'POST',
+        headers: getAuthHeaders()
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Toastify({
+                    text: "UI actualizada. Recargando...",
+                    style: { background: "#10b981" }
+                }).showToast();
+                setTimeout(() => location.reload(), 2000);
+            }
+        })
+        .catch(err => {
+            Toastify({
+                text: "Error al instalar actualización",
+                style: { background: "#ef4444" }
+            }).showToast();
+        });
+}
+
+function updateSystem() {
+    document.getElementById('appearance-modal').style.display = 'none';
+    const statusMsg = document.getElementById('update-status-msg');
+
+    // Feedback visual inmediato
+    Toastify({
+        text: "Buscando actualizaciones de Sistema...",
+        duration: 2000,
+        gravity: "bottom",
+        position: "right",
+        style: { background: "rgba(30,30,35,0.8)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.1)" }
+    }).showToast();
+
+    if (statusMsg) statusMsg.innerText = 'Buscando actualizaciones del sistema...';
+
+
+
+    // Check for system updates - Handle API not existing
+    fetch('/api/update/system', { headers: getAuthHeaders() })
+        .then(r => {
+            if (r.status === 404) {
+                throw new Error('API endpoint not available');
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (statusMsg) {
+                if (data.available) {
+                    statusMsg.innerText = `Actualización disponible: ${data.version}`;
+                    showUpdateAlert('system', data.version, installSystemUpdate);
+                } else {
+                    statusMsg.innerText = 'El sistema está actualizado';
+                    Toastify({
+                        text: "El sistema está actualizado",
+                        style: { background: "#10b981" }
+                    }).showToast();
+                }
+            }
+        })
+        .catch(err => {
+            if (statusMsg) statusMsg.innerText = 'Sistema de actualización no disponible';
+            Toastify({
+                text: "Sistema de actualización no disponible actualmente",
+                style: { background: "#f59e0b" }
+            }).showToast();
+            console.log('Update API not available:', err);
+        });
+}
+
+function installSystemUpdate() {
+    Toastify({
+        text: "Instalando actualización del sistema...",
+        style: { background: "var(--p)" }
+    }).showToast();
+
+    fetch('/api/update/system/install', {
+        method: 'POST',
+        headers: getAuthHeaders()
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Toastify({
+                    text: "Sistema actualizado. Reiniciando servidor...",
+                    style: { background: "#10b981" }
+                }).showToast();
+            }
+        })
+        .catch(err => {
+            Toastify({
+                text: "Error al instalar actualización",
+                style: { background: "#ef4444" }
+            }).showToast();
+        });
+}
+
+// Solid Color Background Functions
+function updateSolidColorPreview(color) {
+    const input = document.getElementById('solid-color-input');
+    if (input) input.value = color;
+}
+
+function updateSolidColorFromInput(value) {
+    const picker = document.getElementById('solid-color-picker');
+    if (picker && value.match(/^#[0-9A-F]{6}$/i)) {
+        picker.value = value;
+    }
+}
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0;
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+        }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+function getLuminance(r, g, b) {
+    const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+function applySolidColor() {
+    const colorInput = document.getElementById('solid-color-input').value || '#8b5cf6';
+    const colorSpace = document.getElementById('color-space-select').value;
+    const adaptiveTheme = document.getElementById('adaptive-theme-toggle').checked;
+
+    const rgb = hexToRgb(colorInput);
+    if (!rgb) {
+        Toastify({
+            text: "Color inválido. Usa formato HEX (#RRGGBB)",
+            style: { background: "#ef4444" }
+        }).showToast();
+        return;
+    }
+
+    // Apply color to body background with color space
+    let colorValue;
+    if (colorSpace === 'display-p3') {
+        // Convert sRGB to Display P3 (approximate)
+        const r = rgb.r / 255;
+        const g = rgb.g / 255;
+        const b = rgb.b / 255;
+        colorValue = `color(display-p3 ${r.toFixed(4)} ${g.toFixed(4)} ${b.toFixed(4)})`;
+    } else if (colorSpace === 'rec2020') {
+        // Convert sRGB to Rec. 2020 (approximate)
+        const r = rgb.r / 255;
+        const g = rgb.g / 255;
+        const b = rgb.b / 255;
+        colorValue = `color(rec2020 ${r.toFixed(4)} ${g.toFixed(4)} ${b.toFixed(4)})`;
+    } else {
+        // sRGB (default)
+        colorValue = colorInput;
+    }
+
+    // Remove image backgrounds
+    document.body.style.backgroundImage = '';
+    localStorage.removeItem('custom_background');
+
+    // Apply solid color
+    document.body.style.backgroundColor = colorValue;
+
+    // Save to localStorage
+    localStorage.setItem('solid_color', colorInput);
+    localStorage.setItem('solid_color_space', colorSpace);
+    localStorage.setItem('adaptive_theme', adaptiveTheme);
+
+    // Generate adaptive theme if enabled
+    if (adaptiveTheme) {
+        generateAdaptiveTheme(rgb);
+    }
+
+    Toastify({
+        text: `Fondo sólido aplicado (${colorSpace.toUpperCase()})`,
+        style: { background: "#10b981" }
+    }).showToast();
+}
+
+function generateAdaptiveTheme(rgb) {
+    const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+    // Determine if background is light or dark
+    const isLight = luminance > 0.5;
+
+    // Generate adaptive colors
+    const textColor = isLight ? '#1d1d1f' : '#ffffff';
+    const mutedColor = isLight ? '#6b7280' : '#9ca3af';
+
+    // Card backgrounds with better contrast
+    const cardBg = isLight
+        ? `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.min(hsl.l + 15, 95)}%)`
+        : `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.max(hsl.l - 20, 5)}%)`;
+
+    const cardHover = isLight
+        ? `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.min(hsl.l + 20, 98)}%)`
+        : `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.max(hsl.l - 15, 8)}%)`;
+
+    // Apply theme
+    document.documentElement.style.setProperty('--txt', textColor);
+    document.documentElement.style.setProperty('--muted', mutedColor);
+    document.documentElement.style.setProperty('--glass-gradient', cardBg);
+    document.documentElement.style.setProperty('--glass-hover', cardHover);
+    document.documentElement.style.setProperty('--input-bg', cardBg);
+    document.documentElement.style.setProperty('--glass-btn', cardBg);
+    document.documentElement.style.setProperty('--glass-btn-hover', cardHover);
+}
+
+function removeSolidColor() {
+    document.body.style.backgroundColor = '';
+    localStorage.removeItem('solid_color');
+    localStorage.removeItem('solid_color_space');
+    localStorage.removeItem('adaptive_theme');
+
+    // Reset adaptive theme
+    const theme = localStorage.getItem('theme') || 'dark';
+    const design = localStorage.getItem('design_mode') || 'glass';
+    updateThemeUI(theme);
+    setDesign(design);
+
+    Toastify({
+        text: "Fondo sólido eliminado",
+        style: { background: "#10b981" }
+    }).showToast();
+}
 
 function loadFileBrowser(p) {
     currentPath = p;
     fetch('/api/files?path=' + p, { headers: getAuthHeaders() }).then(r => r.json()).then(data => {
         const list = document.getElementById('file-list');
         list.innerHTML = '';
-        if (p) list.innerHTML += `<div class="file-row" onclick="loadFileBrowser('')"><span>..</span></div>`;
+
         data.forEach(f => {
-            list.innerHTML += `<div class="file-row ${f.isDir ? 'folder' : ''}" onclick="${f.isDir ? `loadFileBrowser('${f.name}')` : ''}">
-                <span><i class="fa-solid ${f.isDir ? 'fa-folder' : 'fa-file'}"></i> ${f.name}</span>
-                <div style="display:flex; gap:10px; align-items:center">
-                    <span>${f.size}</span>
-                    ${!f.isDir ? `<button class="btn btn-ghost" style="padding:5px 10px; color:var(--danger);" onclick="event.stopPropagation(); deleteFile('${f.name}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+            const icon = f.isDir ? 'fa-folder' : 'fa-file';
+            const iconColor = f.isDir ? 'var(--p)' : 'var(--muted)';
+            const clickHandler = f.isDir ? `loadFileBrowser('${f.name}')` : '';
+            const cursorStyle = f.isDir ? 'cursor:pointer' : 'cursor:default';
+
+            list.innerHTML += `
+                <div class="file-item" style="${cursorStyle}" ${clickHandler ? `onclick="${clickHandler}"` : ''}>
+                    <i class="fa-solid ${icon}" style="color:${iconColor}; font-size:1.5rem"></i>
+                    <div class="file-info">
+                        <div class="file-name">${f.name}</div>
+                        <div class="file-meta">${f.size}</div>
+                    </div>
+                    ${!f.isDir ? `
+                        <div class="file-actions">
+                            <button class="btn btn-ghost" onclick="event.stopPropagation(); deleteFile('${f.name}')" title="Eliminar" style="color:var(--danger)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
-            </div>`;
+            `;
         });
+
+        if (data.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:40px; color:var(--muted)">
+                    <i class="fa-solid fa-folder-open" style="font-size:3rem; opacity:0.3; margin-bottom:15px"></i>
+                    <p>La carpeta está vacía</p>
+                </div>
+            `;
+        }
     });
 }
 
@@ -468,26 +1047,7 @@ function loadCfg() {
     });
 }
 function saveCfg() { const inputs = document.querySelectorAll('.cfg-in'); const payload = {}; inputs.forEach(input => { const key = input.id.replace('cfg-input-', ''); payload[key] = input.value; }); api('config', payload).then(res => { if (res.success) Toastify({ text: "Configuración guardada", style: { background: "#10b981" } }).showToast(); }); }
-function checkUpdate() { Toastify({ text: "Buscando actualizaciones...", style: { background: "var(--p)" } }).showToast(); setTimeout(() => Toastify({ text: "Sistema actualizado", style: { background: "#10b981" } }).showToast(), 1500); }
 function forceUIUpdate() { location.reload(); }
-function createBackup() { api('backups/create').then(() => loadBackups()); }
-
-// --- BACKUP & CRON & VERSIONS ---
-function loadBackups() {
-    api('backups').then(d => {
-        document.getElementById('backup-list').innerHTML = d.map(b => `
-            <div class="file-row">
-                <span>${b.name}</span>
-                <div style="display:flex; gap:10px; align-items:center">
-                    <span style="margin-right:10px">${b.size}</span>
-                    <button class="btn btn-secondary" style="padding:5px 10px" onclick="exploreBackup('${b.name}')"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn btn-ghost" style="padding:5px 10px; color:var(--danger)" onclick="deleteBackup('${b.name}')"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </div>
-        `).join('');
-    });
-}
-function deleteBackup(name) { if (confirm("¿Borrar backup?")) api('backups/delete', { name }).then(() => loadBackups()); }
 
 // Whitelist management functions
 function loadWhitelist() {
@@ -719,15 +1279,19 @@ function toggleCommandPalette() {
 function openCommandPalette() {
     const palette = document.getElementById('command-palette');
     const input = document.getElementById('command-input');
+    const paletteContent = palette?.querySelector('.command-palette');
     if (!palette || !input) return;
 
     palette.style.display = 'flex';
     commandPaletteOpen = true;
     selectedCommandIndex = 0;
 
-    // Clear input and show all commands
+    // Start collapsed - only search bar visible
+    if (paletteContent) paletteContent.classList.remove('expanded');
+
+    // Clear input
     input.value = '';
-    searchCommands('');
+    filteredCommands = [];
 
     // Focus input
     setTimeout(() => input.focus(), 100);
@@ -735,9 +1299,11 @@ function openCommandPalette() {
 
 function closeCommandPalette() {
     const palette = document.getElementById('command-palette');
+    const paletteContent = palette?.querySelector('.command-palette');
     if (!palette) return;
 
     palette.style.display = 'none';
+    if (paletteContent) paletteContent.classList.remove('expanded');
     commandPaletteOpen = false;
     selectedCommandIndex = 0;
     filteredCommands = [];
@@ -746,7 +1312,18 @@ function closeCommandPalette() {
 // Fuzzy search commands
 function searchCommands(query) {
     const results = document.getElementById('command-results');
+    const palette = document.getElementById('command-palette');
+    const paletteContent = palette?.querySelector('.command-palette');
     if (!results) return;
+
+    // Toggle expanded state based on input
+    if (paletteContent) {
+        if (query.trim() || window.commandPaletteExpanded) {
+            paletteContent.classList.add('expanded');
+        } else {
+            paletteContent.classList.remove('expanded');
+        }
+    }
 
     const lang = currentLanguage || 'es';
     query = query.toLowerCase().trim();
@@ -882,7 +1459,9 @@ document.addEventListener('keydown', (e) => {
             'appearance-modal',
             'account-modal',
             'version-modal',
-            'ram-modal'
+            'ram-modal',
+            'backup-modal',
+            'scheduler-modal'
         ];
 
         let modalClosed = false;
@@ -895,7 +1474,36 @@ document.addEventListener('keydown', (e) => {
         });
 
         if (modalClosed) return;
+
+        // If we're in a Lab feature (files, backups, scheduler, whitelist), go back to Labs
+        const currentTab = document.querySelector('.tab-content.active');
+        if (currentTab) {
+            const labFeatures = ['tab-files', 'tab-backups', 'tab-scheduler', 'tab-whitelist', 'tab-logs'];
+            if (labFeatures.includes(currentTab.id)) {
+                // If in files and not at root, navigate up directory
+                if (currentTab.id === 'tab-files' && currentPath && currentPath !== '/') {
+                    navigateUp();
+                } else {
+                    // Otherwise go back to Labs
+                    setTab('labs');
+                }
+                return;
+            }
+        }
     }
+
+    // Sidebar Shortcuts (Alt + 1-6)
+    if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+        switch (e.key) {
+            case '1': e.preventDefault(); setTab('stats'); break;     // Monitor
+            case '2': e.preventDefault(); setTab('console'); break;   // Consola
+            case '3': e.preventDefault(); setTab('versions'); break;  // Núcleos
+            case '4': e.preventDefault(); setTab('whitelist'); break; // Whitelist
+            case '5': e.preventDefault(); setTab('labs'); break;      // Labs
+            case '6': e.preventDefault(); setTab('config'); break;    // Ajustes
+        }
+    }
+
 
     // Command palette navigation
     if (commandPaletteOpen) {
@@ -949,6 +1557,24 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('input', (e) => {
             selectedCommandIndex = 0;
             searchCommands(e.target.value);
+        });
+
+        // Tab key to toggle results visibility
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const palette = document.getElementById('command-palette');
+                const paletteContent = palette?.querySelector('.command-palette');
+                if (paletteContent) {
+                    window.commandPaletteExpanded = !window.commandPaletteExpanded;
+                    if (window.commandPaletteExpanded) {
+                        paletteContent.classList.add('expanded');
+                        searchCommands(input.value); // Load results if expanded
+                    } else {
+                        paletteContent.classList.remove('expanded');
+                    }
+                }
+            }
         });
     }
 
@@ -1368,263 +1994,386 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('✅ Account Management loaded');
 
-// --- MOBILE BOTTOM NAV JS ADAPTATIONS ---
-// Ensure we scroll to top when changing tabs on mobile
-function scrollToTopMobile() {
-    if (window.innerWidth < 768) {
-        document.querySelector('.main-content').scrollTop = 0;
+// ==================== NAVIGATE UP (BACK BUTTON) ====================
+function navigateUp() {
+    // If we're in files tab and came from labs, go back to labs
+    // Otherwise navigate up directory structure
+    if (currentPath && currentPath !== '/') {
+        const parts = currentPath.split('/').filter(p => p);
+        parts.pop();
+        const parentPath = parts.length > 0 ? '/' + parts.join('/') : '/';
+        loadFileBrowser(parentPath);
+    } else {
+        // At root, go back to labs
+        setTab('labs');
     }
 }
 
-// --- SCHEDULER FUNCTIONS ---
+// ==================== BACKUPS SYSTEM ====================
 
-function loadScheduler() {
-    const list = document.getElementById('cron-list');
-    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando tareas...</div>';
+function loadBackups() {
+    const list = document.getElementById('backup-list');
+    if (!list) return;
 
-    api('cron', null, 'GET')
-        .then(tasks => {
-            if (!tasks || tasks.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)">No hay tareas programadas.</div>';
-                return;
-            }
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)">Cargando backups...</div>';
 
-            list.innerHTML = tasks.map(t => `
-            <div class="file-item">
-                <i class="fa-solid fa-clock" style="color:var(--p)"></i>
+    api('backups', null, 'GET').then(backups => {
+        if (!backups || backups.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:40px; color:var(--muted)">
+                    <i class="fa-solid fa-box-open" style="font-size:3rem; opacity:0.3; margin-bottom:15px"></i>
+                    <p>No hay copias de seguridad</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = backups.map(backup => `
+            <div class="file-item" style="cursor:default">
+                <i class="fa-solid fa-file-zipper" style="color:var(--p); font-size:1.5rem"></i>
                 <div class="file-info">
-                    <div class="file-name">${t.name}</div>
-                    <div class="file-meta">${t.schedule} • ${t.command}</div>
+                    <div class="file-name">${backup.name}</div>
+                    <div class="file-meta">
+                        ${new Date(backup.created).toLocaleString()} • ${(backup.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
                 </div>
                 <div class="file-actions">
-                    <button onclick="deleteTask('${t.id}')" class="btn-danger"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="restoreBackup('${backup.name}')" class="btn btn-secondary" title="Restaurar" style="padding:6px 12px">
+                        <i class="fa-solid fa-rotate-left"></i> Restablecer
+                    </button>
+                    <button onclick="deleteBackup('${backup.name}')" class="btn btn-ghost" title="Eliminar" style="color:var(--danger)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </div>
         `).join('');
+    }).catch(err => {
+        list.innerHTML = `<div style="color:var(--danger)">Error al cargar backups: ${err.message}</div>`;
+    });
+}
+
+function openBackupModal() {
+    document.getElementById('backup-modal').style.display = 'flex';
+    document.getElementById('backup-name-input').value = '';
+    document.getElementById('backup-name-input').focus();
+}
+
+function closeBackupModal() {
+    document.getElementById('backup-modal').style.display = 'none';
+}
+
+function confirmCreateBackup() {
+    const nameInput = document.getElementById('backup-name-input').value.trim();
+    const btn = document.querySelector('#backup-modal .btn-primary');
+
+    // Disable button to prevent double click
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Creando...';
+
+    const payload = {};
+    if (nameInput) payload.name = nameInput;
+
+    api('backups/create', payload)
+        .then(res => {
+            if (res.success) {
+                Toastify({ text: `Backup ${res.name} creado`, style: { background: '#10b981' } }).showToast();
+                closeBackupModal();
+                loadBackups();
+            } else {
+                Toastify({ text: res.error || 'Error al crear backup', style: { background: '#ef4444' } }).showToast();
+            }
         })
-        .catch(err => {
-            console.error(err);
-            list.innerHTML = `
-            <div style="text-align:center; padding:20px; color:var(--danger)">
-                <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar tareas
-                <br>
-                <button class="btn btn-secondary" onclick="loadScheduler()" style="margin-top:10px">Reintentar</button>
-            </div>`;
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
         });
 }
 
-function createTask() {
-    const name = document.getElementById('task-name').value;
-    const schedule = document.getElementById('task-schedule').value;
-    const command = document.getElementById('task-command').value;
+function deleteBackup(name) {
+    if (!confirm(`¿Estás seguro de eliminar ${name}?`)) return;
 
-    if (!name || !schedule || !command) {
-        Toastify({ text: 'Completa todos los campos', style: { background: '#ef4444' } }).showToast();
-        return;
-    }
+    api('backups/delete', { name })
+        .then(res => {
+            if (res.success) {
+                Toastify({ text: 'Backup eliminado', style: { background: '#10b981' } }).showToast();
+                loadBackups();
+            } else {
+                Toastify({ text: res.error || 'Error', style: { background: '#ef4444' } }).showToast();
+            }
+        });
+}
 
-    const newTask = {
-        id: Date.now().toString(),
-        name,
-        schedule,
-        command,
-        enabled: true
-    };
+function restoreBackup(name) {
+    if (!confirm(`⚠️ PRECAUCIÓN: Esto borrará el servidor actual y restaurará ${name}. ¿Continuar?`)) return;
 
-    // Get current tasks first
+    Toastify({ text: 'Iniciando restauración... El servidor se detendrá.', duration: 5000, style: { background: '#f59e0b' } }).showToast();
+
+    api('backups/restore', { name })
+        .then(res => {
+            if (res.success) {
+                Toastify({ text: 'Restauración completada. Reiniciando servidor...', style: { background: '#10b981' } }).showToast();
+                // Wait a bit then refresh
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                Toastify({ text: res.error || 'Error en restauración', style: { background: '#ef4444' } }).showToast();
+            }
+        });
+}
+
+// ==================== SCHEDULER SYSTEM ====================
+
+function loadCronTasks() {
+    const list = document.getElementById('cron-list');
+    if (!list) return;
+
     api('cron', null, 'GET').then(tasks => {
-        if (!Array.isArray(tasks)) tasks = [];
-        tasks.push(newTask);
-        api('cron', tasks).then(() => {
-            Toastify({ text: 'Tarea creada', style: { background: '#10b981' } }).showToast();
-            closeCreateTaskModal();
-            loadScheduler();
+        if (!tasks || tasks.length === 0) {
+            list.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--muted)">
+                    <i class="fa-solid fa-clock" style="font-size:3rem; opacity:0.3; margin-bottom:15px"></i>
+                    <p>No hay tareas programadas</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = tasks.map(task => {
+            let icon = 'fa-calendar';
+            let color = 'var(--p)';
+
+            if (task.action === 'restart') { icon = 'fa-rotate'; color = '#3b82f6'; }
+            if (task.action === 'stop') { icon = 'fa-stop'; color = '#ef4444'; }
+            if (task.action === 'backup') { icon = 'fa-box-archive'; color = '#10b981'; }
+
+            // Human readable frequency
+            let freqMap = {
+                '0 0 * * *': 'Diariamente (00:00)',
+                '0 0 * * 1': 'Semanalmente (Lun)',
+                '0 0 1 * *': 'Mensualmente (Día 1)',
+                '0 */6 * * *': 'Cada 6 Horas'
+            };
+            let humanFreq = freqMap[task.expression || task.schedule] || (task.expression || task.schedule);
+
+            return `
+            <div class="card glass" style="margin:0; min-height:auto; border:1px solid var(--glass-border)">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                    <div style="display:flex; gap:15px; align-items:center">
+                        <div style="width:40px; height:40px; border-radius:10px; background:${color}20; display:flex; align-items:center; justify-content:center; color:${color}">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:1.05rem">${task.name}</div>
+                            <div style="font-size:0.85rem; color:var(--muted); margin-top:4px">
+                                <i class="fa-solid fa-repeat" style="font-size:0.7rem"></i> ${humanFreq}
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="deleteTask('${task.id}')" class="btn btn-ghost" style="color:var(--danger); padding:5px 10px">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                ${task.action === 'command' ? `
+                    <div style="margin-top:10px; padding:8px; background:rgba(0,0,0,0.2); border-radius:6px; font-family:'JetBrains Mono'; font-size:0.8rem; color:var(--muted)">
+                        > ${task.command || 'No command'}
+                    </div>
+                ` : ''}
+            </div>
+            `;
+        }).join('');
+    }).catch(err => {
+        list.innerHTML = `<div style="color:var(--danger)">Error al cargar tareas: ${err.message}</div>`;
+    });
+}
+
+function openSchedulerModal() {
+    document.getElementById('scheduler-modal').style.display = 'flex';
+}
+
+function closeSchedulerModal() {
+    document.getElementById('scheduler-modal').style.display = 'none';
+}
+
+function toggleTaskActionFields() {
+    const action = document.getElementById('task-action').value;
+    document.getElementById('task-command-field').style.display = action === 'command' ? 'block' : 'none';
+}
+
+function toggleTaskCustomCron() {
+    const freq = document.getElementById('task-frequency').value;
+    document.getElementById('task-cron-field').style.display = freq === 'custom' ? 'block' : 'none';
+}
+
+function saveTask() {
+    const name = document.getElementById('task-name').value.trim();
+    const action = document.getElementById('task-action').value;
+    const freq = document.getElementById('task-frequency').value;
+    const customCron = document.getElementById('task-cron').value.trim();
+    const command = document.getElementById('task-command').value.trim();
+
+    if (!name) return Toastify({ text: 'Nombre requerido', style: { background: '#ef4444' } }).showToast();
+
+    let expression = freq === 'custom' ? customCron : freq;
+    if (!expression) return Toastify({ text: 'Frecuencia requerida', style: { background: '#ef4444' } }).showToast();
+
+    if (action === 'command' && !command) return Toastify({ text: 'Comando requerido', style: { background: '#ef4444' } }).showToast();
+
+    // Load existing to append
+    api('cron', null, 'GET').then(tasks => {
+        const newTask = {
+            id: Date.now().toString(),
+            name: name,
+            action: action,
+            expression: expression,
+            command: command,
+            enabled: true
+        };
+
+        const updatedTasks = [...(tasks || []), newTask];
+
+        api('cron', updatedTasks).then(res => {
+            if (res.success) {
+                Toastify({ text: 'Tarea guardada', style: { background: '#10b981' } }).showToast();
+                closeSchedulerModal();
+                loadCronTasks();
+            } else {
+                Toastify({ text: 'Error al guardar', style: { background: '#ef4444' } }).showToast();
+            }
         });
     });
 }
 
 function deleteTask(id) {
-    if (!confirm('¿Eliminar esta tarea?')) return;
-    api('cron/' + id, null, 'DELETE').then(() => loadScheduler());
-}
+    if (!confirm('¿Eliminar tarea?')) return;
 
-function openCreateTaskModal() {
-    document.getElementById('create-task-modal').style.display = 'flex';
-}
-function closeCreateTaskModal() {
-    document.getElementById('create-task-modal').style.display = 'none';
-}
-
-// --- BACKUPS FUNCTIONS ---
-function loadBackups() {
-    const list = document.getElementById('backup-list');
-    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando backups...</div>';
-
-    api('backups', null, 'GET')
-        .then(backups => {
-            if (!backups || backups.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)">No hay copias de seguridad.</div>';
-                return;
-            }
-
-            list.innerHTML = backups.map(b => `
-            <div class="file-item">
-                <i class="fa-solid fa-box-archive" style="color:var(--p)"></i>
-                <div class="file-info">
-                    <div class="file-name">${b.name}</div>
-                    <div class="file-meta">${b.size}</div>
-                </div>
-                <div class="file-actions">
-                    <button onclick="restoreBackup('${b.name}')" class="btn-secondary" title="Restaurar"><i class="fa-solid fa-rotate-left"></i></button>
-                    <button onclick="deleteBackup('${b.name}')" class="btn-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </div>
-        `).join('');
-        })
-        .catch(err => {
-            console.error(err);
-            list.innerHTML = `
-            <div style="text-align:center; padding:20px; color:var(--danger)">
-                <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar backups
-                <br>
-                <button class="btn btn-secondary" onclick="loadBackups()" style="margin-top:10px">Reintentar</button>
-            </div>`;
-        });
-}
-
-// Load file browser
-function loadFileBrowser(path = '') {
-    currentPath = path;
-    const list = document.getElementById('file-list');
-    list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</div>';
-
-    api('files?path=' + encodeURIComponent(path), null, 'GET')
-        .then(files => {
-            if (!files) return;
-            let html = '';
-
-            // Add "Go Up" button if not in root
-            if (path !== '') {
-                const parentPath = path.split('/').slice(0, -1).join('/');
-                html += `
-                <div class="file-item" onclick="loadFileBrowser('${parentPath}')" style="cursor:pointer">
-                    <i class="fa-solid fa-turn-up" style="color:var(--p)"></i>
-                    <div class="file-info">
-                        <div class="file-name">..</div>
-                        <div class="file-meta">Subir nivel</div>
-                    </div>
-                </div>`;
-            }
-
-            if (files.length === 0) {
-                html += '<div style="text-align:center; padding:20px; color:var(--muted)">Carpeta vacía</div>';
-            } else {
-                html += files.map(f => `
-                <div class="file-item">
-                    <i class="${f.isDir ? 'fa-solid fa-folder' : 'fa-solid fa-file'}" style="color:${f.isDir ? 'var(--p)' : 'var(--muted)'}"></i>
-                    <div class="file-info">
-                        <div class="file-name">${f.name}</div>
-                        <div class="file-meta">${f.size}</div>
-                    </div>
-                    <div class="file-actions">
-                        ${f.isDir ? `<button onclick="loadFileBrowser('${path ? path + '/' + f.name : f.name}')"><i class="fa-solid fa-arrow-right"></i></button>` : ''}
-                        <button onclick="deleteFile('${path ? path + '/' + f.name : f.name}')" class="btn-danger"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
-            }
-            list.innerHTML = html;
-        });
-}
-
-function deleteFile(path) {
-    if (confirm('¿Eliminar ' + path + '?')) {
-        api('files?path=' + encodeURIComponent(path), null, 'DELETE').then(() => loadFileBrowser(currentPath));
-    }
-}
-function createBackup() {
-    Toastify({ text: 'Creando backup...', style: { background: '#3b82f6' } }).showToast();
-    api('backups/create', {}).then(res => {
+    api('cron/' + id, null, 'DELETE').then(res => {
         if (res.success) {
-            Toastify({ text: 'Backup creado correctamente', style: { background: '#10b981' } }).showToast();
-            loadBackups();
+            Toastify({ text: 'Tarea eliminada', style: { background: '#10b981' } }).showToast();
+            loadCronTasks();
         } else {
-            Toastify({ text: 'Error al crear backup', style: { background: '#ef4444' } }).showToast();
+            Toastify({ text: 'Error al eliminar', style: { background: '#ef4444' } }).showToast();
         }
     });
 }
 
-function deleteBackup(name) {
-    if (!confirm('¿Eliminar backup ' + name + '?')) return;
-    api('backups/delete', { name }).then(() => loadBackups());
+// ==================== GLASS BLUR CUSTOMIZATION ====================
+
+function updateBlur(value) {
+    const blurValue = document.getElementById('blur-value');
+    if (blurValue) blurValue.textContent = value + 'px';
+
+    // Update CSS variable instantly for preview
+    document.documentElement.style.setProperty('--glass-blur', value + 'px');
 }
 
-function restoreBackup(name) {
-    if (!confirm('PELIGRO: Esto borrará el servidor actual y restaurará ' + name + '. ¿Continuar?')) return;
-    Toastify({ text: 'Restaurando backup... El servidor se detendrá.', style: { background: '#f59e0b' } }).showToast();
-    api('backups/restore', { name }).then(res => {
-        if (res.success) {
-            Toastify({ text: 'Restauración completada', style: { background: '#10b981' } }).showToast();
-        } else {
-            Toastify({ text: 'Error en restauración', style: { background: '#ef4444' } }).showToast();
-        }
-    });
+function saveBlur(value) {
+    // Save to localStorage
+    localStorage.setItem('glassBlur', value);
+
+    // Show feedback only on release
+    Toastify({
+        text: `Desenfoque ajustado: ${value}px`,
+        duration: 1500,
+        style: { background: 'var(--p)' }
+    }).showToast();
 }
 
-// --- LOGS FUNCTIONS ---
-const logsContainer = document.getElementById('logs-container');
-let isAutoScroll = true;
-
-if (logsContainer) {
-    logsContainer.addEventListener('scroll', () => {
-        // If user scrolls up, disable auto-scroll
-        if (logsContainer.scrollTop + logsContainer.clientHeight < logsContainer.scrollHeight - 50) {
-            isAutoScroll = false;
-        } else {
-            isAutoScroll = true;
-        }
-    });
-}
-
-socket.on('logs_history', (logs) => {
-    if (!logsContainer) return;
-    logsContainer.innerHTML = ''; // Clear loading
-    if (Array.isArray(logs)) {
-        logs.forEach(line => appendLog(line));
+// Load saved blur on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedBlur = localStorage.getItem('glassBlur');
+    if (savedBlur) {
+        document.documentElement.style.setProperty('--glass-blur', savedBlur + 'px');
+        const slider = document.getElementById('blur-slider');
+        const blurValue = document.getElementById('blur-value');
+        if (slider) slider.value = savedBlur;
+        if (blurValue) blurValue.textContent = savedBlur + 'px';
     }
 });
 
-// We catch the console lines from the "console" event potentially, but standard is "log" or just grabbing history
-// server.js sends "logs_history" on connection. We need to handle live updates if they exist.
-// server.js doesn't seem to emit live log events explicitly named 'log' in the snippet viewed, 
-// usually it pipes process stdout to a function that emits to socket.
-// Warning: If server.js doesn't emit live events, logs will only update on refresh/reconnect.
-// Let's assume standard behavior or add it later. 
-// Actually, earlier view of server.js was truncated. Assuming 'console-output' or similar.
-// Looking at earlier app.js traces, check socket.on('log') or similar.
-// Adding a generic handler just in case:
-socket.on('log', (line) => appendLog(line));
-socket.on('console-output', (line) => appendLog(line));
+// Initialize Sliders for the Tahoe 26 effect
+function initSliders() {
+    const sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(slider => {
+        const updateSlider = () => {
+            const min = slider.min || 0;
+            const max = slider.max || 100;
+            const value = slider.value;
+            const percentage = ((value - min) / (max - min)) * 100;
+            slider.style.backgroundSize = `${percentage}% 100%`;
+        };
 
-function appendLog(line) {
-    if (!logsContainer) return;
-    const div = document.createElement('div');
-    div.textContent = line;
-    div.style.marginBottom = '2px';
-    logsContainer.appendChild(div);
-
-    if (isAutoScroll) {
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-    }
+        slider.addEventListener('input', updateSlider);
+        updateSlider(); // Init
+    });
 }
 
-// --- INITIALIZATION ---
-// Hook into setTab to load data when tabs are opened
-const originalSetTab = setTab;
-setTab = function (tabName, btn) {
-    originalSetTab(tabName, btn);
-    if (tabName === 'scheduler') loadScheduler();
-    if (tabName === 'backups') loadBackups();
-    if (tabName === 'files') loadFileBrowser(currentPath);
-    // logs handled by socket
+// Ensure initSliders is called when content loads or modals open
+document.addEventListener('DOMContentLoaded', initSliders);
+// Also export for use in modals
+window.initSliders = initSliders;
+
+// Override open modal functions to init sliders (if they exist)
+const existingOpenAppearance = window.openAppearanceModal;
+window.openAppearanceModal = function () {
+    if (document.getElementById('appearance-modal')) {
+        document.getElementById('appearance-modal').style.display = 'flex';
+        setTimeout(initSliders, 10);
+    }
+    if (existingOpenAppearance) existingOpenAppearance();
 };
+// --- DISCORD INTEGRATION ---
+function loadDiscordSettings() {
+    fetch('/api/integrations/discord', { headers: getAuthHeaders() })
+        .then(r => r.json())
+        .then(data => {
+            const urlInput = document.getElementById('discord-webhook-url');
+            if (urlInput) urlInput.value = data.url || '';
+
+            if (data.events) {
+                if (document.getElementById('discord-evt-start')) document.getElementById('discord-evt-start').checked = data.events.start || false;
+                if (document.getElementById('discord-evt-stop')) document.getElementById('discord-evt-stop').checked = data.events.stop || false;
+                if (document.getElementById('discord-evt-join')) document.getElementById('discord-evt-join').checked = data.events.join || false;
+            }
+        })
+        .catch(err => console.error('Error loading discord settings:', err));
+}
+
+function saveDiscordSettings() {
+    const url = document.getElementById('discord-webhook-url').value;
+    const events = {
+        start: document.getElementById('discord-evt-start').checked,
+        stop: document.getElementById('discord-evt-stop').checked,
+        join: document.getElementById('discord-evt-join').checked
+    };
+
+    api('integrations/discord', { url, events })
+        .then(() => {
+            Toastify({
+                text: t('msg.saved'),
+                style: { background: "#10b981" }
+            }).showToast();
+        })
+        .catch(err => {
+            Toastify({
+                text: t('msg.error'),
+                style: { background: "#ef4444" }
+            }).showToast();
+        });
+}
+
+// Version Injection in Login
+document.addEventListener('DOMContentLoaded', () => {
+    const verSpan = document.getElementById('login-version');
+    if (verSpan) {
+        fetch('/api/version')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.version) {
+                    verSpan.innerText = data.version;
+                } else {
+                    verSpan.innerText = '1.7.0'; // Fallback
+                }
+            })
+            .catch(() => {
+                verSpan.innerText = '1.7.0'; // Fallback on error
+            });
+    }
+});
