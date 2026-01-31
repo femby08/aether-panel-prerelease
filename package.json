@@ -4,9 +4,10 @@
   "description": "Aether Panel V1.7.1 - Glass Design Improved",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node --max-old-space-size=1024 server.js"
   },
   "dependencies": {
+    "@simplewebauthn/server": "^13.2.2",
     "adm-zip": "^0.5.16",
     "axios": "^1.6.2",
     "cors": "^2.8.5",

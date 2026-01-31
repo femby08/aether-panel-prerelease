@@ -520,17 +520,44 @@ function initBooleanInputs() {
 }
 
 // ==================== INITIALIZE ALL ====================
+// Debounce helper for efficient re-init
+let initPending = false;
+function scheduleInit() {
+    if (initPending) return;
+    initPending = true;
+    requestAnimationFrame(() => {
+        initAppleToggles();
+        initBooleanInputs();
+        initPending = false;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initPopupButtons();
     initTokenFields();
     initSteppers();
     initLiquidGlassSelects();
-    initAppleToggles(); // Conversion inicial
-    initBooleanInputs(); // Start watching for boolean text inputs
+    initAppleToggles();
+    initBooleanInputs();
 
-    // Fallback: Re-scan periodically just in case
-    setInterval(() => {
-        initAppleToggles();
-        initBooleanInputs();
-    }, 1500);
+    // Use MutationObserver instead of setInterval for better performance
+    const initObserver = new MutationObserver((mutations) => {
+        let needsInit = false;
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === 1 && (
+                    node.matches?.('input[type="checkbox"]') ||
+                    node.querySelector?.('input[type="checkbox"]') ||
+                    node.querySelector?.('.toggle-wrapper')
+                )) {
+                    needsInit = true;
+                    break;
+                }
+            }
+            if (needsInit) break;
+        }
+        if (needsInit) scheduleInit();
+    });
+
+    initObserver.observe(document.body, { childList: true, subtree: true });
 });

@@ -314,42 +314,45 @@ input[type="range"]::-webkit-slider-thumb,
 .lg-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 50px;
-    /* Pill width */
+    width: 28px;
+    /* Circle width */
     height: 28px;
-    /* Pill height (taller than track) */
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--p, #4facfe), var(--p-dark, #00f2fe));
-    border: none;
-    /* No white border */
+    /* Circle height */
+    border-radius: 50%;
+    /* Perfect circle */
+    background: #ffffff;
+    /* Apple Knob is white */
+    border: 0.5px solid rgba(0, 0, 0, 0.04);
+    /* Subtle border */
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+    /* Apple HIG shadow */
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     margin-top: -6px;
-    /* Center thumb: (28 - 16) / 2 = 6. Negative margin pulls it up. */
 }
 
 input[type="range"]::-webkit-slider-thumb:hover,
 .lg-slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.0);
 }
 
 input[type="range"]:active::-webkit-slider-thumb,
 .lg-slider:active::-webkit-slider-thumb {
     transform: scale(0.95);
+    background: #f5f5f5;
 }
 
 /* Firefox Thumb */
 input[type="range"]::-moz-range-thumb,
 .lg-slider::-moz-range-thumb {
-    width: 50px;
+    width: 28px;
     height: 28px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--p, #4facfe), var(--p-dark, #00f2fe));
-    border: none;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 0.5px solid rgba(0, 0, 0, 0.04);
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
 }
 
 /* Ticks Simulation (simulated with background-image if needed, 
@@ -366,11 +369,11 @@ input[type="range"]::-moz-range-thumb,
     border-radius: 16px;
     background: rgba(0, 0, 0, 0.25);
     cursor: pointer;
-    transition: background var(--duration-normal) var(--spring-smooth);
+    transition: background var(--duration-normal, 250ms) var(--spring-smooth, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 .lg-toggle.active {
-    background: rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, var(--p, #8b5cf6), var(--p-dark, #7c3aed));
 }
 
 .lg-toggle-thumb {
@@ -380,13 +383,31 @@ input[type="range"]::-moz-range-thumb,
     width: 27px;
     height: 27px;
     border-radius: 50%;
-    background: linear-gradient(180deg, #fff 0%, #e8e8ed 100%);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform var(--duration-normal) var(--spring-bounce);
+    /* Apple HIG specular highlight */
+    background: radial-gradient(ellipse at 30% 25%,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.4) 30%,
+            #e8e8ed 100%);
+    /* Apple HIG: Drop shadow + contact shadow for "lifted" appearance */
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.15),
+        0 1px 1px rgba(0, 0, 0, 0.16),
+        0 0 0 0.5px rgba(0, 0, 0, 0.1);
+    transition: transform var(--duration-normal, 250ms) var(--spring-bounce, cubic-bezier(0.34, 1.56, 0.64, 1));
+    will-change: transform;
 }
 
 .lg-toggle.active .lg-toggle-thumb {
     transform: translateX(20px);
+}
+
+/* Horizontal stretch on press (Apple HIG physics) */
+.lg-toggle:active .lg-toggle-thumb {
+    transform: scaleX(1.12);
+}
+
+.lg-toggle.active:active .lg-toggle-thumb {
+    transform: translateX(20px) scaleX(1.12);
 }
 
 /* ==================== TEXT FIELDS ==================== */
@@ -927,9 +948,9 @@ input[type="range"]::-moz-range-thumb,
     padding: 14px 20px;
     border-radius: 99px;
     /* Pill shape */
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-btn);
+    color: var(--glass-btn-text);
     font-family: -apple-system, 'SF Pro Display', sans-serif;
     font-size: 0.95rem;
     font-weight: 500;
@@ -942,7 +963,7 @@ input[type="range"]::-moz-range-thumb,
 }
 
 .update-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--glass-btn-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-color: rgba(255, 255, 255, 0.25);
@@ -1826,59 +1847,89 @@ select option:checked {
     filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.3));
 }
 
+/* ============================================================
+   LOGIN SCREEN - macOS SPOTLIGHT INSPIRED DESIGN
+   Clean, light, frosted glass aesthetic
+============================================================ */
+
 [data-design="glass"] .login-box {
-    border-radius: 40px !important;
-    background: linear-gradient(180deg, rgba(50, 50, 60, 0.4) 0%, rgba(30, 30, 35, 0.6) 100%) !important;
-    backdrop-filter: blur(60px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+    border-radius: 20px !important;
+    /* macOS Spotlight-like: Lighter frosted glass with more opacity */
+    background: linear-gradient(180deg,
+            rgba(85, 85, 95, 0.65) 0%,
+            rgba(65, 65, 75, 0.75) 100%) !important;
+    backdrop-filter: blur(60px) saturate(180%) brightness(1.15) !important;
+    -webkit-backdrop-filter: blur(60px) saturate(180%) brightness(1.15) !important;
     box-shadow:
-        0 40px 100px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    padding: 50px 40px !important;
+        0 25px 80px rgba(0, 0, 0, 0.5),
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    padding: 44px 40px !important;
+    max-width: 340px !important;
 }
 
 [data-design="glass"] .login-title {
-    font-weight: 700 !important;
-    letter-spacing: -0.5px !important;
-    font-size: 1.4rem !important;
-    background: linear-gradient(to bottom, #fff, #bbb);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    font-size: 1.25rem !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    background: none !important;
+    -webkit-text-fill-color: unset !important;
 }
 
 [data-design="glass"] .login-subtitle {
-    opacity: 0.6;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 30px;
+    opacity: 0.65;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    margin-bottom: 26px;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 400;
 }
 
-[data-design="glass"] .login-box .cfg-in {
-    border-radius: 50px !important;
-    /* Pill Shape */
-    background: rgba(0, 0, 0, 0.25) !important;
-    border: none !important;
-    /* No borders */
-    padding: 16px 24px !important;
-    color: white !important;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+/* Input Fields - Lighter frosted style */
+[data-design="glass"] .login-box .cfg-in,
+[data-design="glass"] .login-box .login-input-pill {
+    border-radius: 12px !important;
+    /* Lighter frosted inputs */
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    padding: 13px 18px !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.06),
+        0 1px 0 rgba(255, 255, 255, 0.04) !important;
     text-align: left;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
+    font-size: 0.92rem;
+    font-weight: 400;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
 }
 
-[data-design="glass"] .login-box .cfg-in:focus {
-    background: rgba(0, 0, 0, 0.4) !important;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+[data-design="glass"] .login-box .cfg-in::placeholder,
+[data-design="glass"] .login-box .login-input-pill::placeholder {
+    color: rgba(255, 255, 255, 0.45) !important;
+    font-weight: 400;
+}
+
+[data-design="glass"] .login-box .cfg-in:focus,
+[data-design="glass"] .login-box .login-input-pill:focus {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.08),
+        inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    outline: none;
 }
 
 [data-design="glass"] .password-row {
     display: flex;
     gap: 12px;
-    margin-bottom: 20px !important;
+    margin-bottom: 16px !important;
     align-items: stretch;
 }
 
@@ -1886,66 +1937,107 @@ select option:checked {
 [data-design="glass"] .password-row .cfg-in {
     margin-bottom: 0 !important;
     width: 100%;
-    /* Take full width of its flex container */
     flex: 1;
-    /* Grow to fill space */
 }
 
-/* Password Toggle Btn - Small Pill */
-[data-design="glass"] .show-pass-btn {
-    border-radius: 50px !important;
-    padding: 0 30px !important;
-    /* Increased horizontal padding */
+/* Password Toggle Btn */
+[data-design="glass"] .show-pass-btn,
+[data-design="glass"] .show-pass-icon {
+    border-radius: 12px !important;
+    padding: 0 18px !important;
     width: auto !important;
-    /* Don't stretch */
     background: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    border: none !important;
-    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-[data-design="glass"] .show-pass-btn:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
+[data-design="glass"] .show-pass-btn:hover,
+[data-design="glass"] .show-pass-icon:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
+/* Login Button - Refined accent */
 [data-design="glass"] .login-box .btn-primary {
-    border-radius: 50px !important;
-    /* Pill Shape */
-    padding: 16px 50px !important;
-    width: auto !important;
-    margin: 25px auto 0 auto !important;
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.5px;
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    background: linear-gradient(135deg, var(--p), var(--p-dark)) !important;
-    border: none !important;
+    border-radius: 14px !important;
+    padding: 14px 40px !important;
+    width: 100% !important;
+    margin: 20px auto 0 auto !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em;
+    /* Softer accent gradient */
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0.85) 0%,
+            rgba(124, 58, 237, 0.9) 100%) !important;
+    box-shadow:
+        0 8px 24px rgba(139, 92, 246, 0.25),
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-design="glass"] .login-box .btn-primary:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 32px rgba(139, 92, 246, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: brightness(1.05);
 }
 
+[data-design="glass"] .login-box .btn-primary:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+}
+
+/* Brand Logo - Subtle glow */
 [data-design="glass"] .brand-logo-login {
-    border-radius: 24px !important;
-    background: linear-gradient(135deg, var(--p), var(--p-dark)) !important;
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4) !important;
-    width: 68px;
-    height: 68px;
-    margin-bottom: 20px;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0.9) 0%,
+            rgba(124, 58, 237, 0.95) 100%) !important;
+    box-shadow:
+        0 8px 24px rgba(139, 92, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 18px;
 }
 
 [data-design="glass"] .brand-logo-login img {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+/* Password row pill styling */
+[data-design="glass"] .password-row-pill {
+    position: relative;
+    margin-bottom: 0 !important;
+}
+
+[data-design="glass"] .password-row-pill .show-pass-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent !important;
+    border: none !important;
+    padding: 8px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-design="glass"] .password-row-pill .show-pass-icon:hover {
+    color: rgba(255, 255, 255, 0.85) !important;
+    background: transparent !important;
 }
 
 

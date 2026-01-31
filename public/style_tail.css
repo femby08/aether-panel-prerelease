@@ -176,9 +176,9 @@ input[type='checkbox']:checked::before {
 .seg-btn-reset {
     padding: 8px 16px;
     border-radius: 8px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--danger);
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--p);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -187,8 +187,8 @@ input[type='checkbox']:checked::before {
 }
 
 .seg-btn-reset:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: var(--danger);
+    background: rgba(139, 92, 246, 0.25);
+    border-color: var(--p);
 }
 
 /* Action Buttons at Bottom */
@@ -248,3 +248,1714 @@ input[type='checkbox']:checked::before {
         flex-direction: column;
     }
 }
+
+/* ====================================
+   TAHOE SLIDER (Glass Style)
+   ==================================== */
+
+.tahoe-slider-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.tahoe-slider-container {
+    width: 100%;
+    position: relative;
+    padding: 0 10px;
+}
+
+.tahoe-slider-track-wrapper {
+    position: relative;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+/* The Input Range (The Slider itself) */
+.tahoe-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+[data-theme='light'] .tahoe-slider {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Slider Thumb (The "Pill") */
+.tahoe-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    background: var(--p);
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.5);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    margin-top: 0;
+}
+
+.tahoe-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: var(--p);
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.5);
+    cursor: pointer;
+    border: none;
+}
+
+.tahoe-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Ticks Container */
+.tahoe-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 2px;
+}
+
+.tahoe-tick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.tick-pill {
+    width: 2px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+[data-theme='light'] .tick-pill {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.tick-num {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Value Display */
+.tahoe-value {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    background: var(--p);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ====================================
+   PERSONALIZATION MODAL - TARGET DESIGN (MATTE GREY)
+   ==================================== */
+
+/* 1. MAIN CONTAINER - MATTE GREY, NO BLUR */
+#appearance-modal .modal.glass {
+    background: #2B2B2B !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6) !important;
+    padding: 14px 22px !important;
+    /* Aggressive reduction */
+    overflow: visible !important;
+    max-width: 420px;
+    margin: 50px auto 0 auto;
+    /* Pull up */
+}
+
+/* 2. HEADER ARCHITECTURE - FLOATING PILL */
+#appearance-modal .modal-header-custom {
+    position: absolute;
+    top: -50px;
+    /* Tighter floating */
+    left: 0;
+    right: 0;
+    height: 44px;
+    /* Compact */
+    background: #3E3E3E !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 99px !important;
+    padding: 0 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+}
+
+#appearance-modal .modal-header-custom h3 {
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Close Button - Rounded on Right */
+#appearance-modal .modal-header-custom .btn-ghost {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 26px !important;
+    height: 26px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+}
+
+#appearance-modal .modal-header-custom .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 3. TYPOGRAPHY & SPACING */
+/* 3. TYPOGRAPHY & SPACING - AGGRESSIVE */
+/* Section Titles */
+#appearance-modal .settings-group-title,
+.settings-group-title {
+    font-size: 0.65rem;
+    /* Smaller font */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 8px 0 4px 0;
+    /* Minimal margins */
+    padding-bottom: 0;
+    border: none;
+}
+
+/* Row Labels */
+#appearance-modal .setting-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Spacing */
+#appearance-modal .setting-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 8px;
+    /* Tighter */
+    margin-bottom: 8px;
+    /* Tighter */
+}
+
+#appearance-modal .setting-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+/* 4. COMPONENT STYLING */
+
+/* Toggles (Themes/Design) - Pill Shaped */
+/* Toggles (Themes/Design) - Pill Shaped with Glider */
+/* Toggles (Themes/Design) - Pill Shaped with Glider */
+#appearance-modal .segment-control {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 99px;
+    padding: 4px;
+    border: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    isolation: isolate;
+}
+
+#appearance-modal .seg-glider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    background: var(--p);
+    border-radius: 99px;
+    z-index: 1;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+#appearance-modal .seg-item {
+    border-radius: 99px;
+    padding: 8px 20px;
+    /* Increased padding for "fatter" pill */
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent !important;
+    z-index: 2;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    transition: none;
+    /* No hover transition */
+}
+
+/* Remove hover effects entirely */
+#appearance-modal .seg-item:hover {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.6);
+    /* Keep text same color on hover */
+}
+
+#appearance-modal .seg-item.active {
+    color: #ffffff;
+    /* Background handled by glider */
+    box-shadow: none;
+    /* Shadow on glider */
+}
+
+/* SLIDER - RECREATE PILL THUMB & TICKS */
+#appearance-modal .tahoe-slider-row {
+    align-items: stretch;
+    margin-top: 2px;
+    /* Minimal */
+}
+
+#appearance-modal .tahoe-slider-row .setting-label {
+    text-align: center;
+    margin-bottom: 4px;
+    /* Minimal */
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+
+#appearance-modal .tahoe-slider-container {
+    padding: 0 4px;
+}
+
+/* Track */
+#appearance-modal .tahoe-slider {
+    height: 6px;
+    background: #ffffff !important;
+    border-radius: 99px;
+}
+
+/* THUMB - PILL SHAPE (Target Design) */
+#appearance-modal .tahoe-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 40px;
+    height: 20px;
+    background: var(--p);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+    margin-top: -7px;
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+
+#appearance-modal .tahoe-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.05);
+}
+
+/* Ticks - Clearly Spaced Below */
+#appearance-modal .tahoe-ticks {
+    margin-top: 6px;
+    /* Reduced from 12px */
+    padding: 0 4px;
+}
+
+#appearance-modal .tick-pill {
+    width: 2px;
+    height: 6px;
+    background: #ffffff;
+    border-radius: 1px;
+    margin-bottom: 2px;
+    /* Reduced from 6px */
+}
+
+#appearance-modal .tick-num {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+/* INPUTS - Solid Background Row Alignment */
+#appearance-modal .solid-color-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+#appearance-modal .solid-color-input-row {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 3px 8px;
+    /* Reduced */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#appearance-modal .color-circle-wrapper {
+    width: 28px;
+    /* Reduced */
+    height: 28px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#appearance-modal .cfg-in {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: monospace;
+    width: 70px;
+    height: auto;
+    padding: 0;
+}
+
+/* 5. FOOTER ACTIONS - Equal Width Grey Buttons */
+#appearance-modal .modal-actions {
+    margin-top: 12px;
+    /* Tighter footer */
+    padding-top: 0;
+    border-top: none;
+    gap: 10px;
+    display: flex;
+}
+
+#appearance-modal .modal-actions .btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border-radius: 14px !important;
+    padding: 10px !important;
+    /* Compact button padding */
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+#appearance-modal .modal-actions .btn:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-2px);
+}
+
+/* Icons in buttons */
+#appearance-modal .modal-actions .btn i {
+    font-size: 1rem;
+    color: var(--p);
+}
+
+/* Global Reset for Modal Content override */
+#appearance-modal .modal-content-custom {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#appearance-modal .settings-group-card {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ============================================================
+   6. SOLID BACKGROUND SECTION REFINEMENT (Target Design V2)
+   ============================================================ */
+
+/* Container: Full width, stacked rows */
+#appearance-modal .solid-bg-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Reduced */
+    padding-top: 10px;
+    /* Reduced */
+    border-top: none;
+    /* REMOVED DOUBLE BORDER */
+    width: 100%;
+}
+
+/* Row 1: Label (left) → Inputs (right) */
+#appearance-modal .solid-bg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Input group: Circle + Hex + Format */
+#appearance-modal .solid-bg-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Input Pills (Hex & Format) */
+#appearance-modal .hex-pill,
+#appearance-modal .format-pill {
+    background: #1E1E1E;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 99px;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    height: 34px;
+    padding: 0 14px;
+    outline: none;
+    text-align: center;
+}
+
+#appearance-modal .hex-pill {
+    width: 85px;
+}
+
+#appearance-modal .format-pill-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#appearance-modal .format-pill {
+    appearance: none;
+    padding-right: 28px;
+    cursor: pointer;
+    min-width: 90px;
+}
+
+#appearance-modal .format-pill-wrapper i {
+    position: absolute;
+    right: 12px;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+/* Row 2: Toggle (left) → Actions (right) */
+#appearance-modal .solid-bg-actions-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Left: Toggle Column (Toggle + Label underneath) */
+#appearance-modal .adaptive-toggle-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+/* Large Toggle Switch (Unique to Solid Background section) */
+#appearance-modal .solid-toggle-wrapper {
+    position: relative;
+    width: 70px;
+    height: 32px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#appearance-modal .solid-toggle-input {
+    /* Completely hide the input - override global checkbox styles */
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+#appearance-modal .solid-toggle-track {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: 0.3s ease;
+    border-radius: 32px;
+}
+
+#appearance-modal .solid-toggle-knob {
+    position: absolute;
+    height: 28px;
+    width: 28px;
+    left: 2px;
+    top: 2px;
+    background-color: white;
+    transition: 0.3s ease;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#appearance-modal .solid-toggle-input:checked+.solid-toggle-track {
+    background-color: var(--p);
+}
+
+#appearance-modal .solid-toggle-input:checked+.solid-toggle-track .solid-toggle-knob {
+    transform: translateX(38px);
+}
+
+#appearance-modal .adaptive-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.5px;
+}
+
+/* Right: Joined Action Buttons (Segmented) */
+/* Right: Joined Action Buttons (Segmented - Disguised as Toggle) */
+#appearance-modal .action-segment-control {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    /* "Disimuling" - no container bg */
+    border: none;
+    padding: 0;
+    gap: 4px;
+    /* Slight gap between pills */
+}
+
+#appearance-modal .action-seg-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 8px 24px;
+    /* Fat pill */
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 99px;
+    transition: all 0.2s ease;
+}
+
+#appearance-modal .action-seg-btn:hover {
+    color: #ffffff;
+}
+
+/* Apply (Purple Pill) */
+#appearance-modal .action-seg-btn.apply {
+    background: var(--p);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Remove (Dark Grey Pill) */
+#appearance-modal .action-seg-btn.remove {
+    background: rgba(255, 255, 255, 0.1);
+    /* Glassy Grey */
+    box-shadow: none;
+}
+
+#appearance-modal .action-seg-btn.remove:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* RESET BUTTON - PILL STYLE */
+#appearance-modal .seg-btn-reset {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 16px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* Ensure it stands out in glass theme */
+    backdrop-filter: blur(4px);
+}
+
+#appearance-modal .seg-btn-reset:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* COLOR PICKER PILLS */
+#appearance-modal .color-circle-wrapper {
+    width: 50px !important;
+    height: 28px !important;
+    border-radius: 99px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+#appearance-modal .color-circle-wrapper:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+#appearance-modal .color-circle-wrapper input[type="color"] {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150% !important;
+    height: 150% !important;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#appearance-modal .color-circle-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#appearance-modal .color-circle-wrapper input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 0;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVENESS - NAV BAR
+   ============================================================ */
+@media (max-width: 768px) {
+
+    /* Main Layout - Push content up to avoid being hidden by nav */
+    main {
+        margin-left: 0 !important;
+        margin-bottom: 80px;
+        /* Space for bottom nav */
+        padding: 16px;
+    }
+
+    /* Transform Sidebar into Bottom Nav */
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        /* Override desktop top:0 */
+        width: 100%;
+        height: 70px;
+        flex-direction: row;
+        padding: 0 10px;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 9999;
+
+        /* Glass styling for nav */
+        background: rgba(20, 20, 25, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px 24px 0 0;
+        /* Smooth top corners */
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Logo - Hide on mobile nav to save space */
+    .sidebar .logo-details {
+        display: none;
+    }
+
+    /* Nav Links Container */
+    .sidebar .nav-links {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 100%;
+        margin-top: 0;
+        align-items: center;
+        justify-content: space-evenly;
+        padding-bottom: 0;
+        /* Remove safe area if any */
+    }
+
+    /* Nav Buttons */
+    .sidebar li {
+        width: auto;
+        margin: 0;
+    }
+
+    .sidebar li .tooltip {
+        display: none !important;
+        /* No tooltips on mobile */
+    }
+
+    /* Icons - Bigger touch targets */
+    .sidebar li a {
+        height: 50px;
+        width: 50px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .sidebar li a i {
+        font-size: 1.2rem;
+        min-width: 0;
+        /* Reset */
+    }
+
+    .sidebar li a .link_name {
+        display: none;
+        /* Icon only */
+    }
+
+    /* Sidebar Footer (User/Status) - Hide or minimize */
+    .sidebar-footer {
+        display: none;
+        /* Hide footer for clean nav */
+    }
+
+    /* HIDE BLOBS on Mobile for Performance/Vision */
+    .bg-particles,
+    .bg-blobs {
+        display: none;
+    }
+
+    /* Ensure modals are on top */
+    .modal {
+        z-index: 10000;
+        align-items: flex-end;
+        /* Sheet style? Optional */
+        padding-bottom: 80px;
+    }
+
+    .modal-content-custom {
+        max-width: 100%;
+        border-radius: 24px 24px 0 0;
+        max-height: 85vh;
+    }
+}
+
+/* ============================================================
+   MATERIAL 3 DESIGN OVERRIDES (FLAT / MATERIAL THEME)
+   ============================================================ */
+[data-design="flat"] #appearance-modal .seg-glider,
+[data-design="material"] #appearance-modal .seg-glider {
+    display: none !important;
+    /* Disable bouncy glider */
+}
+
+[data-design="flat"] #appearance-modal .segment-control,
+[data-design="material"] #appearance-modal .segment-control {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    gap: 8px !important;
+}
+
+[data-design="flat"] #appearance-modal .seg-item,
+[data-design="material"] #appearance-modal .seg-item {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 20px !important;
+    /* Standard rounded pill */
+    padding: 6px 16px !important;
+    background: transparent !important;
+    transition: all 0.2s cubic-bezier(0.2, 0.0, 0, 1.0) !important;
+    /* M3 Standard Easing */
+}
+
+[data-design="flat"] #appearance-modal .seg-item:hover,
+[data-design="material"] #appearance-modal .seg-item:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-design="flat"] #appearance-modal .seg-item.active,
+[data-design="material"] #appearance-modal .seg-item.active {
+    background: var(--p) !important;
+    color: #ffffff !important;
+    border-color: var(--p) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Material 3 Toggle Physics (Standard Switch) */
+[data-design="flat"] .solid-toggle-track,
+[data-design="material"] .solid-toggle-track {
+    border-radius: 100px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    transition: background-color 0.2s linear !important;
+}
+
+[data-design="flat"] .solid-toggle-knob,
+[data-design="material"] .solid-toggle-knob {
+    /* M3 Knob: Smaller when unchecked */
+    width: 16px !important;
+    height: 16px !important;
+    top: 8px !important;
+    left: 8px !important;
+    background: #bbb !important;
+    /* Outline color equivalent */
+    box-shadow: none !important;
+    transition: all 0.2s cubic-bezier(0.2, 0.0, 0, 1.0) !important;
+}
+
+/* Checked State - M3 Expands and changes color */
+[data-design="flat"] .solid-toggle-input:checked+.solid-toggle-track,
+[data-design="material"] .solid-toggle-input:checked+.solid-toggle-track {
+    background: var(--p) !important;
+}
+
+[data-design="flat"] .solid-toggle-input:checked+.solid-toggle-track .solid-toggle-knob,
+[data-design="material"] .solid-toggle-input:checked+.solid-toggle-track .solid-toggle-knob {
+    background: #ffffff !important;
+    width: 24px !important;
+    height: 24px !important;
+    top: 4px !important;
+    transform: translateX(36px) !important;
+}
+
+/* Action Segments (Apply/Remove) - M3 Style */
+[data-design="flat"] #appearance-modal .action-seg-btn.remove,
+[data-design="material"] #appearance-modal .action-seg-btn.remove {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: transparent !important;
+}
+
+[data-design="flat"] #appearance-modal .action-seg-btn.remove:hover,
+[data-design="material"] #appearance-modal .action-seg-btn.remove:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ============================================================
+   ACCOUNT SETTINGS REFACTOR (MATTE & PURPLE)
+   ============================================================ */
+
+/* Modal Container (Matte Grey) */
+.modal-content-matte {
+    background: #1E1E1E;
+    /* Matte Dark Grey */
+    border-radius: 24px;
+    padding: 0;
+    width: 600px;
+    max-width: 90%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.account-body-scroll {
+    padding: 24px 32px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Header */
+.modal-header-clean {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 32px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-header-clean h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+.btn-clean-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-clean-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Profile Section */
+.profile-section-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.profile-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #aaa;
+    margin-bottom: 8px;
+}
+
+.username-pill {
+    background: rgba(124, 77, 255, 0.2);
+    border: 1px solid rgba(124, 77, 255, 0.5);
+    color: #fff;
+    padding: 6px 20px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-section-clean {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.label-clean {
+    font-size: 0.9rem;
+    color: #ddd;
+    font-weight: 500;
+}
+
+.sublabel-clean {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: -5px;
+    margin-bottom: 5px;
+}
+
+.input-clean {
+    background: #2B2B2B;
+    /* Darker than bg */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.input-clean:focus {
+    border-color: #7C4DFF;
+}
+
+.divider-clean {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 24px 0;
+}
+
+/* Clean Buttons */
+.btn-primary-clean {
+    background: #7C4DFF;
+    /* Neon Purple */
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary-clean.glow {
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+}
+
+.btn-primary-clean:hover {
+    background: #6c3ce8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary-clean {
+    background: #333;
+    /* Dark Grey */
+    color: #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-secondary-clean:hover {
+    background: #444;
+    color: #fff;
+}
+
+/* User Management Headers */
+.user-mgmt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.small-pill {
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    border-radius: 50px;
+}
+
+/* User List Rows (For JS Render) */
+.user-list-detailed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-row-detailed {
+    background: #252525;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+    margin-bottom: 0;
+}
+
+.user-row-detailed:hover {
+    background: #2a2a2a;
+}
+
+.user-avatar-small {
+    width: 36px;
+    height: 36px;
+    background: rgba(124, 77, 255, 0.15);
+    border-radius: 50%;
+    color: #7C4DFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.user-info-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.u-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.u-role {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-circle-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #333;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.action-circle-btn:hover {
+    background: #444;
+    color: #fff;
+}
+
+.action-circle-btn.delete:hover {
+    background: rgba(255, 60, 60, 0.2);
+    color: #ff3c3c;
+}
+
+/* Create User Panel */
+.create-user-panel {
+    background: #242424;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(124, 77, 255, 0.2);
+    margin-bottom: 15px;
+}
+/* ============================================================
+   ACCOUNT SETTINGS FLOATING HEADER (REFACTOR)
+   ============================================================ */
+/* Transparent Wrapper */
+.modal-floating-container {
+    background: transparent;
+    width: 600px;
+    max-width: 90%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+/* Header as Separate Element */
+.modal-header-floating {
+    background: #1E1E1E;
+    border-radius: 24px;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 20px; /* Floating Gap */
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.modal-header-floating h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+/* Body as Separate Element */
+.modal-body-floating {
+    background: #1E1E1E;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    flex: 1;
+    overflow: hidden; /* For inner scroll */
+    display: flex;
+    flex-direction: column;
+}
+
+/* INPUT ICON GROUPS */
+.input-icon-group {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7C4DFF;
+    font-size: 0.95rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.input-clean.with-icon {
+    padding-left: 44px; /* Space for icon */
+}
+
+
+/* FORCE INPUT WIDTH override */
+.input-clean {
+    width: 100% !important;
+}
+
+
+/* ============================================================
+   NEW USER MODAL (TARGET DESIGN)
+   ============================================================ */
+.create-user-card {
+    background: #3E3E3E; /* Matte Grey as requested */
+    border-radius: 24px;
+    padding: 24px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Split Row: Password (70%) | Role (30%) */
+.split-inputs-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.input-70 {
+    flex: 7;
+}
+
+.input-30 {
+    flex: 3;
+}
+
+/* Role Dropdown as Button */
+.role-select-btn {
+    width: 100%;
+    background: #333; /* Slightly darker button bg */
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    padding: 12px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    appearance: none; /* Remove default arrow */
+    text-align: center;
+    background-image: none; /* We will use text arrow or inner HTML if possible, but select validation is tricky. 
+                               Actually, user asked for 'User ' text. 
+                               The Select Option text has the arrow. 
+                               So just center it. */
+}
+
+/* Permissions Grid (3 Columns) */
+.perm-section-title {
+    display: block;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.permissions-grid-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px 24px; /* Row gap 12, Col gap 24 */
+}
+
+.perm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Label Left, Switch Right */
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+/* iOS Style Switch for Grid */
+.ios-switch {
+    appearance: none;
+    width: 36px !important;
+    height: 20px !important;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.3s;
+}
+
+.ios-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.ios-switch:checked {
+    background: #7C4DFF;
+}
+
+.ios-switch:checked::after {
+    transform: translateX(16px);
+}
+
+/* Footer Actions: Pill Buttons */
+.form-actions-split {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-pill-primary, .btn-pill-secondary {
+    flex: 1;
+    padding: 14px;
+    border-radius: 99px; /* Pill */
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-pill-primary {
+    background: #7C4DFF; /* Purple */
+    color: #fff;
+}
+
+.btn-pill-secondary {
+    background: #666; /* Grey */
+    color: #fff;
+}
+
+
+/* WIDER MODAL FIX */
+.modal-floating-container {
+    width: 680px !important;
+}
+
+/* FIX DROPDOWN HEIGHT TO MATCH INPUT */
+.role-select-btn {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 12px 16px !important; /* Match input padding */
+    height: 100%; /* Ensure it fills the flex container height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2B2B2B !important; /* Match Input BG */
+}
+
+/* ADJUST SPLIT ROW HEIGHT FOR ALIGNMENT */
+.split-inputs-row {
+    align-items: stretch; /* Stretch both to same height */
+}
+
+/* TIGHTEN CARD SPACING */
+.create-user-card {
+    padding: 20px !important;
+}
+
+.permissions-grid-3col {
+    gap: 8px 20px !important;
+}
+
+
+/* ============================================================
+   CUSTOM ROLE DROPDOWN (PREMIUM UI)
+   ============================================================ */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.custom-dropdown-trigger {
+    background: #2B2B2B;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    height: 100%; /* Fill container */
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.custom-dropdown-trigger:hover {
+    border-color: rgba(124, 77, 255, 0.5);
+    background: #333;
+}
+
+.trigger-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trigger-text {
+    font-size: 0.95rem;
+    color: #fff;
+    font-weight: 500;
+}
+
+.chevron-icon {
+    font-size: 0.8rem;
+    color: #888;
+    transition: transform 0.2s;
+}
+
+.custom-dropdown-trigger.open .chevron-icon {
+    transform: rotate(180deg);
+}
+
+/* Floating Menu */
+.custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 240px; /* Wider than trigger */
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    gap: 4px;
+    transform-origin: top right;
+    animation: dropdownPop 0.2s ease-out;
+}
+
+.custom-dropdown-menu.show {
+    display: flex;
+}
+
+@keyframes dropdownPop {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Dropdown Item */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item.selected {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.item-text-stack {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.item-title {
+    font-size: 0.9rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+.item-desc {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Icon Badges */
+.role-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.role-icon-badge.admin-bg {
+    background: #7C4DFF; /* Purple */
+    box-shadow: 0 2px 8px rgba(124, 77, 255, 0.4);
+}
+
+.role-icon-badge.user-bg {
+    background: #448AFF; /* Blue */
+    box-shadow: 0 2px 8px rgba(68, 138, 255, 0.4);
+}
+
+.check-mark {
+    color: #7C4DFF;
+    font-size: 0.9rem;
+}
+
+
+/* USER FEEDBACK: More space at bottom of New User Card */
+.create-user-card {
+    margin-bottom: 24px !important;
+}
+
+/* Ensure container scrolls enough */
+.account-body-scroll {
+    padding-bottom: 40px !important;
+}
+
+
+/* PILL SHAPED HEADER FIX */
+.modal-header-floating {
+    border-radius: 100px !important; /* Full Pill Shape */
+    padding: 12px 24px !important; /* Adjust padding for pill look */
+    /* Ensure flex alignment is centered */
+    align-items: center;
+}
+
+/* CIRCULAR CLOSE BUTTON */
+.modal-header-floating .btn-clean-close {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent grey */
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.modal-header-floating .btn-clean-close:hover {
+    background: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+
+
+/* FORCE MATCH INPUT-CLEAN FOR DROPDOWN */
+.custom-dropdown-trigger {
+    background: #2B2B2B !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    height: auto !important; /* Let padding define height like inputs */
+    min-height: 48px; /* Approx height of input with padding */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Ensure Split Row aligns top/stretch */
+.split-inputs-row {
+    align-items: flex-start !important; 
+}
+
+/* Adjust Inner Content */
+.trigger-content {
+    gap: 10px !important;
+}
+
+.role-icon-badge {
+    width: 24px !important; /* Slightly smaller to fit line-height */
+    height: 24px !important;
+    font-size: 0.75rem !important;
+}
+
+
+/* ============================================================
+   AVATAR UPLOAD UI
+   ============================================================ */
+.avatar-upload-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.avatar-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7C4DFF, #448AFF); /* Purple to Blue Gradient */
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 24px rgba(124, 77, 255, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.avatar-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(124, 77, 255, 0.5);
+}
+
+.avatar-placeholder {
+    font-size: 2.5rem;
+    color: rgba(255,255,255,0.9);
+}
+
+#avatar-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.avatar-circle:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-overlay i {
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+/* FIX DROPDOWN CLIPPING */
+.create-user-card {
+    overflow: visible !important; 
+}
+

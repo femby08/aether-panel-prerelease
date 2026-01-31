@@ -13,7 +13,19 @@ const { promisify } = require('util');
 const cron = require('node-cron');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const v8 = require('v8');
 const axios = require('axios');
+const {
+    generateRegistrationOptions,
+    verifyRegistrationResponse,
+    generateAuthenticationOptions,
+    verifyAuthenticationResponse,
+} = require('@simplewebauthn/server');
+
+const rpName = 'Aether Panel';
+const rpID = 'localhost'; // WebAuthn requires localhost or HTTPS
+const origin = 'http://localhost:3000'; // Default origin
+const biometricChallenges = new Map(); // Store challenges temporarily
 
 // Ensure server.js does not crash on unhandled promise rejections (common with axios)
 process.on('unhandledRejection', (reason, p) => {
@@ -51,7 +63,51 @@ function getJwtSecret() {
 
 // --- MIDDLEWARE ---
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '50mb' })); // Increased limit for file uploads/saves
+app.use(express.json({ limit: '50mb' }));
+
+// --- MULTER CONFIG FOR AVATARS ---
+const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads', 'avatars');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, UPLOADS_DIR);
+    },
+    filename: function (req, file, cb) {
+        // Safe filename: timestamp + random + extension
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'avatar-' + uniqueSuffix + ext);
+    }
+});
+
+const uploadAvatar = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed'));
+        }
+    }
+});
+
+// --- UPLOAD ENDPOINT ---
+app.post('/api/upload-avatar', uploadAvatar.single('avatar'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+        // Return the relative path for the frontend
+        const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+        res.json({ success: true, avatarUrl });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ success: false, message: 'Upload failed' });
+    }
+});
+
 
 // Helpers de Auth Simplificada
 function getAllUsers() {
@@ -169,9 +225,330 @@ app.get('/api/auth/check', authenticateToken, (req, res) => {
         user: {
             username: req.user.username,
             role: user.role || 'admin',
-            permissions: user.permissions || []
+            permissions: user.permissions || [],
+            avatar: user.avatar || null
         }
     });
+});
+
+// Get all users for login carousel (public - no auth required)
+app.get('/api/auth/users', (req, res) => {
+    const users = getAllUsers();
+    res.json({
+        users: users.map(u => ({
+            username: u.username,
+            avatar: u.avatar || null
+        }))
+    });
+});
+
+// Save avatar URL to user profile (authenticated)
+app.post('/api/account/avatar', authenticateToken, (req, res) => {
+    const { avatar } = req.body;
+    const users = getAllUsers();
+    const userIndex = users.findIndex(u => u.username === req.user.username);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    users[userIndex].avatar = avatar;
+    saveUsers(users);
+
+    res.json({ success: true, avatar });
+});
+
+// --- BIOMETRIC / WEBAUTHN ENDPOINTS ---
+
+// 1. Check if user has biometrics & Start Login Flow
+app.post('/api/auth/biometric/check', async (req, res) => {
+    const { username } = req.body;
+    const user = findUserByUsername(username);
+
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    // Check if user has recorded authenticators
+    if (!user.authenticators || user.authenticators.length === 0) {
+        return res.json({ registered: false });
+    }
+
+    try {
+        // Generate Authentication Options
+        console.log(`Generating options for user: ${username}, authenticators: ${user.authenticators.length}`);
+
+        // Supports both sync and async versions of simplewebauthn
+        const optionsPromise = generateAuthenticationOptions({
+            rpID,
+            allowCredentials: user.authenticators
+                .filter(auth => auth.credentialID && auth.credentialPublicKey)
+                .map(auth => {
+                    let cid = auth.credentialID;
+                    if (cid && cid.type === 'Buffer' && cid.data) cid = Buffer.from(cid.data);
+                    return {
+                        id: cid, // Pass as Buffer or Base64URL String
+                        type: 'public-key',
+                        transports: auth.transports,
+                    };
+                }),
+            userVerification: 'required',
+        });
+
+        const options = optionsPromise instanceof Promise ? await optionsPromise : optionsPromise;
+        console.log('Generated Options:', options); // Debug check
+
+        if (!options || !options.challenge) {
+            throw new Error('Failed to generate challenge');
+        }
+
+        // Save challenge
+        console.log(`[Bio Check] Setting challenge for ${username}: ${options.challenge}`);
+        biometricChallenges.set(username, options.challenge);
+
+        res.json({
+            registered: true,
+            challenge: options.challenge,
+            credentials: user.authenticators
+                .filter(auth => auth.credentialID && auth.credentialPublicKey)
+                .map(auth => {
+                    let cid = auth.credentialID;
+                    if (cid && cid.type === 'Buffer' && cid.data) cid = Buffer.from(cid.data);
+
+                    // If CID is string (Base64URL), convert to Base64 for client
+                    let base64ID;
+                    if (typeof cid === 'string') {
+                        console.log('Converting String CID:', cid);
+                        base64ID = Buffer.from(cid, 'base64url').toString('base64');
+                        console.log('Converted Base64:', base64ID);
+                    } else {
+                        base64ID = Buffer.from(cid).toString('base64');
+                    }
+
+                    return { id: base64ID };
+                })
+        });
+    } catch (e) {
+        console.error('Biometric Auth Error:', e);
+        res.status(500).json({ error: 'Error generating biometric challenge' });
+    }
+});
+
+// 2. Verify Biometric Login
+app.post('/api/auth/biometric/verify', async (req, res) => {
+    const { username, id: credentialId, rawId, response: authResponse, type } = req.body;
+    console.log('=== BIOMETRIC VERIFY REQUEST (Fixed) ===');
+    console.log('Cred ID:', credentialId, 'Raw ID:', rawId);
+    const user = findUserByUsername(username);
+    const expectedChallenge = biometricChallenges.get(username);
+    console.log(`[Bio Verify] Expected challenge for ${username}: ${expectedChallenge}`);
+
+    if (!user || !expectedChallenge) {
+        return res.status(400).json({ error: 'Sesión inválida o expirada' });
+    }
+
+    try {
+        // Use the credential ID from the request (base64url format)
+        const bodyCredID = credentialId || rawId;
+
+        if (!bodyCredID) {
+            throw new Error('Missing credential ID in request');
+        }
+
+        // Filter valid authenticators first
+        const validAuths = user.authenticators.filter(auth => auth.credentialID && auth.credentialPublicKey);
+
+        const usedAuth = validAuths.find(auth => {
+            let cid = auth.credentialID;
+            if (cid && cid.type === 'Buffer' && cid.data) cid = Buffer.from(cid.data);
+
+            // Match Logic
+            if (typeof cid === 'string') {
+                return cid === bodyCredID;
+            }
+            if (Buffer.isBuffer(cid)) {
+                // Buffer to Base64URL
+                const storedID = cid.toString('base64url');
+                return storedID === bodyCredID;
+            }
+            return false;
+        });
+
+        if (!usedAuth) throw new Error('Authenticador no encontrado');
+
+        // Create a CLEAN object for the library to avoid reference/mutation issues
+        const authenticatorForLib = {
+            id: (typeof usedAuth.credentialID === 'string')
+                ? Buffer.from(usedAuth.credentialID, 'base64url')
+                : (Buffer.isBuffer(usedAuth.credentialID) ? usedAuth.credentialID : Buffer.from(usedAuth.credentialID.data)),
+            publicKey: (usedAuth.credentialPublicKey.type === 'Buffer')
+                ? Buffer.from(usedAuth.credentialPublicKey.data)
+                : usedAuth.credentialPublicKey,
+            counter: usedAuth.counter || 0, // Ensure strictly number
+            transports: usedAuth.transports || []
+        };
+
+        // Debug: Check hydration
+        console.log('Verifying authenticator (Clean Obj):', {
+            idType: typeof authenticatorForLib.id,
+            isBuffer: Buffer.isBuffer(authenticatorForLib.id),
+            idLen: authenticatorForLib.id ? authenticatorForLib.id.length : 'N/A',
+            counter: authenticatorForLib.counter
+        });
+
+        // Prepare the response object for verification
+        // The library expects base64url strings in the response
+        const verificationResponse = {
+            id: credentialId || rawId,
+            rawId: rawId || credentialId,
+            type: type || 'public-key',
+            response: {
+                authenticatorData: authResponse.authenticatorData,
+                clientDataJSON: authResponse.clientDataJSON,
+                signature: authResponse.signature,
+                userHandle: authResponse.userHandle || undefined
+            }
+        };
+
+        const verifyOptions = {
+            response: verificationResponse,
+            expectedChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+            credential: authenticatorForLib, // RENAMED from 'authenticator' to 'credential' for v10+
+            requireUserVerification: true,
+        };
+
+        console.log('Calling verifyAuthenticationResponse with options keys:', Object.keys(verifyOptions));
+        console.log('Authenticator passed:', JSON.stringify(authenticatorForLib, (k, v) => {
+            if (v && v.type === 'Buffer') return '[Buffer]';
+            if (Buffer.isBuffer(v)) return `[Buffer ${v.length}]`;
+            return v;
+        }));
+
+        const verification = await verifyAuthenticationResponse(verifyOptions);
+
+        const { verified, authenticationInfo } = verification;
+        console.log('Verification result:', { verified, hasInfo: !!authenticationInfo });
+
+        if (verified) {
+            // Update counter
+            if (authenticationInfo && typeof authenticationInfo.newCounter === 'number') {
+                usedAuth.counter = authenticationInfo.newCounter;
+            } else {
+                usedAuth.counter = (usedAuth.counter || 0) + 1; // Fallback
+            }
+            saveUsers(getAllUsers()); // Update counter in DB
+
+            // Login Success
+            const token = jwt.sign({
+                username: user.username,
+                role: user.role || 'admin'
+            }, getJwtSecret(), { expiresIn: '7d' });
+
+            res.json({
+                success: true,
+                token,
+                username: user.username,
+                role: user.role || 'admin',
+                permissions: user.permissions || []
+            });
+
+            biometricChallenges.delete(username);
+        } else {
+            res.status(401).json({ error: 'Verificación biométrica fallida' });
+        }
+    } catch (error) {
+        console.error('Biometric Verify Error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(400).json({ error: error.message, stack: error.stack });
+    }
+});
+
+// 3. Register Biometric - Check/Start (Protected)
+app.post('/api/auth/biometric/register-start', authenticateToken, async (req, res) => {
+    const user = findUserByUsername(req.user.username);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const options = await generateRegistrationOptions({
+        rpName,
+        rpID,
+        userID: Buffer.from(user.username),
+        userName: user.username,
+        attestationType: 'none', // Simple
+        authenticatorSelection: {
+            residentKey: 'preferred',
+            userVerification: 'required',
+            authenticatorAttachment: 'platform', // TouchID/WinHello
+        },
+    });
+
+    biometricChallenges.set(req.user.username + '_reg', options.challenge);
+    res.json(options);
+});
+
+// 4. Register Biometric - Finish (Protected)
+app.post('/api/auth/biometric/register-finish', authenticateToken, async (req, res) => {
+    const { response: attResp } = req.body;
+    const user = findUserByUsername(req.user.username);
+    const expectedChallenge = biometricChallenges.get(req.user.username + '_reg');
+
+    if (!user || !expectedChallenge) return res.status(400).json({ error: 'Invalid session' });
+
+    try {
+        const verification = await verifyRegistrationResponse({
+            response: attResp,
+            expectedChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+            requireUserVerification: true,
+        });
+
+        const { verified, registrationInfo } = verification;
+
+        if (verified && registrationInfo) {
+            if (!user.authenticators) user.authenticators = [];
+
+            // Robust extraction (SimpleWebAuthn v10 structure)
+            const credential = registrationInfo.credential || {};
+            const credentialID = credential.id || registrationInfo.credentialID || attResp.id;
+            const credentialPublicKey = credential.publicKey || registrationInfo.credentialPublicKey;
+            const counter = credential.counter || registrationInfo.counter || 0;
+
+            if (!credentialID || !credentialPublicKey) {
+                console.error('Registration Info Missing:', registrationInfo);
+                return res.status(500).json({ error: 'Failed to extract credential info' });
+            }
+
+            // Ensure public key is Buffer
+            const pkBuffer = (credentialPublicKey instanceof Uint8Array)
+                ? Buffer.from(credentialPublicKey)
+                : credentialPublicKey;
+
+            const newAuthenticator = {
+                credentialID,
+                credentialPublicKey: pkBuffer,
+                counter,
+                transports: attResp.response.transports,
+            };
+
+            user.authenticators.push(newAuthenticator);
+
+            // Save to DB
+            const allUsers = getAllUsers();
+            const idx = allUsers.findIndex(u => u.username === user.username);
+            if (idx !== -1) {
+                allUsers[idx] = user;
+                saveUsers(allUsers);
+            }
+
+            biometricChallenges.delete(req.user.username + '_reg');
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ error: 'Registration failed' });
+        }
+    } catch (e) {
+        console.error('Register Error:', e);
+        res.status(400).json({ error: e.message });
+    }
 });
 
 // Account Management Endpoints
@@ -230,6 +607,29 @@ app.post('/api/account/password', authenticateToken, (req, res) => {
     } catch (error) {
         console.error('Error updating password:', error);
         res.json({ success: false, error: 'Error al actualizar la contraseña' });
+    }
+});
+
+app.post('/api/account/avatar', authenticateToken, (req, res) => {
+    const { avatar } = req.body;
+
+    if (!avatar) {
+        return res.json({ success: false, error: 'Avatar URL required' });
+    }
+
+    try {
+        const users = getAllUsers();
+        const userIndex = users.findIndex(u => u.username === req.user.username);
+
+        if (userIndex === -1) return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
+
+        users[userIndex].avatar = avatar;
+        saveUsers(users);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating avatar:', error);
+        res.json({ success: false, error: 'Error al actualizar el avatar' });
     }
 });
 
@@ -384,6 +784,122 @@ app.post('/api/users/update', authenticateToken, (req, res) => {
 
 // --- RUTAS PROTEGIDAS ---
 
+// Version endpoint (for login screen)
+app.get('/api/version', (req, res) => {
+    try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+        res.json({ version: pkg.version });
+    }
+    catch (e) { res.json({ version: '1.7.1' }); }
+});
+
+// Get list of users for login carousel (public, no auth required)
+app.get('/api/auth/users', (req, res) => {
+    try {
+        const users = getAllUsers();
+        // Only return usernames, no sensitive data
+        res.json({
+            users: users.map(u => ({
+                username: u.username
+            }))
+        });
+    } catch (e) {
+        res.json({ users: [{ username: 'admin' }] });
+    }
+});
+
+// Biometric Authentication Endpoints
+
+// Check if user has biometric authentication enabled
+app.post('/api/auth/biometric/check', (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Username required' });
+        }
+
+        const users = getAllUsers();
+        const user = users.find(u => u.username === username);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check if user has biometric enabled (stored in user data)
+        res.json({
+            hasBiometric: user.biometricEnabled || false,
+            username: username
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Register/Enable biometric authentication for a user
+app.post('/api/auth/biometric/register', authenticateToken, (req, res) => {
+    try {
+        const { username, credentialId } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Username required' });
+        }
+
+        const users = getAllUsers();
+        const userIdx = users.findIndex(u => u.username === username);
+
+        if (userIdx === -1) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Enable biometric for this user
+        users[userIdx].biometricEnabled = true;
+        users[userIdx].biometricCredentialId = credentialId || `bio-${Date.now()}`;
+
+        // Save updated users
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+        res.json({ success: true, message: 'Biometric authentication enabled' });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Verify biometric login (simplified - trusts client-side WebAuthn verification)
+app.post('/api/auth/biometric/verify', (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Username required' });
+        }
+
+        const users = getAllUsers();
+        const user = users.find(u => u.username === username);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (!user.biometricEnabled) {
+            return res.status(403).json({ error: 'Biometric not enabled for this user' });
+        }
+
+        // Generate JWT token (same as normal login)
+        const token = jwt.sign(
+            { username: user.username, role: user.role || 'user' },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            success: true,
+            token,
+            username: user.username,
+            role: user.role || 'user'
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Info Básica
 app.get('/api/info', (req, res) => {
     try { const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')); res.json({ version: pkg.version }); }
@@ -414,10 +930,28 @@ function getIP() {
     return '127.0.0.1';
 }
 
+// Cache for server size to avoid high CPU/RAM usage on every poll
+let cachedServerSize = 0;
+let lastServerSizeUpdate = 0;
+
+function getServerSizeCached() {
+    const now = Date.now();
+    // Update cache only if 60 seconds have passed
+    if (now - lastServerSizeUpdate > 60000) {
+        try {
+            cachedServerSize = getDirSize(SERVER_DIR);
+        } catch (e) {
+            console.error("Error calculating server size:", e);
+        }
+        lastServerSizeUpdate = now;
+    }
+    return cachedServerSize;
+}
+
 // Stats & Power
 app.get('/api/stats', authenticateToken, (req, res) => {
     osUtils.cpuUsage((cpuPercent) => {
-        sendStats(cpuPercent, getDirSize(SERVER_DIR), res);
+        sendStats(cpuPercent, getServerSizeCached(), res);
     });
 });
 app.get('/api/status', authenticateToken, (req, res) => res.json(mcServer.getStatus()));
@@ -1351,7 +1885,10 @@ io.on('connection', (s) => {
     s.on('command', (c) => mcServer.sendCommand(c));
 });
 
-server.listen(3000, () => console.log('Aether Panel Lite running on port 3000'));
+server.listen(3000, () => {
+    console.log('Aether Panel Lite running on port 3000');
+    console.log(`Node.js Heap Limit: ${(v8.getHeapStatistics().heap_size_limit / 1024 / 1024).toFixed(2)} MB`);
+});
 // Install Mod (Modrinth)
 // Install Mod (Modrinth)
 app.post('/api/mods/install', authenticateToken, async (req, res) => {
@@ -1482,7 +2019,7 @@ app.get('/api/update/:type', authenticateToken, async (req, res) => {
         const remotePkgUrl = 'https://raw.githubusercontent.com/femby08/aether-panel/main/package.json';
         const response = await axios.get(remotePkgUrl);
         const remoteVersion = response.data.version;
-        
+
         const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
         const localVersion = localPkg.version;
 
@@ -1504,7 +2041,7 @@ app.get('/api/update/:type', authenticateToken, async (req, res) => {
 app.post('/api/update/ui/install', authenticateToken, async (req, res) => {
     const REPO_ZIP = "https://github.com/femby08/aether-panel/archive/refs/heads/main.zip";
     const TEMP_DIR = path.join(os.tmpdir(), `aether_ui_update_${Date.now()}`);
-    
+
     try {
         // 1. Download Zip
         if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
@@ -1533,7 +2070,7 @@ app.post('/api/update/ui/install', authenticateToken, async (req, res) => {
         // We can't easily rm -rf in node without extra libs or recursive, 
         // but let's try to overwrite files. Ideally we should clean specific old files.
         // For 'Reload web' style, we just overwrite.
-        
+
         // Helper to copy recursively
         function copyRecursiveSync(src, dest) {
             if (!fs.existsSync(dest)) fs.mkdirSync(dest);
@@ -1552,7 +2089,7 @@ app.post('/api/update/ui/install', authenticateToken, async (req, res) => {
         copyRecursiveSync(publicSource, publicDest);
 
         // Cleanup
-        try { fs.rmSync(TEMP_DIR, { recursive: true, force: true }); } catch(e){}
+        try { fs.rmSync(TEMP_DIR, { recursive: true, force: true }); } catch (e) { }
 
         res.json({ success: true });
 
@@ -1588,7 +2125,7 @@ app.post('/api/update/system/install', authenticateToken, (req, res) => {
 
         // Respond then exit
         res.json({ success: true, message: 'Server restarting...' });
-        
+
         // Give time for response to flush
         setTimeout(() => {
             process.exit(0);

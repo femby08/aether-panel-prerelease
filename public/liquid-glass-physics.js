@@ -8,7 +8,8 @@ const PHYSICS_CONFIG = {
     enabled: true,           // Master toggle
     cursorLight: false,      // Cursor-following light (GPU intensive, disabled by default)
     tiltEffect: false,       // 3D tilt on hover - DISABLED (confusing on cards)
-    throttleMs: 50,          // Throttle cursor events (lower = smoother but more CPU)
+    throttleMs: 16,          // Throttle cursor events (~60fps for smooth animation)
+    throttleMsLight: 33,     // Throttle for cursor light (30fps to save GPU)
     maxTiltDeg: 3            // Maximum tilt angle
 };
 

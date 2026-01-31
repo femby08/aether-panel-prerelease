@@ -83,12 +83,19 @@ async function handleLogin(event) {
     const passwordInput = document.getElementById('login-password');
     const errorDiv = document.getElementById('login-error');
     const btn = document.getElementById('login-btn-submit');
+    const loginBox = document.querySelector('.login-box-macos');
     const isSetup = btn.dataset.mode === 'setup';
 
     const username = usernameInput.value;
     const password = passwordInput.value;
 
-    errorDiv.style.display = 'none';
+    // Reset states
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (loginBox) loginBox.classList.remove('shake');
+    if (passwordInput) passwordInput.classList.remove('error');
+
+    // Add loading state
+    btn.classList.add('loading');
 
     try {
         const endpoint = isSetup ? '/api/auth/setup' : '/api/auth/login';
@@ -101,9 +108,28 @@ async function handleLogin(event) {
 
         const result = await response.json();
 
+        // Remove loading state
+        btn.classList.remove('loading');
+
         if (!result.success) {
-            errorDiv.innerText = result.error || 'Error de autenticación';
-            errorDiv.style.display = 'block';
+            // Show error with animations
+            if (errorDiv) {
+                errorDiv.innerText = result.error || 'Error de autenticación';
+                errorDiv.style.display = 'block';
+            }
+
+            // Shake animation
+            if (loginBox) {
+                loginBox.classList.add('shake');
+                setTimeout(() => loginBox.classList.remove('shake'), 500);
+            }
+
+            // Mark password input as error
+            if (passwordInput) passwordInput.classList.add('error');
+
+            // Focus password field for retry
+            passwordInput.focus();
+            passwordInput.select();
             return;
         }
 
@@ -134,20 +160,27 @@ async function handleLogin(event) {
         }).showToast();
 
     } catch (error) {
+        btn.classList.remove('loading');
         errorDiv.innerText = 'Error de conexión: ' + error.message;
         errorDiv.style.display = 'block';
+        errorDiv.classList.add('visible');
+
+        // Shake animation on connection error
+        loginBox.classList.add('shake');
+        setTimeout(() => loginBox.classList.remove('shake'), 500);
     }
 }
 // Toggle Password Visibility
 function togglePassword() {
     const p = document.getElementById('login-password');
     const b = document.getElementById('toggle-pass-btn');
+
     if (p.type === 'password') {
         p.type = 'text';
-        b.innerText = 'Hide';
+        b.innerText = 'Ocultar';
     } else {
         p.type = 'password';
-        b.innerText = 'Show';
+        b.innerText = 'Mostrar';
     }
 }
 
@@ -232,17 +265,531 @@ function showLoginScreen() {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('main-app').style.display = 'none';
 
-    document.getElementById('login-title').innerHTML = 'AETHER PANEL <span id="login-version" style="opacity: 0.5; font-size: 0.6em;"></span>';
-    // Re-fetch version to ensure it appears if this is called after load
+    // Fetch version from API (matches package.json)
     fetch('/api/version').then(r => r.json()).then(d => {
         const el = document.getElementById('login-version');
-        if (el) el.innerText = d.version;
+        if (el) el.innerText = '(' + d.version + ')';
     }).catch(() => { });
 
-    document.getElementById('login-subtitle').innerText = "Acceso Administrativo";
-    document.getElementById('login-btn-submit').innerText = 'LOGIN';
-    document.getElementById('login-btn-submit').dataset.mode = 'login';
+    // Load available users for carousel
+    loadLoginUsers();
+
+    // Check if WebAuthn/biometrics is available
+    checkBiometricSupport();
+
+    // Auto-focus password field
+    setTimeout(() => {
+        const passwordField = document.getElementById('login-password');
+        if (passwordField) passwordField.focus();
+    }, 100);
 }
+
+// ===== USER CAROUSEL & BIOMETRIC AUTHENTICATION =====
+
+let availableUsers = ['admin']; // Default user list
+let currentSelectedUser = 0;
+
+// Load available users for the login carousel
+// Now stores full user objects with avatars
+let availableUserObjects = [];
+
+function loadLoginUsers() {
+    fetch('/api/auth/users').then(r => r.json()).then(data => {
+        if (data.users && data.users.length > 0) {
+            availableUsers = data.users.map(u => u.username);
+            availableUserObjects = data.users; // Store full objects
+        } else {
+            availableUsers = ['admin'];
+            availableUserObjects = [{ username: 'admin', avatar: null }];
+        }
+        initCarousel();
+    }).catch(() => {
+        availableUsers = ['admin'];
+        availableUserObjects = [{ username: 'admin', avatar: null }];
+        initCarousel();
+    });
+}
+
+// Initialize dynamic carousel elements
+function initCarousel() {
+    const carouselContainer = document.getElementById('userCarousel');
+    if (!carouselContainer) return;
+
+    carouselContainer.innerHTML = ''; // Clear existing static slots
+
+    availableUserObjects.forEach((user, idx) => {
+        const userDiv = document.createElement('div');
+        userDiv.className = 'carousel-user';
+
+        // Check if user has an avatar
+        if (user.avatar) {
+            userDiv.innerHTML = `
+                <div class="avatar-main">
+                    <img src="${user.avatar}" alt="${user.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                </div>
+            `;
+        } else {
+            userDiv.innerHTML = `
+                <div class="avatar-main">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            `;
+        }
+
+        // Click to select this user
+        userDiv.onclick = () => selectUser(idx);
+        carouselContainer.appendChild(userDiv);
+    });
+
+    updateUserDisplay();
+}
+
+// Select user by index (triggers animation via class update)
+function selectUser(idx) {
+    currentSelectedUser = idx;
+    updateUserDisplay();
+}
+
+// Update positions based on current selection
+function updateUserDisplay() {
+    const currentUserName = document.getElementById('currentUserName');
+    const usernameInput = document.getElementById('login-username');
+    const userDivs = document.querySelectorAll('.carousel-user');
+
+    // Update text
+    if (currentUserName) currentUserName.innerText = availableUsers[currentSelectedUser];
+    if (usernameInput) usernameInput.value = availableUsers[currentSelectedUser];
+
+    const count = availableUsers.length;
+
+    // Update classes for positions
+    userDivs.forEach((div, idx) => {
+        // Calculate relative position: 0=Center, 1=Right, -1=Left
+        let dist = (idx - currentSelectedUser + count) % count;
+
+        div.className = 'carousel-user'; // Reset
+
+        if (dist === 0) {
+            div.classList.add('pos-center');
+        } else if (dist === 1) {
+            // 2-User Special Case: Alternate sides based on selection index
+            // If current is Even (0, 2..): Show Other as Right.
+            // If current is Odd (1, 3..): Show Other as Left.
+            // This creates a toggle effect: A(C) B(R) -> B(C) A(L).
+            if (count === 2 && currentSelectedUser % 2 !== 0) {
+                div.classList.add('pos-left');
+            } else {
+                div.classList.add('pos-right');
+            }
+        } else if (dist === count - 1) {
+            div.classList.add('pos-left');
+        } else {
+            div.style.opacity = '0';
+            div.style.pointerEvents = 'none';
+        }
+
+        // Clean up inline styles
+        if (dist === 0 || dist === 1 || dist === count - 1) {
+            div.style.opacity = '';
+            div.style.pointerEvents = '';
+        }
+    });
+
+    // Focus password
+    const passwordField = document.getElementById('login-password');
+    if (passwordField) setTimeout(() => passwordField.focus(), 200);
+}
+
+// Toggle user switcher dropdown (click on avatar)
+
+
+// Focus password field
+setTimeout(() => {
+    const passwordField = document.getElementById('login-password');
+    if (passwordField) {
+        passwordField.value = ''; // Clear password
+        passwordField.focus();
+    }
+}, 300);
+
+// Check if biometric authentication is supported
+function checkBiometricSupport() {
+    const touchIdSection = document.getElementById('touchIdSection');
+
+    if (!touchIdSection) return;
+
+    // Check for WebAuthn support
+    if (window.PublicKeyCredential && navigator.credentials) {
+        // Check if platform authenticator is available (Touch ID, Face ID, Windows Hello)
+        PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+            .then(available => {
+                if (available) {
+                    touchIdSection.style.display = 'flex';
+                    // Auto-start removed per user request (User must click button)
+                } else {
+                    touchIdSection.style.display = 'none';
+                }
+            })
+            .catch(() => {
+                touchIdSection.style.display = 'none';
+            });
+    } else {
+        touchIdSection.style.display = 'none';
+    }
+}
+
+// Attempt biometric login (Touch ID / Face ID / Windows Hello)
+async function attemptBiometricLogin(silent = false) {
+    // Strict Global Debounce
+    if (window.isBiometricProcessing) return;
+    window.isBiometricProcessing = true;
+
+    const touchIdBtn = document.querySelector('.touchid-btn');
+    const touchIdText = document.querySelector('.touchid-text');
+    const errorDiv = document.getElementById('login-error');
+
+    try {
+        // Visual feedback
+        if (touchIdBtn) touchIdBtn.classList.add('loading');
+        if (touchIdText) touchIdText.innerText = t('login.bio.scanning'); // TRANSLATED
+
+        // Get the selected username
+        const username = document.getElementById('login-username').value || 'admin';
+
+        // Prevent double-clicks causing challenge mismatch
+        if (touchIdBtn) touchIdBtn.style.pointerEvents = 'none';
+
+        // Check if user has registered biometrics
+        const checkResponse = await fetch('/api/auth/biometric/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+
+        // Handle API not existing (404 or returns HTML)
+        if (!checkResponse.ok) {
+            if (silent) return;
+            const errData = await checkResponse.json().catch(() => ({}));
+            throw new Error(errData.error || `Biométrico no disponible (${checkResponse.status})`);
+        }
+
+        const contentType = checkResponse.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            if (silent) return;
+            throw new Error(t('login.bio.error.setup')); // TRANSLATED
+        }
+
+        const checkResult = await checkResponse.json();
+        console.log('Biometric Check Result:', checkResult); // Debug
+
+        if (!checkResult.registered) {
+            // User hasn't registered biometrics - offer to register
+            if (silent) return;
+            if (touchIdText) touchIdText.innerText = 'Biométrico no configurado. Inicia sesión para configurarlo.';
+            setTimeout(() => {
+                if (touchIdText) touchIdText.innerText = 'Usa Touch ID o introduce la contraseña';
+            }, 3000);
+            return;
+        }
+
+        if (!checkResult.challenge) throw new Error('Biometric challenge missing from server');
+
+        // Request biometric authentication via WebAuthn
+        const assertionOptions = {
+            publicKey: {
+                challenge: Uint8Array.from(atob(checkResult.challenge.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)),
+                rpId: window.location.hostname,
+                allowCredentials: checkResult.credentials.map(cred => {
+                    if (!cred.id) throw new Error('Credential ID missing');
+                    return {
+                        type: 'public-key',
+                        id: Uint8Array.from(atob(cred.id.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)),
+                        transports: ['internal']
+                    };
+                }),
+                userVerification: 'required',
+                timeout: 60000
+            }
+        };
+
+        const assertion = await navigator.credentials.get(assertionOptions);
+
+        // Verify assertion with server
+        const toBase64Url = (buf) => {
+            let str = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                str += String.fromCharCode(bytes[i]);
+            }
+            return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        };
+
+        const verifyResponse = await fetch('/api/auth/biometric/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username,
+                id: toBase64Url(assertion.rawId),
+                rawId: toBase64Url(assertion.rawId),
+                type: assertion.type,
+                response: {
+                    authenticatorData: toBase64Url(assertion.response.authenticatorData),
+                    clientDataJSON: toBase64Url(assertion.response.clientDataJSON),
+                    signature: toBase64Url(assertion.response.signature),
+                    userHandle: assertion.response.userHandle ? toBase64Url(assertion.response.userHandle) : undefined
+                }
+            })
+        });
+
+        const verifyResult = await verifyResponse.json();
+
+        if (verifyResult.success) {
+            // Success Animation
+            if (touchIdBtn) {
+                touchIdBtn.classList.remove('loading');
+                touchIdBtn.classList.add('biometric-success');
+                touchIdBtn.innerHTML = '<i class="fa-solid fa-check" style="font-size: 1.2rem;"></i>';
+            }
+            if (touchIdText) {
+                touchIdText.style.color = '#10b981';
+                touchIdText.innerText = t('login.bio.success'); // TRANSLATED
+            }
+
+            // Wait for animation to play
+            await new Promise(r => setTimeout(r, 1200));
+
+            // Login successful!
+            localStorage.setItem('authToken', verifyResult.token);
+            authToken = verifyResult.token;
+            currentUser = {
+                username: verifyResult.username,
+                role: verifyResult.role || 'admin',
+                permissions: verifyResult.permissions || []
+            };
+
+            applyPermissions();
+            socket = io({ auth: { token: verifyResult.token } });
+
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            initializeApp();
+
+            Toastify({
+                text: t('msg.welcome') + " " + username + "!",
+                style: { background: "#10b981" }
+            }).showToast();
+        } else {
+            if (verifyResult.stack) console.error('Server Stack:', verifyResult.stack);
+            throw new Error(verifyResult.error || 'Verificación fallida');
+        }
+
+    } catch (error) {
+        console.error('Biometric auth error:', error);
+
+        if (errorDiv) {
+            errorDiv.innerText = error.name === 'NotAllowedError'
+                ? t('login.bio.error.cancel') // TRANSLATED
+                : t('login.bio.error.prefix') + error.message; // TRANSLATED
+            errorDiv.style.display = 'block';
+            setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+        }
+
+        if (touchIdText) touchIdText.innerText = t('login.bio.reset'); // TRANSLATED
+
+    } finally {
+        window.isBiometricProcessing = false; // Release Lock
+        if (touchIdBtn) {
+            touchIdBtn.classList.remove('loading');
+            touchIdBtn.style.pointerEvents = 'auto'; // Re-enable clicks
+        }
+    }
+}
+
+// === USER AVATAR HANDLING ===
+function triggerAvatarUpload() {
+    const input = document.getElementById('avatar-upload');
+    if (input) input.click();
+}
+
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate size (max 5MB for editing, will be reduced on save)
+    if (file.size > 5 * 1024 * 1024) {
+        alert(t('login.avatar.error') || 'Error max 5MB');
+        return;
+    }
+
+    // Open Avatar Editor
+    if (typeof openAvatarEditor === 'function') {
+        openAvatarEditor(file, (croppedBlob) => {
+            // Convert Blob to Base64
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+                // Optimize image size (resize to 256x256 max)
+                resizeImage(base64, 256, 256).then(resizedBase64 => {
+                    localStorage.setItem('user_avatar_admin', resizedBase64);
+                    updateAvatarUI(resizedBase64);
+                });
+            };
+            reader.readAsDataURL(croppedBlob);
+        });
+    } else {
+        // Fallback to old behavior if editor not available
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const base64 = e.target.result;
+            resizeImage(base64, 256, 256).then(resizedBase64 => {
+                localStorage.setItem('user_avatar_admin', resizedBase64);
+                updateAvatarUI(resizedBase64);
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Reset input for re-selection
+    event.target.value = '';
+}
+
+function updateAvatarUI(src) {
+    const container = document.getElementById('mainAvatarContainer');
+    if (!container) return;
+
+    // Create img element
+    const imgId = 'mainAvatarImg';
+    let img = document.getElementById(imgId);
+
+    if (!img) {
+        container.innerHTML = ''; // Clear icon
+        img = document.createElement('img');
+        img.id = imgId;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '50%';
+        container.appendChild(img);
+    }
+    img.src = src;
+}
+
+function checkSavedAvatar() {
+    const saved = localStorage.getItem('user_avatar_admin');
+    if (saved) {
+        updateAvatarUI(saved);
+    }
+}
+
+function resizeImage(base64Str, maxWidth = 256, maxHeight = 256) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            let canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+    });
+}
+
+
+// Register new biometric credential (called from Account Settings)
+async function registerBiometric() {
+    try {
+        if (!window.PublicKeyCredential) {
+            alert(t('login.bio.error.browser')); // TRANSLATED
+            return;
+        }
+
+        // 1. Get options from server
+        const startReq = await fetch('/api/auth/biometric/register-start', {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+
+        if (!startReq.ok) throw new Error('Error al iniciar registro');
+        const options = await startReq.json();
+
+        // Decode binary data for WebAuthn
+        const decode = (str) => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+
+        options.challenge = decode(options.challenge);
+        options.user.id = decode(options.user.id);
+        if (options.excludeCredentials) {
+            options.excludeCredentials = options.excludeCredentials.map(e => ({
+                ...e,
+                id: decode(e.id)
+            }));
+        }
+
+        // 2. Create credential
+        const credential = await navigator.credentials.create({ publicKey: options });
+
+        // 3. Verify with server
+        const toBase64Url = (buf) => {
+            let str = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                str += String.fromCharCode(bytes[i]);
+            }
+            return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        };
+
+        const finishReq = await fetch('/api/auth/biometric/register-finish', {
+            method: 'POST',
+            headers: {
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                response: {
+                    id: credential.id,
+                    rawId: toBase64Url(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        attestationObject: toBase64Url(credential.response.attestationObject),
+                        clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+                        transports: credential.response.getTransports ? credential.response.getTransports() : []
+                    }
+                }
+            })
+        });
+
+        if (finishReq.ok) {
+            Toastify({ text: "¡Huella/Rostro registrado con éxito!", style: { background: "#10b981" } }).showToast();
+            // Visual update
+            const statusMsg = document.getElementById('biometric-status-msg');
+            if (statusMsg) statusMsg.innerHTML = '<span style="color:#10b981; font-size:0.8rem">✓ Biométrico activo</span>';
+        } else {
+            const errData = await finishReq.json().catch(() => ({}));
+            console.error('Biometric Save Error:', errData);
+            throw new Error(errData.error || 'Error al guardar credencial');
+        }
+
+    } catch (error) {
+        console.error("Biometric register error:", error);
+        Toastify({ text: "Error: " + error.message, style: { background: "#ef4444" } }).showToast();
+    }
+}
+
 
 function initializeApp() {
     // Update sidebar username
@@ -619,6 +1166,14 @@ function setDesign(mode) {
     if (glassBlurControl) {
         glassBlurControl.style.display = mode === 'glass' ? 'flex' : 'none';
     }
+
+    // Re-apply adaptive theme if active (because Glass/Flat logic differs)
+    const adaptiveTheme = localStorage.getItem('adaptive_theme') === 'true';
+    const solidColor = localStorage.getItem('solid_color');
+    if (adaptiveTheme && solidColor) {
+        const rgb = hexToRgb(solidColor);
+        if (rgb) generateAdaptiveTheme(rgb);
+    }
 }
 
 function setAccentColor(color) {
@@ -940,31 +1495,96 @@ function applySolidColor() {
 function generateAdaptiveTheme(rgb) {
     const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
     const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const isFlat = document.documentElement.getAttribute('data-design') === 'material';
 
     // Determine if background is light or dark
     const isLight = luminance > 0.5;
 
     // Generate adaptive colors
     const textColor = isLight ? '#1d1d1f' : '#ffffff';
-    const mutedColor = isLight ? '#6b7280' : '#9ca3af';
+    const mutedColor = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)';
 
-    // Card backgrounds with better contrast
-    const cardBg = isLight
-        ? `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.min(hsl.l + 15, 95)}%)`
-        : `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.max(hsl.l - 20, 5)}%)`;
+    // CLAMP SATURATION: 
+    // Increased limit to 30% for richer colors, but still preventing neon-overload on surfaces
+    const uiSat = Math.min(hsl.s, 30);
 
-    const cardHover = isLight
-        ? `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.min(hsl.l + 20, 98)}%)`
-        : `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 10)}%, ${Math.max(hsl.l - 15, 8)}%)`;
+    let cardBg, cardHover, inputBg, borderColor, glassBg;
 
-    // Apply theme
-    document.documentElement.style.setProperty('--txt', textColor);
-    document.documentElement.style.setProperty('--muted', mutedColor);
-    document.documentElement.style.setProperty('--glass-gradient', cardBg);
-    document.documentElement.style.setProperty('--glass-hover', cardHover);
-    document.documentElement.style.setProperty('--input-bg', cardBg);
-    document.documentElement.style.setProperty('--glass-btn', cardBg);
-    document.documentElement.style.setProperty('--glass-btn-hover', cardHover);
+    if (isLight) {
+        // === LIGHT THEME LOGIC ===
+        const uiLight = 96; // Very bright surfaces
+        const opacity = isFlat ? 1.0 : 0.75;
+
+        // Richer tints for light mode
+        const tintSat = Math.min(hsl.s, 20); // Slightly less saturation for backgrounds
+
+        cardBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight}%, ${opacity})`;
+        cardHover = `hsla(${hsl.h}, ${tintSat}%, 100%, ${opacity})`;
+
+        // Glass specific
+        glassBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight + 2}%, ${isFlat ? 1.0 : 0.6})`;
+
+        inputBg = `hsla(${hsl.h}, ${tintSat}%, 93%, 0.8)`;
+        borderColor = `hsla(${hsl.h}, ${tintSat}%, 80%, 1)`;
+
+        if (isFlat) {
+            // Flat Light Specifics
+            borderColor = `hsla(${hsl.h}, ${tintSat}%, 90%, 1)`;
+        }
+
+    } else {
+        // === DARK THEME LOGIC ===
+        // UI Lightness: 
+        // Glass: Keep it dark (10-15%) for contrast
+        // Flat: Slightly lighter (12-18%) for visibility
+        const uiLight = isFlat ? 14 : 11;
+        const opacity = isFlat ? 1.0 : 0.65;
+
+        // Saturation for dark mode surfaces
+        const tintSat = Math.min(hsl.s, 25);
+
+        cardBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight}%, ${opacity})`;
+        cardHover = `hsla(${hsl.h}, ${tintSat}%, ${uiLight + 5}%, ${opacity + 0.1})`;
+
+        // Glass specific
+        glassBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight}%, ${isFlat ? 1.0 : 0.5})`;
+
+        inputBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight - 4}%, 0.6)`;
+        borderColor = `hsla(${hsl.h}, ${tintSat}%, 25%, 0.4)`;
+
+        if (isFlat) {
+            // Flat Dark Specifics - Clearer borders
+            borderColor = `hsla(${hsl.h}, ${tintSat}%, 30%, 1)`;
+            cardBg = `hsla(${hsl.h}, ${tintSat}%, ${uiLight}%, 1)`;
+        }
+    }
+
+    // Apply theme variables
+    const root = document.documentElement.style;
+    root.setProperty('--txt', textColor);
+    root.setProperty('--muted', mutedColor);
+
+    // Core Surfaces
+    root.setProperty('--glass-gradient', cardBg);
+    root.setProperty('--glass-bg', glassBg); // Update liquid-glass var as well
+    root.setProperty('--glass-hover', cardHover);
+
+    // Inputs & Borders
+    root.setProperty('--input-bg', inputBg);
+    root.setProperty('--glass-border', borderColor);
+    root.setProperty('--glass-border-top', borderColor);
+    root.setProperty('--glass-border-bottom', borderColor);
+
+    // Buttons - derive from accents or surface depending on style
+    // We keep them blending with the theme
+    root.setProperty('--glass-btn', cardBg);
+    root.setProperty('--glass-btn-hover', cardHover);
+    root.setProperty('--glass-btn-text', textColor);
+
+    // Update specific variables for Flat/Material design overrides
+    root.setProperty('--modal-bg', cardBg);
+    root.setProperty('--sb', isFlat ? cardBg : glassBg);
+    root.setProperty('--console-bg', inputBg);
 }
 
 function removeSolidColor() {
@@ -972,6 +1592,24 @@ function removeSolidColor() {
     localStorage.removeItem('solid_color');
     localStorage.removeItem('solid_color_space');
     localStorage.removeItem('adaptive_theme');
+
+    // Reset adaptive theme variables
+    const root = document.documentElement.style;
+    root.removeProperty('--txt');
+    root.removeProperty('--muted');
+    root.removeProperty('--glass-gradient');
+    root.removeProperty('--glass-bg');
+    root.removeProperty('--glass-hover');
+    root.removeProperty('--input-bg');
+    root.removeProperty('--glass-border');
+    root.removeProperty('--glass-border-top');
+    root.removeProperty('--glass-border-bottom');
+    root.removeProperty('--glass-btn');
+    root.removeProperty('--glass-btn-hover');
+    root.removeProperty('--glass-btn-text');
+    root.removeProperty('--modal-bg');
+    root.removeProperty('--sb');
+    root.removeProperty('--console-bg');
 
     // Reset adaptive theme
     const theme = localStorage.getItem('theme') || 'dark';
@@ -1643,8 +2281,107 @@ function openAccountSettings() {
     document.getElementById('new-password').value = '';
     document.getElementById('confirm-password').value = '';
 
+    // Init Avatar UI
+    currentSelfAvatarFile = null;
+    const preview = document.getElementById('self-avatar-preview');
+    const input = document.getElementById('self-avatar-input');
+    if (input) input.value = '';
+
+    if (currentUser && currentUser.avatar) {
+        preview.src = currentUser.avatar;
+        preview.style.display = 'block';
+        preview.style.width = '100px';
+        preview.style.height = '100px';
+        preview.style.borderRadius = '50%';
+        preview.style.objectFit = 'cover';
+        preview.style.margin = '0 auto';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+        // Show placeholder
+    }
+
     modal.style.display = 'flex';
 }
+
+let currentSelfAvatarFile = null;
+window.previewSelfAvatar = function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Use Avatar Editor if available
+    if (typeof openAvatarEditor === 'function') {
+        openAvatarEditor(file, async (croppedBlob) => {
+            currentSelfAvatarFile = croppedBlob;
+
+            // Update preview immediately
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.getElementById('self-avatar-preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.borderRadius = '50%';
+                img.style.objectFit = 'cover';
+                img.style.margin = '0 auto';
+            };
+            reader.readAsDataURL(croppedBlob);
+
+            // AUTO-UPLOAD to server
+            try {
+                const formData = new FormData();
+                formData.append('avatar', croppedBlob, 'avatar.png');
+                const uploadRes = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+                const uploadJson = await uploadRes.json();
+
+                if (uploadJson.success) {
+                    const avatarUrl = uploadJson.avatarUrl;
+                    // Save avatar URL to user profile
+                    await fetch('/api/account/avatar', {
+                        method: 'POST',
+                        headers: {
+                            ...getAuthHeaders(),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ avatar: avatarUrl })
+                    });
+                    currentUser.avatar = avatarUrl;
+                    currentSelfAvatarFile = null; // Clear pending file
+
+                    Toastify({ text: 'Avatar saved!', style: { background: '#10b981' }, duration: 2000 }).showToast();
+
+                    // Refresh user list if admin
+                    if (currentUser.role === 'admin') loadUsers();
+                } else {
+                    console.error('Avatar upload failed:', uploadJson);
+                    Toastify({ text: 'Upload failed', style: { background: '#ef4444' }, duration: 2000 }).showToast();
+                }
+            } catch (err) {
+                console.error('Avatar upload error:', err);
+                Toastify({ text: 'Connection error', style: { background: '#ef4444' }, duration: 2000 }).showToast();
+            }
+        });
+    } else {
+        // Fallback (no editor)
+        currentSelfAvatarFile = file;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = document.getElementById('self-avatar-preview');
+            img.src = e.target.result;
+            img.style.display = 'block';
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            img.style.margin = '0 auto';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Reset input for re-selection
+    event.target.value = '';
+};
 
 // Close account settings modal
 function closeAccountModal() {
@@ -1694,7 +2431,10 @@ function loadUsers() {
             list.innerHTML = users.map(user => `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--glass-border)">
                     <div style="display:flex; align-items:center; gap:12px">
-                        <i class="fa-solid fa-user" style="color:var(--p); font-size:1.2rem"></i>
+                        ${user.avatar ?
+                    `<img src="${user.avatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1)">` :
+                    `<i class="fa-solid fa-user" style="color:var(--p); font-size:1.2rem; width:40px; text-align:center"></i>`
+                }
                         <div>
                             <div style="font-weight:600">${user.username}</div>
                             <div style="font-size:0.85rem; color:var(--muted)">
@@ -1757,6 +2497,28 @@ function createUser() {
 }
 
 // Edit user permissions (beautiful modal version)
+let currentEditAvatarFile = null;
+
+window.previewEditAvatar = function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        currentEditAvatarFile = file;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = document.getElementById('edit-avatar-preview');
+            img.src = e.target.result;
+            img.style.display = 'block';
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            img.style.margin = '0 auto';
+            img.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+};
+
 function editUser(username) {
     // Get current user data
     api('users/list', null, 'GET')
@@ -1780,6 +2542,25 @@ function editUser(username) {
             // Show/hide permissions form based on role
             toggleEditPermissionsForm();
 
+            // Reset Avatar UI
+            currentEditAvatarFile = null;
+            const preview = document.getElementById('edit-avatar-preview');
+            const previewInput = document.getElementById('edit-avatar-input');
+            if (previewInput) previewInput.value = '';
+
+            if (user.avatar) {
+                preview.src = user.avatar;
+                preview.style.display = 'block';
+                preview.style.width = '100px';
+                preview.style.height = '100px';
+                preview.style.borderRadius = '50%';
+                preview.style.objectFit = 'cover';
+                preview.style.margin = '0 auto';
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+
             // Show modal
             document.getElementById('edit-user-modal').style.display = 'flex';
         });
@@ -1800,7 +2581,7 @@ function closeEditUserModal() {
 }
 
 // Save user edits
-function saveUserEdit() {
+async function saveUserEdit() {
     const username = document.getElementById('edit-user-username').value;
     const role = document.getElementById('edit-user-role').value;
 
@@ -1811,8 +2592,22 @@ function saveUserEdit() {
         permissions = Array.from(checkboxes).map(cb => cb.value);
     }
 
+    // Upload Avatar if changed
+    let avatarUrl = undefined;
+    if (currentEditAvatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', currentEditAvatarFile);
+        try {
+            const uploadRes = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+            const uploadJson = await uploadRes.json();
+            if (uploadJson.success) avatarUrl = uploadJson.avatarUrl;
+        } catch (e) {
+            console.error('Avatar upload failed', e);
+        }
+    }
+
     // Update user
-    api('users/update', { username, role, permissions })
+    api('users/update', { username, role, permissions, avatar: avatarUrl })
         .then(res => {
             if (res.success) {
                 Toastify({ text: `User ${username} updated`, style: { background: '#10b981' } }).showToast();
@@ -1856,63 +2651,95 @@ if (typeof originalOpenAccountSettings === 'function') {
 }
 
 
-// Change username
-async function changeUsername() {
+// Save Account Profile (Username + Avatar)
+async function saveAccountProfile() {
     const newUsername = document.getElementById('new-username').value.trim();
 
-    if (!newUsername) {
-        Toastify({
-            text: t('msg.error') + ': ' + 'Ingresa un nombre de usuario',
-            style: { background: '#ef4444' }
-        }).showToast();
-        return;
-    }
+    // 1. Upload Avatar if changed
+    let avatarUpdated = false;
+    if (currentSelfAvatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', currentSelfAvatarFile);
+        try {
+            // Use same endpoint but for current user? 
+            // Actually /api/upload-avatar just returns url, we need to save it to user profile.
+            // We need a /api/account/avatar endpoint or update /api/account/username to include avatar.
+            // Let's assume we use /api/upload-avatar then update profile.
 
-    if (newUsername === currentUser.username) {
-        Toastify({
-            text: 'El nombre de usuario es el mismo',
-            style: { background: '#f59e0b' }
-        }).showToast();
-        return;
-    }
+            const uploadRes = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+            const uploadJson = await uploadRes.json();
 
-    try {
-        const response = await fetch('/api/account/username', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ username: newUsername })
-        });
+            if (uploadJson.success) {
+                // Now save this URL to the user's profile
+                const avatarUrl = uploadJson.avatarUrl;
 
-        const result = await response.json();
+                // We need an endpoint to update self avatar. 
+                // Creating one or reusing users/update? 
+                // users/update requires admin usually.
+                // I should check if /api/account/update exists.
+                // Assuming I need to add /api/account/avatar logic.
+                // For now, I'll try to send avatar with username update if possible, 
+                // OR add a specific call. 
 
-        if (result.success) {
-            currentUser.username = newUsername;
+                // Let's implement a quick /api/account/update-avatar on server side if not exists,
+                // OR just use users/update if it allows self-update (unlikely).
 
-            // Update UI
-            const sidebarUsername = document.getElementById('sidebar-username');
-            const accountUsername = document.getElementById('account-current-username');
-            if (sidebarUsername) sidebarUsername.textContent = newUsername;
-            if (accountUsername) accountUsername.textContent = newUsername;
+                // WAIT: I can just add avatar to the body of /api/account/username ?? 
+                // No, that endpoint likely only expects username.
 
-            document.getElementById('new-username').value = '';
+                // I will add a new endpoint /api/account/avatar in server.js or modify /api/account/username.
+                // For now let's try to send it to a new endpoint I'll create: /api/account/profile
 
-            Toastify({
-                text: t('msg.success') + ': Nombre actualizado',
-                style: { background: '#10b981' }
-            }).showToast();
-        } else {
-            Toastify({
-                text: t('msg.error') + ': ' + (result.error || 'Error al actualizar'),
-                style: { background: '#ef4444' }
-            }).showToast();
+                await fetch('/api/account/avatar', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ avatar: avatarUrl })
+                });
+
+                currentUser.avatar = avatarUrl;
+                avatarUpdated = true;
+            }
+        } catch (e) {
+            console.error('Avatar upload failed', e);
         }
-    } catch (error) {
-        console.error('Error changing username:', error);
-        Toastify({
-            text: t('msg.error') + ': Error de conexión',
-            style: { background: '#ef4444' }
-        }).showToast();
     }
+
+    // 2. Update Username if changed
+    if (newUsername && newUsername !== currentUser.username) {
+        try {
+            const response = await fetch('/api/account/username', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ username: newUsername })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                currentUser.username = newUsername;
+                Toastify({ text: 'Nombre de usuario actualizado', style: { background: '#10b981' } }).showToast();
+            } else {
+                Toastify({ text: result.error || 'Error al actualizar nombre', style: { background: '#ef4444' } }).showToast();
+            }
+        } catch (error) {
+            Toastify({ text: 'Error de conexión', style: { background: '#ef4444' } }).showToast();
+        }
+    } else if (avatarUpdated) {
+        Toastify({ text: 'Perfil actualizado', style: { background: '#10b981' } }).showToast();
+    }
+
+    // Update UI
+    if (currentUser.username) {
+        const sidebarUsername = document.getElementById('sidebar-username');
+        const accountUsername = document.getElementById('account-current-username');
+        if (sidebarUsername) sidebarUsername.textContent = currentUser.username;
+        if (accountUsername) accountUsername.textContent = currentUser.username;
+    }
+
+    // Refresh user list if we are admin
+    if (currentUser.role === 'admin') loadUsers();
+
+    document.getElementById('new-username').value = '';
+    currentSelfAvatarFile = null;
 }
 
 // Change password
@@ -2376,4 +3203,137 @@ document.addEventListener('DOMContentLoaded', () => {
                 verSpan.innerText = '1.7.0'; // Fallback on error
             });
     }
+    // Auto-init biometric support
+    if (typeof checkBiometricSupport === 'function') {
+        checkBiometricSupport();
+    }
+
+    // Init Avatar
+    if (typeof checkSavedAvatar === 'function') {
+        checkSavedAvatar();
+    }
 });
+// Toggle password visibility
+window.togglePassword = function () {
+    const passwordInput = document.getElementById('login-password');
+    const toggleBtn = document.getElementById('toggle-pass-btn');
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+};
+
+// === KEYBOARD SHORTCUTS (Alt + 1-7) ===
+document.addEventListener('keydown', (e) => {
+    if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+        const key = e.key;
+        // Ignore if typing in input
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+        const tabs = [
+            'stats',     // 1
+            'console',   // 2
+            'versions',  // 3
+            'whitelist', // 4
+            'files',     // 5
+            'labs',      // 6
+            'config'     // 7
+        ];
+
+        const index = parseInt(key) - 1;
+        if (index >= 0 && index < tabs.length) {
+            e.preventDefault();
+            const tabName = tabs[index];
+            // Find button to click to ensure UI sync (active class etc)
+            const btn = document.querySelector(`button[onclick*="setTab('${tabName}'"]`);
+            if (btn) {
+                btn.click();
+            } else {
+                // Fallback if button not found by simple selector
+                if (typeof setTab === 'function') setTab(tabName);
+            }
+        }
+    }
+});
+
+// === THEME MANAGER ===
+function applyTheme() {
+    const theme = localStorage.getItem('theme') || 'dark';
+    const design = localStorage.getItem('design') || 'glass';
+
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-design', design);
+}
+
+// Apply on load
+document.addEventListener('DOMContentLoaded', applyTheme);
+
+// === SPRINGY GLIDER ANIMATION FOR SEGMENT CONTROLS ===
+function initSegmentGliders() {
+    const segments = document.querySelectorAll('.segment-control');
+    segments.forEach(seg => {
+        if (!seg.querySelector('.seg-glider')) {
+            const glider = document.createElement('div');
+            glider.className = 'seg-glider';
+            seg.prepend(glider);
+        }
+        updateSegmentGlider(seg);
+        if (!seg.dataset.observed) {
+            segObserver.observe(seg, { subtree: true, attributes: true, attributeFilter: ['class'] });
+            seg.dataset.observed = 'true';
+        }
+    });
+}
+
+function updateSegmentGlider(seg) {
+    const activeItem = seg.querySelector('.seg-item.active');
+    const glider = seg.querySelector('.seg-glider');
+
+    if (activeItem && glider) {
+        // use offsetLeft - 4 to compensate for left:4px
+        const targetX = activeItem.offsetLeft - 4;
+        const targetW = activeItem.offsetWidth;
+        glider.style.transform = `translateX(${targetX}px)`;
+        glider.style.width = `${targetW}px`;
+    }
+}
+
+const segObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target;
+            if (target.classList.contains('seg-item') && target.classList.contains('active')) {
+                const seg = target.closest('.segment-control');
+                if (seg) updateSegmentGlider(seg);
+            }
+        }
+    });
+});
+
+document.addEventListener('click', (e) => {
+    const item = e.target.closest('.seg-item');
+    if (item) {
+        const seg = item.closest('.segment-control');
+        setTimeout(() => { if (seg) updateSegmentGlider(seg); }, 10);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initSegmentGliders, 100);
+});
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.segment-control').forEach(updateSegmentGlider);
+});
+
+// Re-init on modal open
+const _appearanceModal = document.getElementById('appearance-modal');
+if (_appearanceModal) {
+    const _obs = new MutationObserver(() => {
+        if (_appearanceModal.style.display !== 'none') setTimeout(initSegmentGliders, 50);
+    });
+    _obs.observe(_appearanceModal, { attributes: true, attributeFilter: ['style'] });
+}

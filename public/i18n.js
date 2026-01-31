@@ -111,7 +111,7 @@ const translations = {
 
         // Account
         'account.settings': 'Configuración de Cuenta',
-        'account.username': 'Nombre de Usuario',
+        'account.username': 'NOMBRE DE USUARIO',
         'account.password': 'Contraseña',
         'account.change.password': 'Cambiar Contraseña',
         'account.change.username': 'Cambiar Nombre',
@@ -123,6 +123,23 @@ const translations = {
         'account.permissions': 'Permisos',
         'account.role.admin': 'Administrador',
         'account.role.user': 'Usuario',
+        // New keys for Account Settings modal
+        'account.change_username': 'Cambiar Usuario',
+        'account.new_username': 'Nuevo Usuario',
+        'account.save_changes': 'Guardar Cambios',
+        'account.biometrics_title': 'Biométricos (TouchID / Windows Hello)',
+        'account.biometrics_desc': 'Inicia sesión sin contraseña usando tu huella o rostro.',
+        'account.configure_biometrics': 'Configurar Biométricos',
+        'account.change_password': 'Cambiar Contraseña',
+        'account.new_password': 'Nueva Contraseña',
+        'account.confirm_password': 'Confirmar Contraseña',
+        'account.change_password_btn': 'Cambiar Contraseña',
+        'account.user_management': 'Gestión de Usuarios',
+        'account.create_user': 'Crear Usuario',
+        // Avatar Editor
+        'avatar.edit': 'Editar Avatar',
+        'avatar.apply': 'Aplicar',
+        'avatar.cancel': 'Cancelar',
 
         // Permissions
         'perm.start': 'Iniciar Servidor',
@@ -269,6 +286,26 @@ const translations = {
         'scheduler.new_task': 'Nueva Tarea',
         'scheduler.task_name': 'Nombre de la Tarea',
         'scheduler.cron_expression': 'Expresión Cron',
+
+        // Biometric
+        'login.bio.scanning': 'Verificando...',
+        'login.bio.success': 'Identidad confirmada',
+        'login.bio.reset': 'Usa Touch ID o introduce la contraseña',
+        'login.bio.error.prefix': 'Error de biométrico: ',
+        'login.bio.error.browser': 'Tu navegador no soporta seguridad biométrica.',
+        'login.bio.error.cancel': 'Autenticación cancelada',
+        'login.bio.error.not_found': 'Biométrico no disponible',
+        'login.bio.error.not_found': 'Biométrico no disponible',
+        'login.bio.error.setup': 'Biométrico no configurado en el servidor',
+        'login.avatar.change': 'Cambiar Foto de Perfil',
+        'login.avatar.change': 'Cambiar Foto de Perfil',
+        'login.avatar.error': 'Error al subir imagen (Max 2MB)',
+        'msg.welcome': '¡Bienvenido',
+
+        // New UI
+        'settings.adaptive_label': 'Tema Adaptativo',
+        'settings.format_label': 'Formato',
+        'cores.install_title': 'Instalar',
     },
 
     en: {
@@ -383,7 +420,7 @@ const translations = {
 
         // Account
         'account.settings': 'Account Settings',
-        'account.username': 'Username',
+        'account.username': 'USERNAME',
         'account.password': 'Password',
         'account.change.password': 'Change Password',
         'account.change.username': 'Change Username',
@@ -395,6 +432,23 @@ const translations = {
         'account.permissions': 'Permissions',
         'account.role.admin': 'Administrator',
         'account.role.user': 'User',
+        // New keys for Account Settings modal
+        'account.change_username': 'Change Username',
+        'account.new_username': 'New Username',
+        'account.save_changes': 'Save Changes',
+        'account.biometrics_title': 'Biometrics (TouchID / Windows Hello)',
+        'account.biometrics_desc': 'Log in without password using your fingerprint or face.',
+        'account.configure_biometrics': 'Configure Biometrics',
+        'account.change_password': 'Change Password',
+        'account.new_password': 'New Password',
+        'account.confirm_password': 'Confirm Password',
+        'account.change_password_btn': 'Change Password',
+        'account.user_management': 'User Management',
+        'account.create_user': 'Create User',
+        // Avatar Editor
+        'avatar.edit': 'Edit Avatar',
+        'avatar.apply': 'Apply',
+        'avatar.cancel': 'Cancel',
 
         // Permissions
         'perm.start': 'Start Server',
@@ -519,6 +573,26 @@ const translations = {
         'perf.pid': 'PID',
         'perf.user': 'User',
         'perf.command': 'Command',
+
+        // Biometric
+        'login.bio.scanning': 'Scanning...',
+        'login.bio.success': 'Identity confirmed',
+        'login.bio.reset': 'Use Touch ID or enter password',
+        'login.bio.error.prefix': 'Biometric error: ',
+        'login.bio.error.browser': 'Your browser does not support biometric security.',
+        'login.bio.error.cancel': 'Authentication cancelled',
+        'login.bio.error.not_found': 'Biometric not available',
+        'login.bio.error.not_found': 'Biometric not available',
+        'login.bio.error.setup': 'Biometric not configured on server',
+        'login.avatar.change': 'Change Profile Picture',
+        'login.avatar.change': 'Change Profile Picture',
+        'login.avatar.error': 'Error uploading image (Max 2MB)',
+        'msg.welcome': 'Welcome',
+
+        // New UI
+        'settings.adaptive_label': 'Adaptive Theme',
+        'settings.format_label': 'Format',
+        'cores.install_title': 'Install',
     },
 
     pt: {
@@ -751,6 +825,26 @@ const translations = {
         'perf.node': 'Versão Node',
         'perf.os': 'Sistema Operacional',
         'perf.cores': 'Núcleos de CPU',
+
+        // Biometric
+        'login.bio.scanning': 'Verificando...',
+        'login.bio.success': 'Identidade confirmada',
+        'login.bio.reset': 'Use Touch ID ou digite a senha',
+        'login.bio.error.prefix': 'Erro biométrico: ',
+        'login.bio.error.browser': 'Seu navegador não suporta segurança biométrica.',
+        'login.bio.error.cancel': 'Autenticação cancelada',
+        'login.bio.error.not_found': 'Biometria não disponível',
+        'login.bio.error.not_found': 'Biometria não disponível',
+        'login.bio.error.setup': 'Biometria não configurada no servidor',
+        'login.avatar.change': 'Mudar Foto de Perfil',
+        'login.avatar.change': 'Mudar Foto de Perfil',
+        'login.avatar.error': 'Erro ao enviar imagem (Max 2MB)',
+        'msg.welcome': 'Bem-vindo',
+
+        // New UI
+        'settings.adaptive_label': 'Tema Adaptativo',
+        'settings.format_label': 'Formato',
+        'cores.install_title': 'Instalar',
     }
 };
 
@@ -807,6 +901,11 @@ function translatePage() {
         if (el.placeholder !== undefined) {
             el.placeholder = translation;
         }
+    });
+
+    // Translate attributes (titles)
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        el.title = t(el.dataset.i18nTitle);
     });
 }
 

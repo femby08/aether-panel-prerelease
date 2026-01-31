@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="liquid-glass.css">
     <link rel="stylesheet" href="checkbox.css">
     <link rel="stylesheet" href="premium_features.css">
+    <link rel="stylesheet" href="style_tail.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
@@ -28,6 +29,7 @@
     <script src="liquid-glass-alerts.js"></script>
     <script src="hig-components.js"></script>
     <script src="liquid-glass-physics.js"></script>
+    <script src="avatar-editor.js"></script>
 </head>
 
 <body>
@@ -49,40 +51,87 @@
 
     <div class="bg-particles"></div>
 
-    <!-- Login / Setup Screen -->
+    <!-- Login / Setup Screen (macOS Lock Screen Style) -->
     <div id="login-screen" class="login-screen">
-        <div class="glass login-box">
-            <div class="login-header">
-                <div class="brand-logo brand-logo-login">
-                    <img src="/logo.svg" alt="Aether" style="width:30px;">
+        <div class="login-box-macos">
+            <!-- User Carousel (3 avatars: left small, center big, right small) -->
+            <div class="user-carousel" id="userCarousel">
+                <input type="file" id="avatar-upload" accept="image/*" style="display: none;"
+                    onchange="handleAvatarUpload(event)">
+
+                <!-- Left user (smaller) -->
+                <div class="carousel-user side left" id="leftUser" onclick="switchUser('left')">
+                    <div class="avatar-small">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
                 </div>
-                <h2 id="login-title" class="login-title">AETHER PANEL <span id="login-version"
-                        style="opacity: 0.5; font-size: 0.6em;">(Loading...)</span></h2>
-                <p id="login-subtitle" class="login-subtitle">Acceso Administrativo (ES/EN/PT)</p>
+
+                <!-- Main user (center, bigger) -->
+                <div class="carousel-user main" id="mainUser" onclick="triggerAvatarUpload()"
+                    title="Cambiar Foto de Perfil" style="cursor: pointer;">
+                    <div class="avatar-main" id="mainAvatarContainer">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+
+                <!-- Right user (smaller) -->
+                <div class="carousel-user side right" id="rightUser" onclick="switchUser('right')">
+                    <div class="avatar-small">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
             </div>
 
-            <form id="login-form" onsubmit="handleLogin(event)" class="login-form">
-                <input type="text" id="login-username" class="cfg-in" placeholder="Usuario" required>
+            <!-- Username (purple) -->
+            <div class="user-name-display" id="currentUserName">admin</div>
 
+            <!-- Title + Version -->
+            <div class="login-title-section">
+                <span class="login-title">AETHER PANEL</span>
+                <span class="login-version" id="login-version">(1.7.1)</span>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="login-form-macos">
+                <!-- Password Row -->
                 <div class="password-row">
-                    <input type="password" id="login-password" class="cfg-in" placeholder="Contraseña" required>
-                    <button type="button" id="toggle-pass-btn" class="btn-ghost show-pass-btn"
-                        onclick="togglePassword()">Show</button>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" class="password-input" placeholder="Contraseña"
+                            required autocomplete="current-password">
+                        <button type="button" id="toggle-pass-btn" class="password-toggle-icon"
+                            onclick="togglePassword()">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <button type="submit" id="login-btn-submit" class="btn btn-primary login-btn-submit">
-                    LOGIN
+                <!-- Hidden username field -->
+                <input type="hidden" id="login-username" value="admin">
+
+                <!-- Login Button -->
+                <button type="submit" id="login-btn-submit" class="login-btn" data-i18n="login.enter">
+                    ACCEDER
                 </button>
             </form>
-            <div id="login-error" class="login-error">
+
+            <!-- Touch ID Option -->
+            <div class="touchid-section" id="touchIdSection">
+                <button type="button" id="touchIdBtn" class="touchid-btn" onclick="attemptBiometricLogin()">
+                    <i class="fa-solid fa-fingerprint"></i>
+                </button>
+                <p id="touchIdText" class="touchid-text" data-i18n="login.bio.reset">Usa Touch ID o introduce la
+                    contraseña</p>
             </div>
+
+            <div id="login-error" class="login-error-macos"></div>
         </div>
     </div>
 
     <div id="version-modal" class="modal-overlay" style="display:none">
         <div class="modal glass" style="max-height: 80vh;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-cloud-arrow-down"></i> Instalar</h3>
+                <h3><i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="cores.install_title">Instalar</span>
+                </h3>
                 <button class="btn btn-ghost" onclick="document.getElementById('version-modal').style.display='none'">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -91,8 +140,64 @@
         </div>
     </div>
 
+    <!-- Avatar Editor Modal (Discord Style) -->
+    <div id="avatar-editor-modal" class="modal-overlay" style="display:none; z-index: 20000;">
+        <div class="modal glass" style="max-width: 500px; padding: 0; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                <h3><span data-i18n="avatar.edit">Edit Avatar</span></h3>
+                <button class="btn btn-ghost" onclick="closeAvatarEditor()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="avatar-editor-body"
+                style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <!-- Canvas Container -->
+                <div class="editor-canvas-container"
+                    style="width: 300px; height: 300px; position: relative; overflow: hidden; border-radius: 8px; background: #1a1a1a; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                    <canvas id="avatar-editor-canvas" width="300" height="300"
+                        style="cursor: grab; display: block;"></canvas>
+                    <!-- Circular Overlay (Proper Radial Gradient Cutout) -->
+                    <div class="editor-circle-mask" style="
+                        position: absolute;
+                        inset: 0;
+                        pointer-events: none;
+                        background: radial-gradient(circle at center, transparent 140px, rgba(0,0,0,0.7) 142px);
+                    "></div>
+                    <!-- Circle Border -->
+                    <div class="editor-circle-border" style="
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 280px;
+                        height: 280px;
+                        transform: translate(-50%, -50%);
+                        border: 3px solid rgba(255,255,255,0.8);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
+                    "></div>
+                </div>
+
+                <!-- Zoom Control -->
+                <div class="editor-controls" style="width: 100%; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa-solid fa-image" style="font-size: 0.8rem; opacity: 0.7;"></i>
+                    <input type="range" id="avatar-zoom-slider" min="1" max="3" step="0.1" value="1" style="flex: 1;">
+                    <i class="fa-solid fa-image" style="font-size: 1.2rem; opacity: 0.9;"></i>
+                </div>
+            </div>
+
+            <div class="modal-footer"
+                style="padding: 16px 24px; border-top: 1px solid var(--glass-border); display: flex; justify-content: flex-end; gap: 12px; background: rgba(0,0,0,0.2);">
+                <button class="btn btn-ghost" onclick="closeAvatarEditor()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyAvatarCrop()">Apply</button>
+            </div>
+        </div>
+    </div>
+
     <div id="appearance-modal" class="modal-overlay" style="display:none">
-        <div class="modal glass" style="max-width: 520px; padding: 0; overflow: hidden;">
+        <div class="modal glass"
+            style="max-width: 560px; padding: 0; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header modal-header-custom">
                 <h3 style="font-weight: 800; font-size: 1.1rem; display:flex; align-items:center; gap:10px;">
                     <i class="fa-solid fa-paintbrush"></i> <span
@@ -200,38 +305,53 @@
                         </div>
                     </div>
 
-                    <!-- Solid Color Background -->
-                    <div class="setting-row" style="align-items: flex-start;">
-                        <span class="setting-label" data-i18n="settings.solid_color">Fondo Color Sólido</span>
-                        <div class="solid-color-controls">
-                            <div class="solid-color-input-row">
+                    <!-- Solid Background (Refined Layout) -->
+                    <div class="setting-row solid-bg-container">
+                        <!-- Row 1: Label and Inputs -->
+                        <div class="solid-bg-header">
+                            <span class="setting-label solid-bg-label" data-i18n="settings.solid_color">Solid
+                                Background</span>
+                            <div class="solid-bg-inputs">
                                 <div class="color-circle-wrapper">
                                     <input type="color" id="solid-color-picker"
                                         onchange="updateSolidColorPreview(this.value)">
                                 </div>
-                                <input type="text" id="solid-color-input" class="cfg-in" placeholder="#8b5cf6"
-                                    style="flex:1; max-width:110px; font-family:'JetBrains Mono';"
+                                <input type="text" id="solid-color-input" class="hex-pill" placeholder="FFFFFF"
                                     oninput="updateSolidColorFromInput(this.value)">
-                                <select id="color-space-select" class="cfg-in" style="flex:1; max-width:130px;">
-                                    <option value="srgb">sRGB</option>
-                                    <option value="display-p3">Display P3</option>
-                                    <option value="rec2020">Rec. 2020</option>
-                                </select>
+                                <div class="format-pill-wrapper">
+                                    <select id="color-space-select" class="format-pill">
+                                        <option value="srgb" data-i18n="settings.format_label">Format</option>
+                                        <option value="srgb">sRGB</option>
+                                        <option value="display-p3">P3</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </div>
                             </div>
-                            <div class="solid-color-buttons-row">
-                                <button class="btn btn-secondary" onclick="applySolidColor()"
-                                    style="padding: 9px 18px; font-size: 0.9rem;">
-                                    <i class="fa-solid fa-check"></i> <span data-i18n="settings.apply">Aplicar</span>
+                        </div>
+
+                        <!-- Row 2: Adaptive Toggle & Actions -->
+                        <div class="solid-bg-actions-row">
+                            <!-- Left: Adaptive Theme Toggle (Custom, no HIG override) -->
+                            <div class="adaptive-toggle-col">
+                                <label class="solid-toggle-wrapper">
+                                    <input type="checkbox" id="adaptive-theme-toggle"
+                                        class="solid-toggle-input no-physics">
+                                    <div class="solid-toggle-track">
+                                        <div class="solid-toggle-knob"></div>
+                                    </div>
+                                </label>
+                                <span class="adaptive-label" data-i18n="settings.adaptive_label">Adaptative Theme</span>
+                            </div>
+
+                            <!-- Right: Apply/Remove Segmented Control -->
+                            <div class="action-segment-control">
+                                <button class="action-seg-btn apply" onclick="applySolidColor()">
+                                    <span data-i18n="settings.apply">Apply</span>
                                 </button>
-                                <button class="btn btn-ghost" onclick="removeSolidColor()"
-                                    style="padding: 9px 18px; font-size: 0.9rem;">
-                                    <i class="fa-solid fa-xmark"></i> <span data-i18n="settings.remove">Quitar</span>
+                                <button class="action-seg-btn remove" onclick="removeSolidColor()">
+                                    <span data-i18n="settings.remove">Remove</span>
                                 </button>
                             </div>
-                            <label class="solid-color-checkbox">
-                                <input type="checkbox" id="adaptive-theme-toggle">
-                                <span data-i18n="settings.adaptive_theme">Generar tema adaptativo</span>
-                            </label>
                         </div>
                     </div>
 
@@ -292,7 +412,7 @@
             <div class="brand">
                 <div class="brand-logo"><img src="/logo.svg" alt="A" style="width:20px;"></div>
                 <span class="brand-name">AETHER</span>
-                <span class="version-badge" id="sidebar-version-text">V1.7.0</span>
+                <span class="version-badge" id="sidebar-version-text">V1.7.1</span>
             </div>
 
             <nav>
@@ -933,157 +1053,236 @@
 
     <!-- Account Settings Modal -->
     <div id="account-modal" class="modal-overlay" style="display:none">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-user-gear"></i> <span data-i18n="account.settings">Configuración de
-                        Cuenta</span></h3>
-                <button class="btn btn-ghost" onclick="closeAccountModal()" style="width:32px; height:32px; padding:0">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <!-- Floating Container -->
+        <div class="modal-floating-container">
+
+            <!-- Floating Header -->
+            <div class="modal-header-floating">
+                <h3>Account Settings</h3>
+                <button class="btn-clean-close" onclick="closeAccountModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div style="padding:30px; display:flex; flex-direction:column; gap:24px">
-                <!-- Current Username Display -->
-                <div class="setting-row">
-                    <span class="setting-label" data-i18n="account.username">Nombre de Usuario</span>
-                    <div style="display:flex; align-items:center; gap:12px">
-                        <code
-                            style="padding:8px 16px; background:rgba(139,92,246,0.1); border-radius:8px; font-family:'JetBrains Mono'; color:var(--p)">
+
+            <!-- Floating Body -->
+            <div class="modal-body-floating">
+                <div class="account-body-scroll">
+                    <!-- Profile Section -->
+                    <div class="profile-section-centered">
+                        <div class="profile-label" data-i18n="account.username">USERNAME</div>
+                        <div class="username-pill">
                             <span id="account-current-username">admin</span>
-                        </code>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Change Username Section -->
-                <div style="padding-top:12px; border-top:1px solid var(--glass-border)">
-                    <label class="cfg-label" data-i18n="account.change.username">Cambiar Nombre de Usuario</label>
-                    <input type="text" id="new-username" class="cfg-in" placeholder="Nuevo nombre de usuario"
-                        style="margin-top:8px">
-                    <button class="btn btn-secondary" onclick="changeUsername()" style="margin-top:12px; width:100%">
-                        <i class="fa-solid fa-pen"></i> <span data-i18n="button.save">Guardar Cambios</span>
-                    </button>
-                </div>
+                    <div class="divider-clean"></div>
 
-                <!-- Change Password Section -->
-                <div style="padding-top:12px; border-top:1px solid var(--glass-border)">
-                    <label class="cfg-label" data-i18n="account.change.password">Cambiar Contraseña</label>
-                    <input type="password" id="new-password" class="cfg-in" data-i18n-placeholder="account.new.password"
-                        placeholder="Nueva contraseña" style="margin-top:8px">
-                    <input type="password" id="confirm-password" class="cfg-in"
-                        data-i18n-placeholder="account.confirm.password" placeholder="Confirmar contraseña"
-                        style="margin-top:8px">
-                    <button class="btn btn-primary" onclick="changePassword()" style="margin-top:12px; width:100%">
-                        <i class="fa-solid fa-key"></i> <span data-i18n="account.change.password">Cambiar
-                            Contraseña</span>
-                    </button>
-                </div>
+                    <!-- Avatar Change Section -->
+                    <div class="avatar-upload-container" style="margin-top:20px;">
+                        <div class="avatar-circle" onclick="document.getElementById('self-avatar-input').click()">
+                            <img id="self-avatar-preview" src="" style="display:none">
+                            <div class="avatar-placeholder">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="avatar-overlay">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                        </div>
+                        <input type="file" id="self-avatar-input" accept="image/*" style="display:none"
+                            onchange="previewSelfAvatar(event)">
+                    </div>
 
-                <!-- User Management Section (Admin Only) -->
-                <div id="user-management-section" style="padding-top:12px; border-top:1px solid var(--glass-border)">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
-                        <label class="cfg-label" data-i18n="account.users">Gestión de Usuarios</label>
-                        <button class="btn btn-primary" onclick="toggleCreateUserForm()" style="padding:8px 16px;">
-                            <i class="fa-solid fa-plus"></i> <span data-i18n="account.createuser">Crear Usuario</span>
+                    <div class="form-section-clean">
+                        <div class="label-clean" data-i18n="account.change_username">Change Username</div>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" id="new-username" class="input-clean with-icon"
+                                data-i18n-placeholder="account.new_username" placeholder="New Username">
+                        </div>
+                        <button class="btn-secondary-clean" onclick="saveAccountProfile()"
+                            data-i18n="account.save_changes">
+                            Save Changes
                         </button>
                     </div>
 
-                    <!-- Create User Form (Hidden by default) -->
-                    <div id="create-user-form"
-                        style="display:none; background:rgba(139,92,246,0.05); padding:20px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(139,92,246,0.2)">
-                        <h4 style="margin-bottom:16px; font-weight:700"><i class="fa-solid fa-user-plus"></i> <span
-                                data-i18n="account.createuser">Crear Usuario</span></h4>
+                    <div class="divider-clean"></div>
 
-                        <input type="text" id="new-user-username" class="cfg-in" placeholder="Username"
-                            style="margin-bottom:12px">
-                        <input type="password" id="new-user-password" class="cfg-in" placeholder="Password"
-                            style="margin-bottom:12px">
+                    <!-- Biometrics -->
+                    <div class="form-section-clean">
+                        <div class="label-clean" data-i18n="account.biometrics_title">Biometrics (TouchID / Windows
+                            Hello)</div>
+                        <div class="sublabel-clean" data-i18n="account.biometrics_desc">Log in without password using
+                            your fingerprint or face.</div>
+                        <button class="btn-secondary-clean" onclick="registerBiometric()"
+                            data-i18n="account.configure_biometrics">
+                            Configure Biometrics
+                        </button>
+                        <div id="biometric-status-msg"></div>
+                    </div>
 
-                        <div style="margin-bottom:16px">
-                            <label style="font-weight:600; margin-bottom:8px; display:block; font-size:0.9rem"
-                                data-i18n="account.role">Rol</label>
-                            <select id="new-user-role" class="cfg-in" onchange="togglePermissionsForm()"
-                                style="margin-bottom:12px">
-                                <option value="admin" data-i18n="account.role.admin">Administrador</option>
-                                <option value="user" selected data-i18n="account.role.user">Usuario</option>
-                            </select>
+                    <div class="divider-clean"></div>
+
+                    <!-- Password -->
+                    <div class="form-section-clean">
+                        <div class="label-clean" data-i18n="account.change_password">Change Password</div>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-key input-icon"></i>
+                            <input type="password" id="new-password" class="input-clean with-icon"
+                                data-i18n-placeholder="account.new_password" placeholder="New Password">
+                        </div>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-check-double input-icon"></i>
+                            <input type="password" id="confirm-password" class="input-clean with-icon"
+                                data-i18n-placeholder="account.confirm_password" placeholder="Confirm Password">
+                        </div>
+                        <button class="btn-primary-clean glow" onclick="changePassword()"
+                            data-i18n="account.change_password_btn">
+                            Change Password
+                        </button>
+                    </div>
+
+                    <div class="divider-clean"></div>
+
+                    <!-- User Management -->
+                    <div id="user-management-section">
+                        <div class="user-mgmt-header">
+                            <span class="label-clean" data-i18n="account.user_management">User Management</span>
+                            <button class="btn-primary-clean small-pill" onclick="toggleCreateUserForm()"
+                                data-i18n="account.create_user">
+                                Create User
+                            </button>
                         </div>
 
-                        <!-- Permissions (Only for non-admin) -->
-                        <div id="permissions-form" style="margin-bottom:16px">
-                            <label style="font-weight:600; margin-bottom:12px; display:block; font-size:0.9rem"
-                                data-i18n="account.permissions">Permisos</label>
-                            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px">
-                                <!-- Server Control -->
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="start" style="width:16px; height:16px">
-                                    <span data-i18n="perm.start">Iniciar Servidor</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="stop" style="width:16px; height:16px">
-                                    <span data-i18n="perm.stop">Detener Servidor</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="restart" style="width:16px; height:16px">
-                                    <span data-i18n="perm.restart">Reiniciar Servidor</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="kill" style="width:16px; height:16px">
-                                    <span data-i18n="perm.kill">Forzar Apagado</span>
-                                </label>
+                        <!-- Create User Form (Hidden by default) -->
+                        <div id="create-user-form" class="create-user-card" style="display:none;">
+                            <h4 style="margin-bottom:16px; color:#fff; font-size:1.1rem; font-weight:600;">New User</h4>
 
-                                <!-- Access Permissions -->
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="console" style="width:16px; height:16px">
-                                    <span data-i18n="perm.console">Consola</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="files" style="width:16px; height:16px">
-                                    <span data-i18n="perm.files">Gestor de Archivos</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="config" style="width:16px; height:16px">
-                                    <span data-i18n="perm.config">Configuración</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="backups" style="width:16px; height:16px">
-                                    <span data-i18n="perm.backups">Backups</span>
-                                </label>
+                            <!-- PFP Upload Circle -->
+                            <div class="avatar-upload-container">
+                                <div class="avatar-circle" onclick="document.getElementById('avatar-input').click()">
+                                    <img id="avatar-preview" src="" style="display:none">
+                                    <div class="avatar-placeholder">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <div class="avatar-overlay">
+                                        <i class="fa-solid fa-camera"></i>
+                                    </div>
+                                </div>
+                                <input type="file" id="avatar-input" accept="image/*" style="display:none"
+                                    onchange="previewAvatar(event)">
+                            </div>
 
-                                <!-- Advanced Features -->
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="scheduler"
-                                        style="width:16px; height:16px">
-                                    <span data-i18n="perm.scheduler">Programador</span>
-                                </label>
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
-                                    <input type="checkbox" name="perm" value="logs" style="width:16px; height:16px">
-                                    <span data-i18n="perm.logs">Visor de Logs</span>
-                                </label>
+                            <!-- Row 1: Username -->
+                            <div style="margin-bottom:12px;">
+                                <input type="text" id="new-user-username" class="input-clean" placeholder="Username"
+                                    style="width:100%">
+                            </div>
+
+                            <!-- Row 2: Password + Role -->
+                            <div class="split-inputs-row">
+                                <div class="input-70">
+                                    <input type="password" id="new-user-password" class="input-clean"
+                                        placeholder="Password" style="width:100%">
+                                </div>
+                                <div class="input-30">
+                                    <!-- Custom Dropdown Wrapper -->
+                                    <div class="custom-select-wrapper" id="role-dropdown-wrapper">
+                                        <!-- Hidden Input -->
+                                        <input type="hidden" id="new-user-role" value="user">
+
+                                        <!-- Trigger -->
+                                        <div class="custom-dropdown-trigger" onclick="toggleRoleDropdown()">
+                                            <div class="trigger-content">
+                                                <div class="role-icon-badge user-bg"><i class="fa-solid fa-user"></i>
+                                                </div>
+                                                <span class="trigger-text">User</span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-down chevron-icon"></i>
+                                        </div>
+
+                                        <!-- Options Menu -->
+                                        <div class="custom-dropdown-menu" id="role-options-menu">
+                                            <div class="dropdown-item" onclick="selectRole('admin')">
+                                                <div class="role-icon-badge admin-bg"><i
+                                                        class="fa-solid fa-shield-halved"></i></div>
+                                                <div class="item-text-stack">
+                                                    <span class="item-title">Administrator</span>
+                                                    <span class="item-desc">Full access</span>
+                                                </div>
+                                                <i class="fa-solid fa-check check-mark" id="check-admin"
+                                                    style="display:none"></i>
+                                            </div>
+
+                                            <div class="dropdown-item selected" onclick="selectRole('user')">
+                                                <div class="role-icon-badge user-bg"><i class="fa-solid fa-user"></i>
+                                                </div>
+                                                <div class="item-text-stack">
+                                                    <span class="item-title">User</span>
+                                                    <span class="item-desc">Limited access</span>
+                                                </div>
+                                                <i class="fa-solid fa-check check-mark" id="check-user"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Permissions Form -->
+                            <div id="permissions-form" style="margin-top:20px; display:none;">
+                                <!-- Default hidden (User role) -->
+                                <label class="perm-section-title">Permissions</label>
+                                <div class="permissions-grid-3col">
+                                    <!-- Reusing standard names/values -->
+                                    <div class="perm-item">
+                                        <span>Start</span> <input type="checkbox" name="perm" value="start"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Stop</span> <input type="checkbox" name="perm" value="stop"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Restart</span> <input type="checkbox" name="perm" value="restart"
+                                            class="ios-switch">
+                                    </div>
+
+                                    <div class="perm-item">
+                                        <span>Kill</span> <input type="checkbox" name="perm" value="kill"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Console</span> <input type="checkbox" name="perm" value="console"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Files</span> <input type="checkbox" name="perm" value="files"
+                                            class="ios-switch">
+                                    </div>
+
+                                    <div class="perm-item">
+                                        <span>Backups</span> <input type="checkbox" name="perm" value="backups"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Scheduler</span> <input type="checkbox" name="perm" value="scheduler"
+                                            class="ios-switch">
+                                    </div>
+                                    <div class="perm-item">
+                                        <span>Logs</span> <input type="checkbox" name="perm" value="logs"
+                                            class="ios-switch">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions -->
+                            <div class="form-actions-split">
+                                <button class="btn-pill-primary" onclick="createUser()">Confirm</button>
+                                <button class="btn-pill-secondary" onclick="toggleCreateUserForm()">Cancel</button>
                             </div>
                         </div>
 
-                        <div style="display:flex; gap:12px">
-                            <button class="btn btn-primary" onclick="createUser()" style="flex:1">
-                                <i class="fa-solid fa-check"></i> <span data-i18n="button.create">Crear</span>
-                            </button>
-                            <button class="btn btn-ghost" onclick="toggleCreateUserForm()" style="flex:1">
-                                <i class="fa-solid fa-xmark"></i> <span data-i18n="button.cancel">Cancelar</span>
-                            </button>
+                        <!-- User List -->
+                        <div id="user-list" class="user-list-detailed">
+                            <!-- JS Populated -->
                         </div>
-                    </div>
-
-                    <!-- User List -->
-                    <div id="user-list" style="display:flex; flex-direction:column; gap:8px">
-                        <!-- Users will be populated here -->
                     </div>
                 </div>
             </div>
@@ -1146,68 +1345,78 @@
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="users" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.users">Users Manager</span>
+                            <span>User Management</span>
                         </label>
 
                         <!-- Server Management -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="start" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.start">Start Server</span>
+                            <span>Start Server</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="stop" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.stop">Stop Server</span>
+                            <span>Stop Server</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="restart" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.restart">Restart Server</span>
+                            <span>Restart Server</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="kill" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span>Kill Server</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
+                            <input type="checkbox" name="edit-perm" value="console" class="apple-toggle"
+                                style="width:16px; height:16px">
+                            <span>Console Access</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="command" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.command">Send Commands</span>
+                            <span>Send Commands</span>
                         </label>
 
                         <!-- File Management -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="files" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.files">File Manager</span>
+                            <span>File Manager</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="edit_files" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.edit_files">Edit Files</span>
+                            <span>Edit Files</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="upload_files" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.upload_files">Upload Files</span>
+                            <span>Upload Files</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="delete_files" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.delete_files">Delete Files</span>
+                            <span>Delete Files</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="backups" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.backups">Backups</span>
+                            <span>Backups</span>
                         </label>
 
                         <!-- Advanced Features -->
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="scheduler" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.scheduler">Scheduler</span>
+                            <span>Scheduler</span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem">
                             <input type="checkbox" name="edit-perm" value="logs" class="apple-toggle"
                                 style="width:16px; height:16px">
-                            <span data-i18n="perm.logs">Log Viewer</span>
+                            <span>Log Viewer</span>
                         </label>
 
                         <!-- System -->
@@ -1222,6 +1431,17 @@
                             <span>Versions/Cores</span>
                         </label>
                     </div>
+                </div>
+
+                <!-- Avatar Change Button -->
+                <div style="margin-top:20px; margin-bottom:12px;">
+                    <button class="btn-secondary-clean small-pill" style="width:100%; justify-content:center"
+                        onclick="document.getElementById('edit-avatar-input').click()">
+                        <i class="fa-solid fa-camera" style="margin-right:8px"></i> Change Profile Picture
+                    </button>
+                    <input type="file" id="edit-avatar-input" accept="image/*" style="display:none"
+                        onchange="previewEditAvatar(event)">
+                    <img id="edit-avatar-preview" src="" style="display:none">
                 </div>
 
                 <div style="display:flex; gap:12px; margin-top:8px">
