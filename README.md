@@ -75,7 +75,7 @@ curl -sL https://raw.githubusercontent.com/femby08/aether-panel-prerelease/main/
 
 ---
 
-### 🪟 Windows (PC / Server) — 🟡 Untested
+### 🪟 Windows (PC / Server) 
 
 1. Download the repository (`Code → Download ZIP`).  
 2. Unzip the folder.  
