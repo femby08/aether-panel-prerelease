@@ -37,7 +37,7 @@ Aether Panel is **universal** and works on most modern systems.
 | **Debian** | Ubuntu 20.04+, Debian 10+, Mint | `apt` | ✅ Native |
 | **RHEL** | Fedora 36+, CentOS 8+, Rocky | `dnf` | ✅ Native |
 | **Arch** | Arch Linux, Manjaro | `pacman` | ✅ Native |
-| **Windows** | Windows 10, 11, Server 2019+ | `.bat` | 🟡 Native (Untested) |
+| **Windows** | Windows 10, 11, Server 2019+ | `.bat` | ✅ Native |
 
 ---
 
